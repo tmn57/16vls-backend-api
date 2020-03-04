@@ -4,17 +4,20 @@ var path = require('path')
 var cookieParser = require('cookie-parser')
 var logger = require('morgan')
 var fs = require('fs')
+var dotenv = require('dotenv')
 
 var indexRouter = require('./routes/index')
 
 //Init Express App
 var app = express()
 
+dotenv.config()
+
 var port = process.env.PORT || '3000'
 app.set('port', port)
 
 let logFileName = (new Date()).toISOString()
-let logFileDir = '../logs/' + logFileName + '.log'
+let logFileDir = 'logs/' + logFileName + '.log'
 app.use(logger('common', {
     stream: fs.createWriteStream(logFileDir, {flags: 'a'})
 }));
