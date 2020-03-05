@@ -11,13 +11,3 @@ router.get('/test-route', (req, res, next) => {
 })
 
 module.exports = router
-
-module.exports = {
-  apps: [{
-    name: 'api',
-    script: './src/app.js',
-    cwd: '16vls-backend-api/',
-    "watch": "../",
-    "log_date_format": "YYYY-MM-DD HH:mm Z",
-  }]
-}
