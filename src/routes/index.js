@@ -7,7 +7,7 @@ router.get('/', (req, res, next) => {
 })
 
 router.get('/test-route',(req,res,next) => {
-  res.status(200).send('it is going to work')
+  res.status(200).send('it is going to work !')
 })
 
 module.exports = router
