@@ -10,4 +10,4 @@ router.get('/test-route', (req, res, next) => {
   res.status(200).send('it is going to work !')
 })
 
-module.exports = router
+module.exports = route
