@@ -29,7 +29,11 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
+// Some single route
 app.use('/', indexRouter)
+
+// Some middleware
+// require('./middlewares/passport')(app)
 
 //Init server
 var server  = http.createServer(app)
