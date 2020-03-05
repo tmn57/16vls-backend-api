@@ -16,11 +16,11 @@ dotenv.config()
 var port = process.env.PORT || '3000'
 app.set('port', port)
 
-let logFileName = (new Date()).toISOString()
-let logFileDir = 'logs/' + logFileName + '.log'
-app.use(logger('common', {
-    stream: fs.createWriteStream(logFileDir, {flags: 'a'})
-}));
+// let logFileName = (new Date()).toISOString()
+// let logFileDir = 'logs/' + logFileName + '.log'
+// app.use(logger('common', {
+//     stream: fs.createWriteStream(logFileDir, {flags: 'a'})
+// }));
 
 app.use(logger('dev'))
 
