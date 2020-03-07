@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser')
 var logger = require('morgan')
 var fs = require('fs')
 var dotenv = require('dotenv')
+var mongoose = require('mongoose')
 
 var indexRouter = require('./routes/index')
 
@@ -36,23 +37,38 @@ app.use('/', indexRouter)
 // require('./middlewares/passport')(app)
 
 //Init server
-var server  = http.createServer(app)
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+var server = http.createServer(app)
+server.listen(port)
+server.on('error', onError)
+server.on('listening', onListening)
 
 //
-function onError(error){
-    console.error(error.code)
+function onError(error) {
+  console.error(error.code)
 }
+
+//connect database
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-c2upe.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
+mongoose.connect(
+  uri,
+  {
+    useUnifiedTopology: true,
+    useNewUrlParser: true
+  },
+  err => {
+    if (err) {
+      console.log('Err in connect to MongoDB:', err)
+    } else {
+      console.log('Connected to the database')
+    }
+  }
+)
 
 //function
 function onListening() {
-    var addr = server.address();
-    var bind = typeof addr === 'string'
-      ? 'pipe ' + addr
-      : 'port ' + addr.port;
-    console.log('Listening on ' + bind);
+  var addr = server.address()
+  var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
+  console.log('Listening on ' + bind)
 }
 
 module.exports = app
