@@ -1,20 +1,20 @@
-var http = require('http')
-var express = require('express')
-var path = require('path')
-var cookieParser = require('cookie-parser')
-var logger = require('morgan')
-var fs = require('fs')
-var dotenv = require('dotenv')
-var mongoose = require('mongoose')
+const http = require('http')
+const express = require('express')
+const path = require('path')
+const cookieParser = require('cookie-parser')
+const logger = require('morgan')
+const fs = require('fs')
+const dotenv = require('dotenv')
+const mongoose = require('mongoose')
 
-var indexRouter = require('./routes/index')
+const indexRouter = require('./routes/index')
 
 //Init Express App
-var app = express()
+const app = express()
 
 dotenv.config()
 
-var port = process.env.PORT || '3000'
+const port = process.env.PORT || '3000'
 app.set('port', port)
 
 // let logFileName = (new Date()).toISOString()
@@ -34,10 +34,9 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use('/', indexRouter)
 
 // Some middleware
-// require('./middlewares/passport')(app)
 
 //Init server
-var server = http.createServer(app)
+const server = http.createServer(app)
 server.listen(port)
 server.on('error', onError)
 server.on('listening', onListening)
@@ -66,8 +65,8 @@ mongoose.connect(
 
 //function
 function onListening() {
-  var addr = server.address()
-  var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
+  const addr = server.address()
+  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
   console.log('Listening on ' + bind)
 }
 

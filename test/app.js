@@ -1,5 +1,5 @@
-var request = require('supertest')
-var app = require('../src/app.js')
+const request = require('supertest')
+const app = require('../src/app.js')
 
 describe('GET /', function () {
     it('home route', function (done) {
