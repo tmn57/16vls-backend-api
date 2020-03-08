@@ -48,20 +48,24 @@ function onError(error) {
 
 //connect database
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-c2upe.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
-mongoose.connect(
-  uri,
-  {
-    useUnifiedTopology: true,
-    useNewUrlParser: true
-  },
-  err => {
-    if (err) {
-      console.log('Err in connect to MongoDB:', err)
-    } else {
-      console.log('Connected to the database')
+const connectDatabase = () => {
+  mongoose.connect(
+    uri,
+    {
+      useUnifiedTopology: true,
+      useNewUrlParser: true
+    },
+    err => {
+      if (err) {
+        console.log('Failed to connect to mongo on startup - retrying in 2 sec', err)
+        setTimeout(connectDatabase, 2000)
+      } else {
+        console.log('Connected to the database')
+      }
     }
-  }
-)
+  )
+}
+connectDatabase()
 
 //function
 function onListening() {

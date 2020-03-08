@@ -17,7 +17,7 @@ const isAuthenticated = async req => {
     const { authorization } = req.headers
     const token = authorization.substring(7)
     const { userId } = jwt.verify(token, '16vls-secret')
-    const userVerify = await User.findOne({ _id: userId })
+    const userVerify = await User.findOne({ _id: userId, isVerified: true, isEnabled: true })
     if (userVerify) {
       return {
         statusCheck: true,
