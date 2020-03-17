@@ -1,12 +1,14 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../models/user')
+const UserVerify = require('../models/verify')
 const bcrypt = require('bcryptjs')
 const CryptoJS = require('crypto-js')
 const jwt = require('jsonwebtoken')
 const isAuthenticated = require('../utils/auth')
 const { uuid } = require('uuidv4')
-const { phoneNumberVerify } = require('../utils/common')
+const { phoneNumberVerify, getRandomCode } = require('../utils/common')
+const sendSMSVerify = require('../utils/twilio.sms')
 
 /* GET home page. */
 router.get('/', (req, res, next) => {
@@ -143,7 +145,6 @@ router.post('/register', async (req, res, next) => {
       }
     }
   } catch (error) {
-    console.log(error)
     res.status(403).json({
       success: false,
       message: error
@@ -151,6 +152,130 @@ router.post('/register', async (req, res, next) => {
   }
 })
 
+router.post('/getCodeVerify', async (req, res, next) => {
+  try {
+    const { phone } = req.body
+    if (!phoneNumberVerify.test(phone)) {
+      res.status(403).json({
+        success: false,
+        message: 'invalid phone number!'
+      })
+    } else {
+      const userExisted = await User.findOne({ phone })
+      if (userExisted) {
+        if (!userExisted.isEnabled) {
+          res.status(403).json({
+            success: false,
+            message:
+              'This account was existed and have been locked, please contact to administrator!'
+          })
+        } else {
+          if (!userExisted.isVerified) {
+            await UserVerify.updateMany(
+              { phone, isUsed: false },
+              {
+                $set: { isUsed: true } 
+              }
+            )
+            const codeSent = getRandomCode()
+            const newUserVerify = new UserVerify()
+            newUserVerify._id = uuid()
+            newUserVerify.phone = userExisted.phone
+            newUserVerify.verifiedCode = await bcrypt.hash(codeSent, 10)
+            newUserVerify.save()
+            const smsSent = await sendSMSVerify(codeSent, userExisted.phone)
+            res.status(200).json(smsSent)
+          } else {
+            res.status(403).json({
+              success: false,
+              message: 'This phone number has been verified!'
+            })
+          }
+        }
+      } else {
+        res.status(403).json({
+          success: false,
+          message: 'This phone number has not been registered before!'
+        })
+      }
+    }
+  } catch (error) {
+    res.status(403).json({
+      success: false,
+      message: error.toString()
+    })
+  }
+})
+
+router.post('/verifyAccount', async (req, res, next) => {
+  try {
+    const { code, phone } = req.body
+    if (!phoneNumberVerify.test(phone)) {
+      res.status(403).json({
+        success: false,
+        message: 'invalid phone number!'
+      })
+    } else {
+      const userExisted = await User.findOne({ phone })
+      const userNeedVerified = await UserVerify.findOne({ phone, isUsed: false })
+      if (userExisted && userNeedVerified) {
+        if (!userExisted.isEnabled) {
+          res.status(403).json({
+            success: false,
+            message:
+              'This account was existed and have been locked, please contact to administrator!'
+          })
+        } else {
+          if (!userExisted.isVerified) {
+            // console.log(CryptoJS.AES.encrypt('054262', '16vls-secret').toString())
+            const verifyCode = CryptoJS.AES.decrypt(
+              code,
+              '16vls-secret'
+            ).toString(CryptoJS.enc.Utf8)
+            const matched = await bcrypt.compare(verifyCode, userNeedVerified.verifiedCode)
+            if (matched) {
+              const result1 = await UserVerify.updateOne(
+                { phone, isUsed: false },
+                {
+                  $set: { isUsed: true }
+                }
+              )
+              const result2 = await User.updateOne(
+                { phone },
+                {
+                  $set: { isVerified: true }
+                }
+              )
+              if (result1 && result2) {
+                res.status(200).json({
+                  success: true,
+                  message: 'This phone number is verified!'
+                })
+              }
+            } else {
+              res.status(403).json({
+                success: false,
+                message: 'This code is incorrect'
+              })
+            }
+          } else {
+            res.status(403).json({
+              success: false,
+              message: 'This phone number has been verified!'
+            })
+          }
+        }
+      } else {
+        res.status(403).json({
+          success: false,
+          message: 'This phone number has not been registered before!'
+        })
+      }
+    }
+  } catch (error) {
+    res.status(403).json(error)
+  }
+})
 // for route ('/verifyAccount')
 // const result = await sendSMSVerify('XuanNghiemNguyen', req.body.phone)
 // res.status(200).json(result)

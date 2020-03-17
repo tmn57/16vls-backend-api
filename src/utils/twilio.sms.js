@@ -26,6 +26,7 @@ const sendSMSVerify = async (codeVerify, phone) => {
       }
     }
   } catch (error) {
+    console.log(JSON.stringify(error))
     return {
       success: false,
       message: error
