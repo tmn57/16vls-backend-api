@@ -4,8 +4,7 @@ const UserSchema = new Schema(
   {
     _id: String,
     phone: String,
-    lastname: String,
-    firstname: String,
+    name: String,
     password: String,
     email: { type: String, default: 'user@domain.com' },
     address: String,
