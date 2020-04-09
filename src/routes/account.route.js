@@ -9,7 +9,7 @@ const { phoneNumberVerify, getRandomCode } = require('../utils/common')
 const sendSMSVerify = require('../utils/twilio.sms')
 const { PHONE_CODE_KEY } = require('../config')
 
-router.post('/getCodeVerify', async (req, res, next) => {
+router.post('/getCode', async (req, res, next) => {
   try {
     const { userId } = req.tokenPayload
     const { phone } = req.body
@@ -71,7 +71,7 @@ router.post('/getCodeVerify', async (req, res, next) => {
   }
 })
 
-router.post('/verifyAccount', async (req, res, next) => {
+router.post('/verify', async (req, res, next) => {
   try {
     console.log(CryptoJS.AES.encrypt('056560', PHONE_CODE_KEY).toString())
     const { userId } = req.tokenPayload
