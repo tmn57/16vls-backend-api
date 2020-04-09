@@ -12,8 +12,8 @@ const app = express()
 
 dotenv.config()
 
-const port = process.env.PORT || '3000'
-app.set('port', port)
+const apiPort = process.env.PORT || '3000'
+const socketioPort = process.env.SOCKETIO_PORT || '5555'
 
 // let logFileName = (new Date()).toISOString()
 // let logFileDir = 'logs/' + logFileName + '.log'
@@ -54,11 +54,17 @@ function onError(err, req, res, next) {
   console.log(err)
 }
 
-//Init server
-const server = http.createServer(app)
-server.listen(port)
-server.on('error', onError)
-server.on('listening', onListening)
+//Init apiServer
+const apiServer = http.Server(app)
+apiServer.listen(apiPort)
+apiServer.on('error', error => onError('apiServer', error))
+apiServer.on('listening', () => onListening(apiServer))
+
+//Init socketio server
+const socketServer = http.Server(app)
+socketServer.listen(socketioPort)
+socketServer.on('error', error => onError('socketServer', error))
+socketServer.on('listening', () => onListening(socketServer))
 
 
 //connect database
@@ -80,13 +86,19 @@ const connectDatabase = () => {
     }
   )
 }
+
 connectDatabase()
 
-//function
-function onListening() {
+//helpers
+const onListening = server => {
   const addr = server.address()
   const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
   console.log('Listening on ' + bind)
 }
 
+const onError = (serverName, error) => {
+  console.error(`from ${serverName}: ${error.code}`)
+}
+
 module.exports = app
+
