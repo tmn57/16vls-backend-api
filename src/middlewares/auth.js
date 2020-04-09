@@ -6,12 +6,12 @@ const isAuthenticated = (req, res, next) => {
   const token = req.headers['access-token']
   if (token) {
     jwt.verify(token, JWT_KEY, function (err, payload) {
-      if (err) throw createError(401, err)
+      if (err) throw createError(498, err)
       req.tokenPayload = payload
       next()
     })
   } else {
-    throw createError(401, 'token is not found.')
+    throw createError(498, 'token is not found.')
   }
 }
 

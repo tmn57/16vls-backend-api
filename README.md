@@ -20,5 +20,5 @@ secret-code:
 link API:
  + login: ./users/login
  + register: ./users/register
- + verify: ./accounts/verify
- + getCodeVerify: ./accounts/getCode
+ + verify: ./users/verify
+ + getCodeVerify: ./users/getCode

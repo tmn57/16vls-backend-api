@@ -35,7 +35,6 @@ app.get('/', (req, res) => {
 
 app.use('/users', require('./routes/user.route'))
 app.use('/stores', isAuthenticated, require('./routes/store.route'))
-app.use('/accounts', isAuthenticated, require('./routes/account.route'))
 
 //handle error
 app.use(function (err, req, res, next) {
