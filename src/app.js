@@ -3,11 +3,9 @@ const express = require('express')
 const path = require('path')
 const cookieParser = require('cookie-parser')
 const logger = require('morgan')
-const fs = require('fs')
 const dotenv = require('dotenv')
 const mongoose = require('mongoose')
-
-const indexRouter = require('./routes/index')
+const { isAuthenticated } = require('./middlewares/auth')
 
 //Init Express App
 const app = express()
@@ -21,7 +19,7 @@ app.set('port', port)
 // let logFileDir = 'logs/' + logFileName + '.log'
 // app.use(logger('common', {
 //     stream: fs.createWriteStream(logFileDir, {flags: 'a'})
-// }));
+// }))
 
 app.use(logger('dev'))
 
@@ -30,10 +28,31 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
-// Some single route
-app.use('/', indexRouter)
+// Some route
+app.get('/', (req, res) => {
+  res.json({
+    msg: '16VLS API'
+  })
+})
 
-// Some middleware
+app.use('/users', require('./routes/user.route'))
+app.use('/stores', isAuthenticated, require('./routes/store.route'))
+app.use('/accounts', isAuthenticated, require('./routes/account.route'))
+
+//handle error
+app.use(function (err, req, res, next) {
+  res.json(err)
+})
+
+// NOT FOUND API
+app.use((req, res, next) => {
+  res.status(404).send('NOT FOUND')
+})
+
+//handle error
+function onError(err, req, res, next) {
+  console.log(err)
+}
 
 //Init server
 const server = http.createServer(app)
@@ -41,10 +60,6 @@ server.listen(port)
 server.on('error', onError)
 server.on('listening', onListening)
 
-//
-function onError(error) {
-  console.error(error.code)
-}
 
 //connect database
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-c2upe.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
