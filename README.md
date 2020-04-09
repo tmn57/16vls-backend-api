@@ -18,7 +18,7 @@ secret-code:
  + jwt-login: 16vls-s3cr3t-jwt-login
 
 link API:
- + login: ./api/users/login
- + register: ./api/users/register
- + verify: ./api/accounts/verifyAccount
- + getCodeVerify: ./api/accounts/getCodeVerify
+ + login: ./users/login
+ + register: ./users/register
+ + verify: ./accounts/verifyAccount
+ + getCodeVerify: ./accounts/getCodeVerify
