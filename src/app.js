@@ -30,9 +30,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 // Some route
 app.get('/', (req, res) => {
-  res.json({
-    msg: '16VLS API'
-  })
+  res.send('16vls web API')
 })
 
 app.use('/users', require('./routes/user.route'))
@@ -49,16 +47,14 @@ app.use((req, res, next) => {
   res.status(404).send('NOT FOUND')
 })
 
-//handle error
-function onError(err, req, res, next) {
-  console.log(err)
-}
+
 
 //Init apiServer
 const apiServer = http.Server(app)
 apiServer.listen(apiPort)
 apiServer.on('error', error => onError('apiServer', error))
 apiServer.on('listening', () => onListening(apiServer))
+
 
 //Init socketio server
 const socketServer = http.Server(app)
