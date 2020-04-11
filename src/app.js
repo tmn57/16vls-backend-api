@@ -6,7 +6,7 @@ const logger = require('morgan')
 const dotenv = require('dotenv')
 const mongoose = require('mongoose')
 const { isAuthenticated } = require('./middlewares/auth')
-
+const { cryptoExchange } = require('./CryptoJs')
 //Init Express App
 const app = express()
 
@@ -31,6 +31,9 @@ app.use(express.static(path.join(__dirname, 'public')))
 // Some route
 app.get('/', (req, res) => {
   res.send('16vls web API')
+})
+app.get('/cryptoJS', (req, res) => {
+  res.send(cryptoExchange)
 })
 
 app.use('/users', require('./routes/user.route'))

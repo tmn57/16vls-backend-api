@@ -3,7 +3,7 @@ const router = express.Router()
 const User = require('../models/user')
 const { PASSWORD_KEY, PHONE_CODE_KEY, JWT_KEY } = require('../config')
 const jwt = require('jsonwebtoken')
-const UserVerify = require('../models/verify')
+const User_Verify = require('../models/verify')
 const bcrypt = require('bcryptjs')
 const CryptoJS = require('crypto-js')
 const { uuid } = require('uuidv4')
@@ -16,7 +16,7 @@ router.post('/login', async (req, res, next) => {
     if (!phone || !password) {
       return res.json({
         success: false,
-        message: 'phone and password are required!',
+        message: 'phone and password are required!'
       })
     } else {
       User.findOne({ phone }).then(async (user) => {
@@ -25,13 +25,13 @@ router.post('/login', async (req, res, next) => {
             return res.status(403).json({
               success: false,
               message:
-                'This account have been locked, please contact to administrator!',
+                'This account have been locked, please contact to administrator!'
             })
           } else {
             if (!user.isVerified) {
               return res.status(403).json({
                 success: false,
-                message: 'This account is not verified!',
+                message: 'This account is not verified!'
               })
             }
             // Encrypt password
@@ -49,19 +49,19 @@ router.post('/login', async (req, res, next) => {
                 success: true,
                 message: 'Login successfully!',
                 token,
-                user,
+                user
               })
             } else {
               return res.status(400).json({
                 success: false,
-                message: 'Password is incorrect!',
+                message: 'Password is incorrect!'
               })
             }
           }
         } else {
           return res.status(403).json({
             success: false,
-            message: 'This account is not existed!',
+            message: 'This account is not existed!'
           })
         }
       })
@@ -69,7 +69,7 @@ router.post('/login', async (req, res, next) => {
   } catch (err) {
     return res.status(500).json({
       success: false,
-      message: err,
+      message: err
     })
   }
 })
@@ -80,13 +80,13 @@ router.post('/register', async (req, res, next) => {
     if (!phone || !password || !name) {
       return res.status(400).json({
         success: false,
-        message: 'phone, password, name are required!',
+        message: 'phone, password, name are required!'
       })
     }
     if (!phoneNumberVerify.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: 'invalid phone number!',
+        message: 'invalid phone number!'
       })
     } else {
       const userExisted = await User.findOne({ phone })
@@ -95,20 +95,20 @@ router.post('/register', async (req, res, next) => {
           return res.status(403).json({
             success: false,
             message:
-              'This account was existed and have been locked, please contact to administrator!',
+              'This account was existed and have been locked, please contact to administrator!'
           })
         } else {
           if (!userExisted.isVerified) {
             return res.status(403).json({
               success: false,
               message:
-                'This account was existed and have not been verified yet!',
+                'This account was existed and have not been verified yet!'
             })
           } else {
             return res.status(403).json({
               success: false,
               message:
-                'This phone number has already used, please type another number!',
+                'This phone number has already used, please type another number!'
             })
           }
         }
@@ -127,14 +127,14 @@ router.post('/register', async (req, res, next) => {
         return res.json({
           success: true,
           message: 'create account successfully!',
-          profile: newUser,
+          profile: newUser
         })
       }
     }
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.toString(),
+      message: error.toString()
     })
   }
 })
@@ -145,7 +145,7 @@ router.post('/getCode', async (req, res, next) => {
     if (!phoneNumberVerify.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: 'invalid phone number!',
+        message: 'invalid phone number!'
       })
     } else {
       const userExisted = await User.findOne({ phone })
@@ -154,18 +154,18 @@ router.post('/getCode', async (req, res, next) => {
           return res.status(403).json({
             success: false,
             message:
-              'This account was existed and have been locked, please contact to administrator!',
+              'This account was existed and have been locked, please contact to administrator!'
           })
         } else {
           if (!userExisted.isVerified) {
-            await UserVerify.updateMany(
+            await User_Verify.updateMany(
               { phone, isUsed: false },
               {
-                $set: { isUsed: true },
+                $set: { isUsed: true }
               }
             )
             const codeSent = getRandomCode()
-            const newUserVerify = new UserVerify()
+            const newUserVerify = new User_Verify()
             newUserVerify._id = uuid()
             newUserVerify.phone = userExisted.phone
             newUserVerify.verifiedCode = await bcrypt.hash(codeSent, 10)
@@ -175,21 +175,21 @@ router.post('/getCode', async (req, res, next) => {
           } else {
             return res.status(403).json({
               success: false,
-              message: 'This phone number has been verified!',
+              message: 'This phone number has been verified!'
             })
           }
         }
       } else {
         return res.status(403).json({
           success: false,
-          message: 'This phone number has not been registered before!',
+          message: 'This phone number has not been registered before!'
         })
       }
     }
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.toString(),
+      message: error.toString()
     })
   }
 })
@@ -200,26 +200,26 @@ router.post('/verify', async (req, res, next) => {
     if (!phone || !code) {
       return res.status(400).json({
         success: false,
-        message: 'phone, code are required!',
+        message: 'phone, code are required!'
       })
     }
     if (!phoneNumberVerify.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: 'invalid phone number!',
+        message: 'invalid phone number!'
       })
     } else {
       const userExisted = await User.findOne({ phone })
-      const userNeedVerified = await UserVerify.findOne({
+      const userNeedVerified = await User_Verify.findOne({
         phone,
-        isUsed: false,
+        isUsed: false
       })
       if (userExisted && userNeedVerified) {
         if (!userExisted.isEnabled) {
           return res.status(403).json({
             success: false,
             message:
-              'This account was existed and have been locked, please contact to administrator!',
+              'This account was existed and have been locked, please contact to administrator!'
           })
         } else {
           if (!userExisted.isVerified) {
@@ -232,34 +232,34 @@ router.post('/verify', async (req, res, next) => {
               userNeedVerified.verifiedCode
             )
             if (matched) {
-              const result1 = await UserVerify.updateOne(
+              const result1 = await User_Verify.updateOne(
                 { phone, isUsed: false },
                 {
-                  $set: { isUsed: true },
+                  $set: { isUsed: true }
                 }
               )
               const result2 = await User.updateOne(
                 { phone },
                 {
-                  $set: { isVerified: true },
+                  $set: { isVerified: true }
                 }
               )
               if (result1 && result2) {
                 return res.json({
                   success: true,
-                  message: 'This phone number is verified!',
+                  message: 'This phone number is verified!'
                 })
               }
             } else {
               return res.status(400).json({
                 success: false,
-                message: 'This code is incorrect',
+                message: 'This code is incorrect'
               })
             }
           } else {
             return res.status(403).json({
               success: false,
-              message: 'This phone number has been verified!',
+              message: 'This phone number has been verified!'
             })
           }
         }
@@ -268,12 +268,12 @@ router.post('/verify', async (req, res, next) => {
           return res.status(403).json({
             success: false,
             message:
-              'There are no codes sent for this phone number before, please get code!',
+              'There are no codes sent for this phone number before, please get code!'
           })
         } else {
           return res.status(403).json({
             success: false,
-            message: 'This phone number has not been registered before!',
+            message: 'This phone number has not been registered before!'
           })
         }
       }
