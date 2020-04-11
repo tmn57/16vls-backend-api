@@ -9,7 +9,10 @@ DB Mongo link:
 mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-c2upe.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority
 
 **
-Link chuyển đổi cryptoJs: ./cryptoJS
+
+Link chuyển đổi cryptoJs: 
+http://18.139.1.106:3000/cryptoJS
+
 Nhận token dưới dạng: token  = req.headers['access-token']
 
 secret-code:
