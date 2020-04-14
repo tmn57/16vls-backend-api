@@ -88,48 +88,46 @@ router.post('/register', async (req, res, next) => {
         success: false,
         message: 'invalid phone number!'
       })
-    } else {
-      const userExisted = await User.findOne({ phone })
-      if (userExisted) {
-        if (!userExisted.isEnabled) {
+    }
+    const userExisted = await User.findOne({ phone })
+    if (userExisted) {
+      if (!userExisted.isEnabled) {
+        return res.status(403).json({
+          success: false,
+          message:
+            'This account was existed and have been locked, please contact to administrator!'
+        })
+      } else {
+        if (!userExisted.isVerified) {
+          return res.status(403).json({
+            success: false,
+            message: 'This account was existed and have not been verified yet!'
+          })
+        } else {
           return res.status(403).json({
             success: false,
             message:
-              'This account was existed and have been locked, please contact to administrator!'
+              'This phone number has already used, please type another number!'
           })
-        } else {
-          if (!userExisted.isVerified) {
-            return res.status(403).json({
-              success: false,
-              message:
-                'This account was existed and have not been verified yet!'
-            })
-          } else {
-            return res.status(403).json({
-              success: false,
-              message:
-                'This phone number has already used, please type another number!'
-            })
-          }
         }
-      } else {
-        const newUser = new User()
-        newUser._id = uuid()
-        newUser.phone = phone
-        newUser.name = name.trim()
-        let decodedPassword = CryptoJS.AES.decrypt(
-          password,
-          PASSWORD_KEY
-        ).toString(CryptoJS.enc.Utf8)
-        newUser.password = await bcrypt.hash(decodedPassword, 10)
-        newUser.save()
-
-        return res.json({
-          success: true,
-          message: 'create account successfully!',
-          profile: newUser
-        })
       }
+    } else {
+      const newUser = new User()
+      newUser._id = uuid()
+      newUser.phone = phone
+      newUser.name = name.trim()
+      let decodedPassword = CryptoJS.AES.decrypt(
+        password,
+        PASSWORD_KEY
+      ).toString(CryptoJS.enc.Utf8)
+      newUser.password = await bcrypt.hash(decodedPassword, 10)
+      await newUser.save()
+
+      return res.json({
+        success: true,
+        message: 'create account successfully!',
+        profile: newUser
+      })
     }
   } catch (error) {
     return res.status(500).json({
@@ -169,7 +167,7 @@ router.post('/getCode', async (req, res, next) => {
             newUserVerify._id = uuid()
             newUserVerify.phone = userExisted.phone
             newUserVerify.verifiedCode = await bcrypt.hash(codeSent, 10)
-            newUserVerify.save()
+            await newUserVerify.save()
             const smsSent = await sendSMSVerify(codeSent, userExisted.phone)
             return res.json(smsSent)
           } else {

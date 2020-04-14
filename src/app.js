@@ -41,7 +41,7 @@ app.use('/stores', isAuthenticated, require('./routes/store.route'))
 
 //handle error
 app.use(function (err, req, res, next) {
-  res.json(err)
+  res.status(err.status).json(err)
 })
 
 // NOT FOUND API

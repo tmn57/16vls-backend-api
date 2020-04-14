@@ -1,28 +1,49 @@
 const express = require('express')
 const router = express.Router()
-const isAuthenticated = require('../middlewares/auth')
+const createError = require('http-errors')
+const { uuid } = require('uuidv4')
+const Store = require('../models/store')
+const { phoneNumberVerify } = require('../utils/common')
 
 router.post('/create', async (req, res, next) => {
   try {
-    const auth = await isAuthenticated(req)
-    if (auth.statusCheck) {
-      if (auth.userByToken.isVerified) {
-        const shopOwner = auth.userByToken
-        // be creating shop
-      } else {
-        return res.json({
+    const { userId } = req.tokenPayload
+    const { name, phone } = req.body
+    if (!phone || !name) {
+      throw createError(400, 'phone and name are required!')
+    } else {
+      if (!phoneNumberVerify.test(phone)) {
+        return res.status(400).json({
           success: false,
-          message: 'Please verify your account!'
+          message: 'invalid phone number!'
         })
       }
-    } else {
-      return res.json({
-        success: false,
-        message: auth.message
-      })
+      const existedPhone = await Store.findOne({ phone })
+      const existedName = await Store.findOne({ name })
+      if (existedPhone || existedName) {
+        return res.status(400).json({
+          success: false,
+          message: `${
+            existedPhone
+              ? 'phone number'
+              : "store's name" 
+          }` + ' is already existed!'
+        })
+      } else {
+        let newStore = new Store({
+          _id: uuid(),
+          createdBy: userId,
+          ...req.body
+        })
+        await newStore.save()
+        return res.status(201).json({
+          success: true,
+          newStore
+        })
+      }
     }
   } catch (error) {
-    return res.json({
+    return res.status(500).json({
       success: false,
       message: error.toString()
     })
