@@ -29,5 +29,5 @@ link API:
  + create store: ./stores/create
  + add categories to store: ./stores/categories/add
  + remove categories to store: ./stores/categories/delete
- + create product: ./product/create
+ + create product: ./products/create
 
