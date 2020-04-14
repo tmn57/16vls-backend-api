@@ -25,3 +25,9 @@ link API:
  + register: ./users/register
  + verify: ./users/verify
  + getCodeVerify: ./users/getCode
+
+ + create store: ./stores/create
+ + add categories to store: ./stores/categories/add
+ + remove categories to store: ./stores/categories/delete
+ + create product: ./product/create
+

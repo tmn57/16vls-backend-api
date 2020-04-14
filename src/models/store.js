@@ -7,6 +7,7 @@ const StoreSchema = new Schema(
     phone: String,
     email: String,
     ownerName: String,
+    categories: [String],
     isActive: Boolean,
     address: String,
     profileLink: String,
@@ -15,7 +16,7 @@ const StoreSchema = new Schema(
     createdAt: { type: Number, default: +new Date() },
     avatar: String,
     description: String,
-    createdBy: String
+    createdBy: String, //userID
   },
   {
     versionKey: false // remove field "__v"

@@ -11,12 +11,9 @@ const UserSchema = new Schema(
     avatarUrl: String,
     isEnabled: { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },
-    isShopOwner: { type: Boolean, default: false },
     facebookId: String,
     updatedAt: { type: Number, default: +new Date() },
-    updatedBy: String,
-    createdAt: { type: Number, default: +new Date() },
-    createdBy: String
+    createdAt: { type: Number, default: +new Date() }
   },
   {
     versionKey: false // remove field "__v"

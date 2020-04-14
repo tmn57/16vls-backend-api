@@ -38,6 +38,7 @@ app.get('/cryptoJS', (req, res) => {
 
 app.use('/users', require('./routes/user.route'))
 app.use('/stores', isAuthenticated, require('./routes/store.route'))
+app.use('/products', isAuthenticated, require('./routes/product.route'))
 
 //handle error
 app.use(function (err, req, res, next) {
