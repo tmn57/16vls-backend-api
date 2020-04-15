@@ -44,7 +44,7 @@ router.post('/login', async (req, res, next) => {
             )
             const matched = await bcrypt.compare(hash, user.password)
             if (matched) {
-              const token = jwt.sign({ userId: user._id }, JWT_KEY)
+              const token = jwt.sign({ userId: user._id, type: user.type }, JWT_KEY)
               return res.json({
                 success: true,
                 message: 'Login successfully!',
@@ -126,6 +126,7 @@ router.post('/register', async (req, res, next) => {
       return res.json({
         success: true,
         message: 'create account successfully!',
+        type: 'normal',
         profile: newUser
       })
     }

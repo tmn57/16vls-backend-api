@@ -3,7 +3,7 @@ const router = express.Router()
 const createError = require('http-errors')
 const { uuid } = require('uuidv4')
 const Store = require('../models/store')
-const { phoneNumberVerify } = require('../utils/common')
+const { phoneNumberVerify, isAdmin } = require('../utils/common')
 
 router.post('/create', async (req, res, next) => {
   try {
@@ -46,6 +46,57 @@ router.post('/create', async (req, res, next) => {
   }
 })
 
+router.get('/', async (req, res, next) => {
+  try {
+    const { userId, type } = req.tokenPayload
+    const _id = req.query.id
+    const storeFound = isAdmin(type)
+      ? await Store.findOne({ _id })
+      : await Store.findOne({ _id }, { createdBy: userId })
+    if (storeFound) {
+      return res.status(200).json({
+        success: true,
+        store: storeFound
+      })
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'store not found!'
+      })
+    }
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.toString()
+    })
+  }
+})
+
+router.get('/all', async (req, res, next) => {
+  try {
+    const { userId, type } = req.tokenPayload
+    const storesFound = isAdmin(type)
+      ? await Store.find({})
+      : await Store.find({ createdBy: userId })
+    if (storesFound && storesFound.length > 0) {
+      return res.status(200).json({
+        success: true,
+        stores: storesFound
+      })
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'This user does not own any store!'
+      })
+    }
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.toString()
+    })
+  }
+})
+
 router.post('/categories/add', async (req, res, next) => {
   try {
     const { categories, storeId } = req.body
@@ -62,10 +113,9 @@ router.post('/categories/add', async (req, res, next) => {
         if (storeFound.categories.length < 1) {
           storeFound.categories = [...categories]
         } else {
-          let insert = Array.from(new Set([
-            ...storeFound.categories,
-            ...new Set(categories)
-          ]))
+          let insert = Array.from(
+            new Set([...storeFound.categories, ...new Set(categories)])
+          )
           storeFound.categories = [...insert]
         }
         await storeFound.save()
@@ -102,7 +152,9 @@ router.post('/categories/delete', async (req, res, next) => {
             message: 'nothing to delete!'
           })
         }
-        let remain = storeFound.categories.filter(x => !categories.includes(x))
+        let remain = storeFound.categories.filter(
+          (x) => !categories.includes(x)
+        )
         storeFound.categories = [...remain]
         await storeFound.save()
         return res.status(201).json({

@@ -7,6 +7,10 @@ const phoneNumberVerify = new RegExp(
   'im'
 )
 
+const isAdmin = (type) => {
+  return type === 'admin' ? true : false
+}
+
 const getRandomCode = () => {
   let ss = Math.floor(Math.random() * Math.floor(100000))
     .toString()
@@ -21,6 +25,7 @@ const COMMON = {
   ACCOUNT_SID,
   AUTH_TOKEN,
   phoneNumberVerify,
-  getRandomCode
+  getRandomCode,
+  isAdmin
 }
 module.exports = COMMON

@@ -29,5 +29,10 @@ link API:
  + create store: ./stores/create
  + add categories to store: ./stores/categories/add
  + remove categories to store: ./stores/categories/delete
- + create product: ./products/create
+ + get info of store by id: ./stores?id=...
+ + get info of all stores by user's id (from access-token): ./stores/all
 
+
+ + create product: ./products/create
+ + get info of product by id: ./products?id=...
+ + get info of all products by store's id: ./products/allByStore?id=...
