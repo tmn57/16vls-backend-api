@@ -21,18 +21,18 @@ secret-code:
  + jwt-login: 16vls-s3cr3t-jwt-login
 
 link API:
- + login: ./users/login
- + register: ./users/register
- + verify: ./users/verify
- + getCodeVerify: ./users/getCode
+ + login: `./users/login`
+ + register: `./users/register`
+ + verify: `./users/verify`
+ + getCodeVerify: `./users/getCode`
 
- + create store: ./stores/create
- + add categories to store: ./stores/categories/add
- + remove categories to store: ./stores/categories/delete
- + get info of store by id: ./stores?id=...
- + get info of all stores by user's id (from access-token): ./stores/all
+ + create store: `./stores/create`
+ + add categories to store: `./stores/categories/add`
+ + remove categories to store: `./stores/categories/delete`
+ + get info of store by id: `./stores?id=...`
+ + get info of all stores by user's id (from access-token): `./stores/all`
 
 
- + create product: ./products/create
- + get info of product by id: ./products?id=...
- + get info of all products by store's id: ./products/allByStore?id=...
+ + create product: `./products/create`
+ + get info of product by id: `./products?id=...`
+ + get info of all products by store's id: `./products/allByStore?id=...`
