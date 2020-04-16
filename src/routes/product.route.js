@@ -46,7 +46,7 @@ router.get('/', async (req, res, next) => {
     const _id = req.query.id
     const productFound = isAdmin(type)
       ? await Product.findOne({ _id })
-      : await Product.findOne({ _id }, { createdBy: userId })
+      : await Product.findOne({ _id, createdBy: userId })
     if (productFound) {
       return res.status(200).json({
         success: true,
@@ -72,7 +72,7 @@ router.get('/allByStore', async (req, res, next) => {
     const storeId = req.query.id
     const productsFound = isAdmin(type)
       ? await Product.find({ storeId })
-      : await Product.find({ storeId }, { createdBy: userId })
+      : await Product.find({ storeId, createdBy: userId })
     if (productsFound && productsFound.length > 0) {
       return res.status(200).json({
         success: true,

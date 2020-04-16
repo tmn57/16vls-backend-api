@@ -52,7 +52,7 @@ router.get('/', async (req, res, next) => {
     const _id = req.query.id
     const storeFound = isAdmin(type)
       ? await Store.findOne({ _id })
-      : await Store.findOne({ _id }, { createdBy: userId })
+      : await Store.findOne({ _id, createdBy: userId })
     if (storeFound) {
       return res.status(200).json({
         success: true,

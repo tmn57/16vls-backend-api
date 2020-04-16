@@ -36,3 +36,6 @@ link API:
  + create product: `./products/create`
  + get info of product by id: `./products?id=...`
  + get info of all products by store's id: `./products/allByStore?id=...`
+ + upload multi images: `./images/upload`
+ + get image file by id: `./images?id=...`
+ + get all infor image by user (from access-token): `./images/allByUser`
