@@ -21,6 +21,7 @@ secret-code:
  + jwt-login: 16vls-s3cr3t-jwt-login
 
 link API:
+
 #Common API
  + login: `./login`
  + register: `./register`
@@ -30,7 +31,7 @@ link API:
 
 #Common API for user
  + Change password: `./users/changePass`
- + update profile: `./user/update`
+ + update profile: `./users/update`
 
 #Common API for store
  + create store: `./stores/create`
