@@ -7,6 +7,7 @@ const dotenv = require('dotenv')
 const mongoose = require('mongoose')
 const { isAuthenticated } = require('./middlewares/auth')
 const { cryptoExchange } = require('./CryptoJs')
+require('express-async-errors')
 //Init Express App
 const app = express()
 
@@ -36,14 +37,15 @@ app.get('/cryptoJS', (req, res) => {
   res.send(cryptoExchange)
 })
 
-app.use('/users', require('./routes/user.route'))
+app.use('/', require('./routes/common.route'))
 app.use('/stores', isAuthenticated, require('./routes/store.route'))
 app.use('/products', isAuthenticated, require('./routes/product.route'))
 app.use('/images', isAuthenticated, require('./routes/image.route'))
+app.use('/users', isAuthenticated, require('./routes/user.route'))
 
 //handle error
 app.use(function (err, req, res, next) {
-  res.status(err.status).json(err)
+  return res.status(err.status).json(err)
 })
 
 // NOT FOUND API

@@ -16,7 +16,7 @@ const StoreSchema = new Schema(
     createdAt: { type: Number, default: +new Date() },
     avatar: String,
     description: String,
-    createdBy: String, //userID
+    createdBy: String //userID
   },
   {
     versionKey: false // remove field "__v"
