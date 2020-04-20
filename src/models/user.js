@@ -9,7 +9,7 @@ const UserSchema = new Schema(
     password: String,
     email: { type: String, default: 'user@domain.com' },
     address: String,
-    avatarUrl: String,
+    avatar: String,
     isEnabled: { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },
     facebookId: String,

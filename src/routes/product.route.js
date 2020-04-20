@@ -92,4 +92,94 @@ router.get('/allByStore', async (req, res, next) => {
   }
 })
 
+router.post('/getByConditions', async (req, res, next) => {
+  try {
+    const { userId, type } = req.tokenPayload
+    const { conditions } = req.body
+    if (!conditions || Object.keys(conditions).length < 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'this route required 1 condition least'
+      })
+    }
+    if (conditions.createdBy && !isAdmin(type)) delete conditions.createdBy
+    const productsFound = isAdmin(type)
+      ? await Product.find({ ...conditions })
+      : await Product.find({ createdBy: userId, ...conditions })
+    console.log(productsFound)
+    if (productsFound && productsFound.length > 0) {
+      return res.status(200).json({
+        success: true,
+        stores: productsFound
+      })
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'there is no results for this conditions!'
+      })
+    }
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.toString()
+    })
+  }
+})
+
+
+router.post('/update', async (req, res, next) => {
+  try {
+    const { _id, content } = req.body
+    if (Object.keys(req.body).length < 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'nothing to update'
+      })
+    }
+    if (!_id || !content) {
+      return res.status(400).json({
+        success: false,
+        message: '_id, content are required!'
+      })
+    }
+    const {
+      name,
+      variants,
+      storeId,
+      description,
+      tags,
+      categories,
+      images
+    } = content
+    const { userId } = req.tokenPayload
+    const product = await Product.findOne({ _id, createdBy: userId })
+    if (product) {
+      if (name) product.name = name
+      if (storeId) product.storeId = storeId
+      if (description) product.description = description
+      if (images) product.images = images
+      if (variants) product.variants = variants
+      if (tags) product.tags = tags
+      if (categories) product.categories = categories
+      product.updatedAt = +new Date()
+      await product.save()
+      return res.status(201).json({
+        success: true,
+        result: product
+      })
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: 'product not found in database!'
+      })
+    }
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.toString()
+    })
+  }
+})
+
+
 module.exports = router

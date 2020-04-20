@@ -13,14 +13,14 @@ router.post('/update', async (req, res, next) => {
         message: 'nothing to update'
       })
     }
-    const { name, email, address, avatarUrl } = req.body
+    const { name, email, address, avatar } = req.body
     const { userId } = req.tokenPayload
     const user = await User.findOne({ _id: userId })
     if (user) {
       if (name) user.name = name
       if (email) user.email = email
       if (address) user.address = address
-      if (avatarUrl) user.avatarUrl = avatarUrl
+      if (avatar) user.avatar = avatar
       user.updatedAt = +new Date()
       await user.save()
       return res.status(201).json({

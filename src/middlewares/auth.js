@@ -13,8 +13,8 @@ const isAuthenticated = (req, res, next) => {
       const user = await User.findOne({
         _id: userId
       })
-      if (!user.isEnabled) {
-        return res.status(401).json({ message: 'this account was blocked!' }) //error is found by promise func (is not handled in app.js)
+      if (!user || !user.isEnabled) {
+        return res.status(401).json({ message: 'this account not found or was blocked!' }) //error is found by promise func (is not handled in app.js)
       }
       next()
     })

@@ -19,7 +19,8 @@ const ProductSchema = new Schema(
     },
     categories: [String],
     isEnabled: { type: Boolean, default: true },
-    createdAt: { type: Number, default: +new Date() }
+    createdAt: { type: Number, default: +new Date() },
+    updatedBy: { type: Number, default: +new Date() }
   },
   {
     versionKey: false // remove field "__v"

@@ -97,6 +97,97 @@ router.get('/all', async (req, res, next) => {
   }
 })
 
+router.post('/getByConditions', async (req, res, next) => {
+  try {
+    const { userId, type } = req.tokenPayload
+    const { conditions } = req.body
+    if (!conditions || Object.keys(conditions).length < 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'this route required 1 condition least'
+      })
+    }
+    if (conditions.createdBy && !isAdmin(type)) delete conditions.createdBy
+    const storesFound = isAdmin(type)
+      ? await Store.find({ ...conditions })
+      : await Store.find({ createdBy: userId, ...conditions })
+    if (storesFound && storesFound.length > 0) {
+      return res.status(200).json({
+        success: true,
+        stores: storesFound
+      })
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'there is no results for this conditions!'
+      })
+    }
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.toString()
+    })
+  }
+})
+
+router.post('/update', async (req, res, next) => {
+  try {
+    const { _id, content } = req.body
+    if (Object.keys(req.body).length < 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'nothing to update'
+      })
+    }
+    if (!_id || !content) {
+      return res.status(400).json({
+        success: false,
+        message: '_id, content are required!'
+      })
+    }
+    const {
+      name,
+      phone,
+      email,
+      ownerName,
+      address,
+      profileLink,
+      websiteLink,
+      description,
+      avatar
+    } = content
+    const { userId } = req.tokenPayload
+    const store = await Store.findOne({ _id, createdBy: userId })
+    if (store) {
+      if (name) store.name = name
+      if (email) store.email = email
+      if (ownerName) store.ownerName = ownerName
+      if (profileLink) store.profileLink = profileLink
+      if (websiteLink) store.websiteLink = websiteLink
+      if (description) store.description = description
+      if (address) store.address = address
+      if (phone) store.phone = phone
+      if (avatar) store.avatar = avatar
+      store.updatedAt = +new Date()
+      await store.save()
+      return res.status(201).json({
+        success: true,
+        result: store
+      })
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: 'store not found in database!'
+      })
+    }
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.toString()
+    })
+  }
+})
+
 router.post('/categories/add', async (req, res, next) => {
   try {
     const { categories, storeId } = req.body
