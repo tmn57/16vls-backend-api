@@ -32,7 +32,7 @@ secret-code:
 
 ##Common API for user
  + Change password: `./users/changePass`
- + update profile: `./user/update`
+ + update profile: `./users/update`
 
 ##Common API for store
  + create store: `./stores/create`
