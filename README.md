@@ -21,20 +21,20 @@ secret-code:
  + jwt-login: 16vls-s3cr3t-jwt-login
 
 
-#API Description:
+# API Description:
 
-##Common API
+## Common API
  + login: `./login`
  + register: `./register`
  + verify account: `./verify`
  + get code from phone number: `./getCode`
  + checkCode: `./checkCode`
 
-##Common API for user
+## Common API for user
  + Change password: `./users/changePass`
  + update profile: `./users/update`
 
-##Common API for store
+## Common API for store
  + create store: `./stores/create`
  + add categories to store: `./stores/categories/add`
  + remove categories to store: `./stores/categories/delete`
@@ -44,16 +44,16 @@ secret-code:
  + update stores by _id : `./stores/update`
 
 
-##Common API for product
+## Common API for product
  + create product: `./products/create`
  + get info of product by id: `./products?id=...`
  + get info of all products by store's id: `./products/allByStore?id=...`
  + get products by some conditions (method: POST): `./products/getByConditions`
  + update product by _id : `./products/update`
 
-##Common API for image
+## Common API for image
  + upload multi images: `./images/upload`
  + get image file by id: `./images?id=...`
  + get all infor image by user (from access-token): `./images/allByUser`
 
-##access-token of admin: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNnZscy1pZC1hZG1pbiIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTU4NzM1MzUzOX0.7nOEeG1K4laL2JCYuHoIgZUR54-3Rxi13ukQVe_l9IU`
+## access-token of admin: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNnZscy1pZC1hZG1pbiIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTU4NzM1MzUzOX0.7nOEeG1K4laL2JCYuHoIgZUR54-3Rxi13ukQVe_l9IU`
