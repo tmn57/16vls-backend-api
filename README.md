@@ -56,4 +56,5 @@ secret-code:
  + get image file by id: `./images?id=...`
  + get all infor image by user (from access-token): `./images/allByUser`
 
-## access-token of admin: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNnZscy1pZC1hZG1pbiIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTU4NzM1MzUzOX0.7nOEeG1K4laL2JCYuHoIgZUR54-3Rxi13ukQVe_l9IU`
+## access-token of admin: 
++ `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNnZscy1pZC1hZG1pbiIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTU4NzM1MzUzOX0.7nOEeG1K4laL2JCYuHoIgZUR54-3Rxi13ukQVe_l9IU`
