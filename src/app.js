@@ -13,7 +13,7 @@ const app = express()
 dotenv.config()
 
 const apiPort = process.env.PORT || '3000'
-const socketioPort = process.env.SOCKETIO_PORT || '5555'
+const socketioPort = process.env.SOCKETIO_PORT || '5000'
 
 // let logFileName = (new Date()).toISOString()
 // let logFileDir = 'logs/' + logFileName + '.log'
