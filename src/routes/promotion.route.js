@@ -33,7 +33,7 @@ router.post('/create', async (req, res, next) => {
       endDay,
       createdBy: userId
     })
-    newPromotion.save()
+    await newPromotion.save()
     res.status(201).json({
       success: true,
       newPromotion
@@ -74,7 +74,7 @@ router.post('/update', async (req, res, next) => {
     if (endDay) promotion.endDay = endDay
     if (isEnabled) promotion.isEnabled = isEnabled
     promotion.updatedAt = +new Date()
-    promotion.save()
+    await promotion.save()
     res.status(201).json({
       success: true,
       promotion
