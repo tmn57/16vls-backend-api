@@ -33,6 +33,7 @@ secret-code:
 ## Common API for user
  + Change password: `./users/changePass`
  + update profile: `./users/update`
+ + get user's profile: `./users/info`
 
 ## Common API for store
  + create store: `./stores/create`

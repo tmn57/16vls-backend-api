@@ -14,7 +14,7 @@ const isAuthenticated = (req, res, next) => {
         _id: userId
       })
       if (!user || !user.isEnabled) {
-        return res.status(401).json({ message: 'this account not found or was blocked!' }) //error is found by promise func (is not handled in app.js)
+        return next(createError(401, 'this account not found or was blocked!'))
       }
       next()
     })

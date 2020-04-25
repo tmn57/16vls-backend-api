@@ -4,9 +4,22 @@ const ProductSchema = new Schema(
   {
     _id: String,
     name: String,
+    discount: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100
+    },
     variants: {
-      type: [Object],
-      default: [{ color: 'default', size: 'default', quantity: 1, price: 1 }]
+      type: Array,
+      default: [
+        {
+          color: 'default',
+          size: 'default',
+          quantity: 1,
+          price: 1
+        }
+      ]
     },
     createdBy: String,
     storeId: String,
@@ -14,7 +27,7 @@ const ProductSchema = new Schema(
     images: [String],
     tags: [String], //tag.key
     streamed: {
-      type: [Object], 
+      type: Array,
       default: [{ steamId: 'default', time: null }]
     },
     categories: [String],

@@ -8,6 +8,7 @@ const StoreSchema = new Schema(
     email: String,
     ownerName: String,
     categories: [String],
+    discounts: [String],
     isActive: Boolean,
     address: String,
     profileLink: String,

@@ -70,4 +70,27 @@ router.post('/changePass', async (req, res, next) => {
   }
 })
 
+router.get('/info', async (req, res, next) => {
+  try {
+    const { userId } = req.tokenPayload
+    const user = await User.findOne({ _id: userId })
+    if (user) {
+      return res.status(200).json({
+        success: true,
+        user
+      })
+    } else {
+      res.status(403).json({
+        success: false,
+        message: 'user not found!'
+      })
+    }
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.toString()
+    })
+  }
+})
+
 module.exports = router
