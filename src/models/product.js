@@ -5,10 +5,16 @@ const ProductSchema = new Schema(
     _id: String,
     name: String,
     discount: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 100
+      code: {
+        type: String,
+        default: 'none'
+      },
+      saleOff: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+      }
     },
     variants: {
       type: Array,

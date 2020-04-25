@@ -1,35 +1,38 @@
 const { Schema, model } = require('mongoose')
 
-// const ProductInCart = {
-//   proId: String, //possible duplicate
-//   proName: String,
-//   storeId: String,
-//   discount: Number
-//   options: {
-//     size: String,
-//     color: String,
-//     amount: Number, 
-//     price: Number
-//   },
-//   total: Number //amount * price * [(100 - discount)/100]
-// }
+/*
+const ProductInCart = {
+  proId: String, //possible duplicate
+  proName?: String,
+  storeId?: String,
+  discount: {
+    code: String,
+    saleOff: Number
+  },
+  options: {
+    size: String,
+    color: String,
+    amount: Number, 
+    price: Number
+  },
+  total: {
+    type: Number,
+    default: 0,
+    min: 0
+  } //amount * price * [(100 - discount.saleOff)/100]
+}
+*/
 
 const OrderSchema = new Schema(
   {
     _id: String,
+    status: { type: String, default: 'approved' },
     products: {
-      type: Array //ProductInCart
+      type: Array, //ProductInCart
+      default: []
     },
     totalMoney: Number, // Sum([total per Product])
-    storeId: String,
-    description: String,
-    discount: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 100
-    },
-    isEnabled: { type: Boolean, default: true },
+    description?: String,
     createdBy: String,
     createdAt: { type: Number, default: +new Date() }
   },

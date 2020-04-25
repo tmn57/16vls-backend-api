@@ -41,6 +41,7 @@ app.use('/', require('./routes/common.route'))
 app.use('/stores', isAuthenticated, require('./routes/store.route'))
 app.use('/products', isAuthenticated, require('./routes/product.route'))
 app.use('/images', isAuthenticated, require('./routes/image.route'))
+app.use('/promotions', isAuthenticated, require('./routes/promotion.route'))
 app.use('/users', isAuthenticated, require('./routes/user.route'))
 
 //handle error

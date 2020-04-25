@@ -30,12 +30,12 @@ secret-code:
  + get code from phone number: `./getCode`
  + checkCode: `./checkCode`
 
-## Common API for user
+## For user
  + Change password: `./users/changePass`
  + update profile: `./users/update`
  + get user's profile: `./users/info`
 
-## Common API for store
+## For store
  + create store: `./stores/create`
  + add categories to store: `./stores/categories/add`
  + remove categories to store: `./stores/categories/delete`
@@ -45,17 +45,22 @@ secret-code:
  + update stores by _id : `./stores/update`
 
 
-## Common API for product
+## For product
  + create product: `./products/create`
  + get info of product by id: `./products?id=...`
  + get info of all products by store's id: `./products/allByStore?id=...`
  + get products by some conditions (method: POST): `./products/getByConditions`
  + update product by _id : `./products/update`
 
-## Common API for image
+## For image
  + upload multi images: `./images/upload`
  + get image file by id: `./images?id=...`
  + get all infor image by user (from access-token): `./images/allByUser`
+ 
+ ## For promotion
+ + create promotion: `./promotions/create`
+ + update promotion: `./promotions/update`
+ + get promotion by code: `./promotions?code=...`
 
 ## access-token of admin: 
 + `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNnZscy1pZC1hZG1pbiIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTU4NzM1MzUzOX0.7nOEeG1K4laL2JCYuHoIgZUR54-3Rxi13ukQVe_l9IU`
