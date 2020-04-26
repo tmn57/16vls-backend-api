@@ -1,6 +1,10 @@
-const socketioJwt = require('socketio-jwt')
 
-const memory = require('./memory_models')
+const socketioJwt = require('socketio-jwt')
+const services = require('../services/stream')
+
+const eventKeys = require('./event_keys.io')
+const storage = require('./storage')
+const handler = require('./handlers')
 
 module.exports = server => {
     const io = require('socket.io')(server)
@@ -13,30 +17,28 @@ module.exports = server => {
     // }))
 
     io.on('connection', socket => {
-        // let userId = socket.decoded_token.userId
-        let userId = 1
-
-        socket.emit('greeting message', {message: `hello ${userId}`})
+        //Add or update key userId userSession from db
         
+        // let userId = socket.decoded_token.userId
+        let userId = 'uidtest'
+
+        socket.emit(eventKeys.SERVER_MESSAGE, { message: `hello ${userId}` })
+
         // rid: String 'r#[StreamID]' 
-        socket.on('join Stream', streamId => {
-            // TODO: check if StreamId is not valid
-
-            // TODO: IMPORTANT! Check if (user is already in one Stream) => exit that Stream
-
-            //Tell others in the StreamId that user joined the Stream
-            io.to(streamId).emit(`user #${userId} joined the Stream`)
-
-            const streamData = memory.getStreamData(streamId)
-
-            //Send the whole Stream data then if have ACK (the data )
-            socket.emit('stream data', streamData, ()=>{
-                socket.emit('stream update products', {data: [{productId: 1234, variants: [{color:'red', size:'32', price: 1000000, stream_price: 800000, qty: 100}]}]})
-            })
-
+        socket.on(eventKeys.USER_JOIN_STREAM, streamId => {
+            if (storage.streamSessions.has(streamId)) {
+                io.to(streamId).emit(eventKeys.SERVER_MESSAGE, `${userId} is watching the stream`)
+                const streamInfo = handler.getStreamInfo(streamId)
+                socket.emit(eventKeys.STREAM_INIT, streamInfo, () => {
+                    socket.emit(eventKeys., )
+                })
+            } else {
+                socket.emit('error',`stream ID is not valid or not available or not living`)
+            }
         })
 
         socket.on('disconnect', reason => {
+            if (storage)
             console.log(`socketio: client disconnected with reason ${reason}`)
         })
 

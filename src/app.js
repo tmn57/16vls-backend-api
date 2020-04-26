@@ -51,8 +51,6 @@ app.use((req, res, next) => {
   res.status(404).send('NOT FOUND')
 })
 
-
-
 //Init apiServer
 const apiServer = http.Server(app)
 apiServer.listen(apiPort)
@@ -88,6 +86,7 @@ const connectDatabase = () => {
 }
 
 connectDatabase()
+    
 
 //helpers
 const onListening = server => {
