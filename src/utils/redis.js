@@ -45,17 +45,17 @@ const getClientInstance = () => {
     }
 }
 
-const getKey = key => {
+const getSingleFromKey = key => {
     return new Promise((resolve, reject) => {
         try {
-            client = getClientInstance()
-            client.get(key, (err, reply) => {
+            const client = getClientInstance()
+            client.get(key, (error, reply) => {
                 // console.log(reply)
-                if (err) {
-                    reject(err)
+                if (error) {
+                    reject(error)
                 } else {
                     resolve(reply)
-                } 
+                }
             })
         } catch (error) {
             reject(error)
@@ -63,8 +63,114 @@ const getKey = key => {
     })
 }
 
-module.exports = {
-    getKey
+// const getValuesFromKeys = keys => {
+//     return new Promise((resolve, reject) => {
+//         if (!keys.length) {
+//             resolve({})
+//         }
+//         try {
+//             const client = getClientInstance()
+//             let count = 0
+//             let errors = 0
+//             let result = {} 
+//             keys.forEach(k => {
+//                 client.get(k,(error, reply)=>{
+//                     ++count
+//                     if (error) {
+//                         ++errors
+//                     } else {
+//                         result[k] = reply
+//                     }
+//                     if (count === keys.length) {
+//                         if (errors) {
+//                             console.warn(`redis get multi keys: get ${keys.length} keys with ${errors} error`)
+//                         }
+//                         resolve(result)
+//                     }
+//                 })
+//             })
+
+//         } catch (error) {
+//             reject(error)
+//         }
+//     })
+// }
+
+const setSingle = (key, val) => {
+    return new Promise((resolve, reject) => {
+        try {
+            const client = getClientInstance()
+            client.set(key, val, (error, reply) => {
+                if (error) {
+                    reject(error)
+                } else {
+                    resolve(reply)
+                }
+            })
+        } catch (error) {
+            reject(error)
+        }
+    })
 }
 
+const addToSets = (key, val) => {
+    return new Promise((resolve, reject) => {
+        try {
+            const client = getClientInstance()
+            client.sadd(key, val, (error, reply) => {
+                if (error) {
+                    reject(error)
+                } else {
+                    resolve(reply)
+                }
+            })
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 
+const getSetsFromKey = key => {
+    return new Promise((resolve, reject) => {
+        try {
+            const client = getClientInstance()
+            client.smembers(key, (error, reply) => {
+                if (error) {
+                    reject(error)
+                } else {
+                    resolve(reply)
+                }
+            })
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+const removeFromSets = (key, val) => {
+    return new Promise((resolve, reject) => {
+        try {
+            const client = redis.createClient()
+            client.srem(key,val, (error, reply) => {
+                if (error) {
+                    reject(error)
+                } else {
+                    resolve(reply)
+                }
+            })
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+//const addToHash
+
+module.exports = {
+    addToSets,
+    getClientInstance,
+    getSingleFromKey,
+    getSetsFromKey,
+    removeFromSets,
+    setSingle,
+}
