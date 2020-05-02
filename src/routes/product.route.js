@@ -10,13 +10,16 @@ router.post('/create', async (req, res, next) => {
     const { userId } = req.tokenPayload
     const { name, images, categories, variants, storeId } = req.body
     if (!name || !images || !categories || !variants || !storeId) {
-      throw createError(400, 'required field: name, images, categories, variants, storeId')
+      throw createError(
+        400,
+        'required field: name, images, categories, variants, storeId'
+      )
     } else {
       const existedName = await Product.findOne({ name })
       if (existedName) {
         return res.status(400).json({
           success: false,
-          message: 'product\'s name is already existed!'
+          message: "product's name is already existed!"
         })
       } else {
         let newProduct = new Product({
@@ -44,13 +47,13 @@ router.get('/', async (req, res, next) => {
   try {
     const { userId, type } = req.tokenPayload
     const _id = req.query.id
-    const productFound = isAdmin(type)
+    const products = isAdmin(type)
       ? await Product.findOne({ _id })
       : await Product.findOne({ _id, createdBy: userId })
-    if (productFound) {
+    if (products) {
       return res.status(200).json({
         success: true,
-        store: productFound
+        products
       })
     } else {
       return res.status(400).json({
@@ -70,13 +73,13 @@ router.get('/allByStore', async (req, res, next) => {
   try {
     const { userId, type } = req.tokenPayload
     const storeId = req.query.id
-    const productsFound = isAdmin(type)
+    const products = isAdmin(type)
       ? await Product.find({ storeId })
       : await Product.find({ storeId, createdBy: userId })
-    if (productsFound && productsFound.length > 0) {
+    if (products && products.length > 0) {
       return res.status(200).json({
         success: true,
-        store: productsFound
+        products
       })
     } else {
       return res.status(400).json({
@@ -103,14 +106,13 @@ router.post('/getByConditions', async (req, res, next) => {
       })
     }
     if (conditions.createdBy && !isAdmin(type)) delete conditions.createdBy
-    const productsFound = isAdmin(type)
+    const products = isAdmin(type)
       ? await Product.find({ ...conditions })
       : await Product.find({ createdBy: userId, ...conditions })
-    console.log(productsFound)
-    if (productsFound && productsFound.length > 0) {
+    if (products && products.length > 0) {
       return res.status(200).json({
         success: true,
-        stores: productsFound
+        products
       })
     } else {
       return res.status(400).json({
@@ -125,7 +127,6 @@ router.post('/getByConditions', async (req, res, next) => {
     })
   }
 })
-
 
 router.post('/update', async (req, res, next) => {
   try {
@@ -180,6 +181,5 @@ router.post('/update', async (req, res, next) => {
     })
   }
 })
-
 
 module.exports = router

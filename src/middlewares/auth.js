@@ -7,7 +7,7 @@ const isAuthenticated = (req, res, next) => {
   const token = req.headers['access-token']
   if (token) {
     jwt.verify(token, JWT_KEY, async (err, payload) => {
-      if (err) throw createError(401, err)
+      if (err) return next(createError(401, err))
       req.tokenPayload = payload
       const { userId } = payload
       const user = await User.findOne({
@@ -19,7 +19,7 @@ const isAuthenticated = (req, res, next) => {
       next()
     })
   } else {
-    throw createError(401, 'token is not found.')
+    return next(createError(401, 'token is not found.'))
   }
 }
 
