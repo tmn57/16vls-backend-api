@@ -5,12 +5,13 @@ const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 const dotenv = require('dotenv')
 const mongoose = require('mongoose')
+const cors = require('cors')
 const { isAuthenticated } = require('./middlewares/auth')
 const { cryptoExchange } = require('./CryptoJs')
 require('express-async-errors')
 //Init Express App
 const app = express()
-
+app.use(cors())
 dotenv.config()
 
 const apiPort = process.env.PORT || '3000'
