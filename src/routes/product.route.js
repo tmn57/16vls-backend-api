@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const createError = require('http-errors')
-const { uuid } = require('uuidv4')
 const Product = require('../models/product')
 const { isAdmin } = require('../utils/common')
 
@@ -23,7 +22,6 @@ router.post('/create', async (req, res, next) => {
         })
       } else {
         let newProduct = new Product({
-          _id: uuid(),
           createdBy: userId,
           storeId,
           ...req.body
@@ -48,7 +46,7 @@ router.get('/', async (req, res, next) => {
     const { userId, type } = req.tokenPayload
     const _id = req.query.id
     const products = isAdmin(type)
-      ? await Product.findOne({ _id })
+      ? await Product.findById({ _id })
       : await Product.findOne({ _id, createdBy: userId })
     if (products) {
       return res.status(200).json({

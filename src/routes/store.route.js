@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const createError = require('http-errors')
-const { uuid } = require('uuidv4')
 const Store = require('../models/store')
 const { phoneNumberVerify, isAdmin } = require('../utils/common')
 
@@ -26,7 +25,6 @@ router.post('/create', async (req, res, next) => {
         })
       } else {
         let newStore = new Store({
-          _id: uuid(),
           createdBy: userId,
           ...req.body
         })
@@ -51,7 +49,7 @@ router.get('/', async (req, res, next) => {
     const { userId, type } = req.tokenPayload
     const _id = req.query.id
     const storeFound = isAdmin(type)
-      ? await Store.findOne({ _id })
+      ? await Store.findById({ _id })
       : await Store.findOne({ _id, createdBy: userId })
     if (storeFound) {
       return res.status(200).json({
@@ -194,7 +192,7 @@ router.post('/categories/add', async (req, res, next) => {
     if (!categories || !storeId) {
       throw createError(400, 'required field: categories, storeId')
     } else {
-      const storeFound = await Store.findOne({ _id: storeId })
+      const storeFound = await Store.findById(storeId)
       if (!storeFound) {
         return res.status(400).json({
           success: false,
@@ -230,7 +228,7 @@ router.post('/categories/delete', async (req, res, next) => {
     if (!categories || !storeId) {
       throw createError(400, 'required field: categories, storeId')
     } else {
-      const storeFound = await Store.findOne({ _id: storeId })
+      const storeFound = await Store.findById(storeId)
       if (!storeFound) {
         return res.status(400).json({
           success: false,

@@ -54,7 +54,6 @@ secret-code:
 
 ## For image
  + upload multi images: `./images/upload`
- + get image file by id: `./images?id=...`
  + get all infor image by user (from access-token): `./images/allByUser`
  
  ## For promotion
@@ -63,4 +62,4 @@ secret-code:
  + get promotion by code: `./promotions?code=...`
 
 ## access-token of admin: 
-+ `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNnZscy1pZC1hZG1pbiIsInR5cGUiOiJhZG1pbiIsImlhdCI6MTU4NzM1MzUzOX0.7nOEeG1K4laL2JCYuHoIgZUR54-3Rxi13ukQVe_l9IU`
++ `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZWFlZDQ1MmE2ZGE5MDIxOWM4NzE3NjUiLCJ0eXBlIjoiYWRtaW4iLCJpYXQiOjE1ODg1MTYzODZ9.B9TQRE3xgUKV4o0TegtlVBPvSzExxZH_tojpPmaFHiM`

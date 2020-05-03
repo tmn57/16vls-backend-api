@@ -2,7 +2,6 @@ const { Schema, model } = require('mongoose')
 
 const ProductSchema = new Schema(
   {
-    _id: String,
     name: String,
     discount: {
       code: {

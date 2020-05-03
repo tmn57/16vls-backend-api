@@ -15,7 +15,7 @@ router.post('/update', async (req, res, next) => {
     }
     const { name, email, address, avatar } = req.body
     const { userId } = req.tokenPayload
-    const user = await User.findOne({ _id: userId })
+    const user = await User.findById(userId)
     if (user) {
       if (name) user.name = name
       if (email) user.email = email
@@ -45,7 +45,7 @@ router.post('/changePass', async (req, res, next) => {
   try {
     const { newPassword } = req.body
     const { userId } = req.tokenPayload
-    const user = await User.findOne({ _id: userId })
+    const user = await User.findById(userId)
     if (user) {
       let decodedPassword = CryptoJS.AES.decrypt(newPassword, PASSWORD_KEY).toString(
         CryptoJS.enc.Utf8
@@ -73,7 +73,7 @@ router.post('/changePass', async (req, res, next) => {
 router.get('/info', async (req, res, next) => {
   try {
     const { userId } = req.tokenPayload
-    const user = await User.findOne({ _id: userId })
+    const user = await User.findById(userId)
     if (user) {
       return res.status(200).json({
         success: true,

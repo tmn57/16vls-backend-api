@@ -2,7 +2,6 @@ const { Schema, model } = require('mongoose')
 
 const StoreSchema = new Schema(
   {
-    _id: String,
     name: String,
     phone: String,
     email: String,

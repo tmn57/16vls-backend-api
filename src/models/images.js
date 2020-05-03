@@ -2,7 +2,6 @@ const { Schema, model } = require('mongoose')
 
 const ImageSchema = new Schema(
   {
-    _id: String,
     filename: String,
     originalname: String,
     size: Number,

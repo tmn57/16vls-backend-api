@@ -3,4 +3,3 @@ logs/
 .env
 package-lock.json
 yarn.lock
-src/public/images/

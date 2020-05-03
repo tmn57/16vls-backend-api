@@ -1,6 +1,5 @@
 const express = require('express')
 const router = express.Router()
-const { uuid } = require('uuidv4')
 const Promotion = require('../models/promotion')
 
 router.post('/create', async (req, res, next) => {
@@ -25,7 +24,6 @@ router.post('/create', async (req, res, next) => {
     }
     saleOff = (!saleOff || saleOff > 100) ? 0 : saleOff
     let newPromotion = Promotion({
-      _id: uuid(),
       code,
       saleOff,
       description,

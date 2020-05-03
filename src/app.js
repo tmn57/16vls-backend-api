@@ -28,8 +28,6 @@ app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
-app.use(express.static(path.join(__dirname, 'public')))
-
 // Some route
 app.get('/', (req, res) => {
   res.send('16vls web API')
@@ -37,7 +35,7 @@ app.get('/', (req, res) => {
 app.get('/cryptoJS', (req, res) => {
   res.send(cryptoExchange)
 })
-
+app.use('/static', express.static(path.join(__dirname, 'public')))
 app.use('/', require('./routes/common.route'))
 app.use('/stores', isAuthenticated, require('./routes/store.route'))
 app.use('/products', isAuthenticated, require('./routes/product.route'))

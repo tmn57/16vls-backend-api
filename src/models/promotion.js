@@ -2,7 +2,6 @@ const { Schema, model } = require('mongoose')
 
 const PromotionSchema = new Schema(
   {
-    _id: String,
     code: {
       type: String,
       default: 'Promotion',

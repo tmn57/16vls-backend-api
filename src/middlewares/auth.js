@@ -10,9 +10,7 @@ const isAuthenticated = (req, res, next) => {
       if (err) return next(createError(401, err))
       req.tokenPayload = payload
       const { userId } = payload
-      const user = await User.findOne({
-        _id: userId
-      })
+      const user = await User.findById(userId)
       if (!user || !user.isEnabled) {
         return next(createError(401, 'this account not found or was blocked!'))
       }

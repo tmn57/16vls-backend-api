@@ -2,7 +2,6 @@ const { Schema, model } = require('mongoose')
 
 const User_Verify = new Schema(
   {
-    _id: String,
     phone: String,
     verifiedCode: String,
     isUsed: { type: Boolean, default: false },

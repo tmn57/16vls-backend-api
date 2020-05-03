@@ -25,7 +25,6 @@ const ProductInCart = {
 
 const OrderSchema = new Schema(
   {
-    _id: String,
     status: { type: String, default: 'approved' },
     products: {
       type: Array, //ProductInCart

@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken')
 const User_Verify = require('../models/verify')
 const bcrypt = require('bcryptjs')
 const CryptoJS = require('crypto-js')
-const { uuid } = require('uuidv4')
 const { phoneNumberVerify, getRandomCode } = require('../utils/common')
 const sendSMSVerify = require('../utils/twilio.sms')
 
@@ -116,7 +115,6 @@ router.post('/register', async (req, res, next) => {
       }
     } else {
       const newUser = new User()
-      newUser._id = uuid()
       newUser.phone = phone
       newUser.name = name.trim()
       let decodedPassword = CryptoJS.AES.decrypt(
@@ -170,7 +168,6 @@ router.post('/getCode', async (req, res, next) => {
           const smsSent = await sendSMSVerify(codeSent, userExisted.phone)
           if (smsSent.success) {
             const newUserVerify = new User_Verify()
-            newUserVerify._id = uuid()
             newUserVerify.phone = userExisted.phone
             newUserVerify.verifiedCode = await bcrypt.hash(codeSent, 10)
             await newUserVerify.save()
