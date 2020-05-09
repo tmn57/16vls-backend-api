@@ -25,6 +25,7 @@
     "nodemon": "^2.0.2",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
+    "rand-token": "^1.0.1",
     "redis": "^3.0.2",
     "socket.io": "^2.3.0",
     "socketio-jwt": "^4.5.0",

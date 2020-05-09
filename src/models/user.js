@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose')
+const randtoken = require('rand-token')
 
 const UserSchema = new Schema(
   {
@@ -12,6 +13,10 @@ const UserSchema = new Schema(
     isEnabled: { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },
     facebookId: String,
+    refreshToken: {
+      type: String,
+      default: randtoken.generate(80)
+    },
     updatedAt: { type: Number, default: +new Date() },
     createdAt: { type: Number, default: +new Date() }
   },

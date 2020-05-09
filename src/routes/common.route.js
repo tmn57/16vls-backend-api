@@ -45,7 +45,10 @@ router.post('/login', async (req, res, next) => {
             if (matched) {
               const token = jwt.sign(
                 { userId: user._id, type: user.type },
-                JWT_KEY
+                JWT_KEY,
+                {
+                  expiresIn: '20m'
+                }
               )
               return res.json({
                 success: true,
@@ -353,6 +356,59 @@ router.post('/checkCode', async (req, res, next) => {
     }
   } catch (error) {
     return res.status(500).json(error.toString())
+  }
+})
+
+router.post('/refreshToken', async (req, res) => {
+  try {
+    const { accessToken, refreshToken } = req.body
+    if (!accessToken || !refreshToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'accessToken, refreshToken are required!'
+      })
+    }
+    jwt.verify(
+      accessToken,
+      JWT_KEY,
+      {
+        ignoreExpiration: true
+      },
+      async (err, payload) => {
+        if (err) {
+          return res.status(400).json({
+            success: false,
+            message: err
+          })
+        }
+        const { userId } = payload
+        const user = await User.findById(userId)
+        if (!user || !user.isEnabled) {
+          return res.status(400).json({
+            success: false,
+            message: 'this account not found or was blocked!'
+          })
+        }
+        if (user.refreshToken !== refreshToken) {
+          return res.status(400).json({
+            success: false,
+            message: 'refreshToken is incorrect!'
+          })
+        }
+        const newAccessToken = jwt.sign({ userId: user._id, type: user.type }, JWT_KEY, {
+          expiresIn: '10m'
+        })
+        return res.json({
+          success: true,
+          newAccessToken
+        })
+      }
+    )
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.toString()
+    })
   }
 })
 

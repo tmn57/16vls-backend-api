@@ -24,7 +24,8 @@ secret-code:
 # API Description:
 
 ## Common API
- + login: `./login`
+ + login: `./login`, TOKEN expiresIn: 20 mins
+ + request new token: `./refreshToken` (req.body: { accessToken, refreshToken })
  + register: `./register`
  + verify account: `./verify`
  + get code from phone number: `./getCode`
@@ -60,6 +61,3 @@ secret-code:
  + create promotion: `./promotions/create`
  + update promotion: `./promotions/update`
  + get promotion by code: `./promotions?code=...`
-
-## access-token of admin: 
-+ `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZWFlZDQ1MmE2ZGE5MDIxOWM4NzE3NjUiLCJ0eXBlIjoiYWRtaW4iLCJpYXQiOjE1ODg1MTYzODZ9.B9TQRE3xgUKV4o0TegtlVBPvSzExxZH_tojpPmaFHiM`
