@@ -4,6 +4,7 @@ const User = require('../models/user')
 const bcrypt = require('bcryptjs')
 const CryptoJS = require('crypto-js')
 const { PASSWORD_KEY } = require('../config')
+const randtoken = require('rand-token')
 
 router.post('/update', async (req, res, next) => {
   try {
@@ -15,7 +16,9 @@ router.post('/update', async (req, res, next) => {
     }
     const { name, email, address, avatar } = req.body
     const { userId } = req.tokenPayload
-    const user = await User.findById(userId)
+    const user = await User.findById(userId, {
+      refreshToken: false
+    })
     if (user) {
       if (name) user.name = name
       if (email) user.email = email
@@ -25,7 +28,7 @@ router.post('/update', async (req, res, next) => {
       await user.save()
       return res.status(201).json({
         success: true,
-        message: 'update successfully!'
+        user
       })
     } else {
       return res.status(401).json({
@@ -45,16 +48,20 @@ router.post('/changePass', async (req, res, next) => {
   try {
     const { newPassword } = req.body
     const { userId } = req.tokenPayload
-    const user = await User.findById(userId)
+    const user = await User.findById(userId, {
+      refreshToken: false
+    })
     if (user) {
-      let decodedPassword = CryptoJS.AES.decrypt(newPassword, PASSWORD_KEY).toString(
-        CryptoJS.enc.Utf8
-      )
+      let decodedPassword = CryptoJS.AES.decrypt(
+        newPassword,
+        PASSWORD_KEY
+      ).toString(CryptoJS.enc.Utf8)
       user.password = await bcrypt.hash(decodedPassword, 10)
+      user.refreshToken = randtoken.generate(80)
       await user.save()
       return res.status(201).json({
         success: true,
-        message: 'change password successfully!'
+        message: 'password has been changed successfully!'
       })
     } else {
       return res.status(401).json({
@@ -70,12 +77,13 @@ router.post('/changePass', async (req, res, next) => {
   }
 })
 
-router.get('/info', async (req, res, next) => {
+router.get('/info', async (req, res) => {
   try {
     const { userId } = req.tokenPayload
-    const user = await User.findById(userId)
+    let user = await User.findById(userId, {
+      refreshToken: false
+    })
     if (user) {
-      if (user.refreshToken) delete user.refreshToken
       return res.status(200).json({
         success: true,
         user

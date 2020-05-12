@@ -47,7 +47,7 @@ router.post('/login', async (req, res, next) => {
                 { userId: user._id, type: user.type },
                 JWT_KEY,
                 {
-                  expiresIn: '20m'
+                  expiresIn: '24h'
                 }
               )
               return res.json({
@@ -396,7 +396,7 @@ router.post('/refreshToken', async (req, res) => {
           })
         }
         const newAccessToken = jwt.sign({ userId: user._id, type: user.type }, JWT_KEY, {
-          expiresIn: '10m'
+          expiresIn: '24h'
         })
         return res.json({
           success: true,

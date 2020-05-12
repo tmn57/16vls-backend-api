@@ -24,7 +24,7 @@ secret-code:
 # API Description:
 
 ## Common API
- + login: `./login`, TOKEN expiresIn: 20 mins
+ + login: `./login`, TOKEN expiresIn: 1 day
  + request new token: `./refreshToken` (req.body: { accessToken, refreshToken })
  + register: `./register`
  + verify account: `./verify`
