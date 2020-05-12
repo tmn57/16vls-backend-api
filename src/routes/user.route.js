@@ -25,7 +25,7 @@ router.post('/update', async (req, res, next) => {
       await user.save()
       return res.status(201).json({
         success: true,
-        result: user
+        message: 'update successfully!'
       })
     } else {
       return res.status(401).json({
@@ -75,6 +75,7 @@ router.get('/info', async (req, res, next) => {
     const { userId } = req.tokenPayload
     const user = await User.findById(userId)
     if (user) {
+      if (user.refreshToken) delete user.refreshToken
       return res.status(200).json({
         success: true,
         user
