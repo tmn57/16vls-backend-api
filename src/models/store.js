@@ -6,6 +6,7 @@ const StoreSchema = new Schema(
     phone: String,
     email: String,
     ownerName: String,
+    ownerId: {type: Schema.Types.ObjectId, ref:'User'},
     categories: [String],
     discounts: [String],
     isActive: Boolean,

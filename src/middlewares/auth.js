@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken')
+const {raiseError} = require('../utils/common')
 const { JWT_KEY } = require('../config')
 const createError = require('http-errors')
 const User = require('../models/user')
+const storeModel = require('../models/store')
 
 const isAuthenticated = (req, res, next) => {
   const token = req.headers['access-token']
@@ -21,4 +23,19 @@ const isAuthenticated = (req, res, next) => {
   }
 }
 
-module.exports = { isAuthenticated }
+const storeOwnerRequired = async (req, res, next) => {
+  if (!req.tokenPayload.userId) {
+    return next(raiseError(401, 'invalid userId'))
+  }
+
+  const userId  = req.tokenPayload.userId
+
+  await storeModel.findOne({ ownerId: userId }).then(store => {
+    req.storeId = store._id
+    next()
+  }).catch(error => {
+    return next(raiseError(500, error))
+  })
+}
+
+module.exports = { isAuthenticated, storeOwnerRequired }
