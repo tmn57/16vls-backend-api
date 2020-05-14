@@ -33,7 +33,7 @@ const ProductSchema = new Schema(
     tags: [String], //tag.key
     streamed: {
       type: Array,
-      default: [{ steamId: 'default', time: null }]
+      default: [{ streamId: 'default', time: null }]
     },
     categories: [String],
     isEnabled: { type: Boolean, default: true },

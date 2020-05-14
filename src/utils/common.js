@@ -21,11 +21,18 @@ const getRandomCode = () => {
   return ss.join('')
 }
 
+const raiseError = (statusCode, message) => {
+  err = new Error(message)
+  err.status = statusCode
+  return err
+}
+
 const COMMON = {
   ACCOUNT_SID,
   AUTH_TOKEN,
   phoneNumberVerify,
   getRandomCode,
-  isAdmin
+  isAdmin,
+  raiseError
 }
 module.exports = COMMON

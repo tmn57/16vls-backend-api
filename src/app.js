@@ -9,6 +9,8 @@ const cors = require('cors')
 const { isAuthenticated } = require('./middlewares/auth')
 const { cryptoExchange } = require('./CryptoJs')
 require('express-async-errors')
+
+const socketIoServer = require('./sockets/io')
 //Init Express App
 const app = express()
 app.use(cors())
@@ -44,8 +46,11 @@ app.use('/promotions', isAuthenticated, require('./routes/promotion.route'))
 app.use('/users', isAuthenticated, require('./routes/user.route'))
 
 //handle error
-app.use(function (err, req, res, next) {
-  return res.status(err.status).json(err)
+app.use((err, req, res, next) => {
+  res.status(err.status || 500)
+  res.json({
+    error: err
+  })
 })
 
 // NOT FOUND API
@@ -63,9 +68,9 @@ apiServer.on('listening', () => onListening(apiServer))
 //Init socketio server
 const socketServer = http.Server(app)
 socketServer.listen(socketioPort)
+socketIoServer.initIoServer(socketServer)
 socketServer.on('error', error => onError('socketServer', error))
 socketServer.on('listening', () => onListening(socketServer))
-
 
 //connect database
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-c2upe.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
@@ -88,7 +93,7 @@ const connectDatabase = () => {
 }
 
 connectDatabase()
-    
+
 
 //helpers
 const onListening = server => {
