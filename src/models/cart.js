@@ -9,7 +9,7 @@ const cartSchema = new Schema(
             reliablePrice: { type: Number, default: -1 }, // if <= -1 ? is normal product : is reliable added product 
             productId: String,
             variantIndex: { type: Number, default: 0 },
-            qty: { type: Number, default: 1 }
+            quantity: { type: Number, default: 1 }
         }],
     }, 
     {
