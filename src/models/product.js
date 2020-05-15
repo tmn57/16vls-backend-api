@@ -31,10 +31,7 @@ const ProductSchema = new Schema(
     description: String,
     images: [String],
     tags: [String], //tag.key
-    streamed: {
-      type: Array,
-      default: [{ streamId: 'default', time: null }]
-    },
+    streamed: [{ streamId: String, time: Number }],
     categories: [String],
     isEnabled: { type: Boolean, default: true },
     createdAt: { type: Number, default: +new Date() },
