@@ -69,7 +69,7 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
     addedStream = await nStream.save()
 
     res.status(200).json({
-        message: 'added success',
+        success: true,
         newStream: addedStream
     })
 }))
@@ -85,7 +85,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
     const tok = jwt.sign(payload, SOCKETIO_JWT_SECRET, { expiresIn: '6h' })
 
     res.status(200).json({
-        message: 'success',
+        success:true,
         token: tok
     })
 }))
@@ -96,7 +96,7 @@ router.post('/list', asyncHandler(async (req, res) => {
     let list = streamHandler.getStreamInfoList()
 
     res.status(200).json({
-        message: 'success',
+        success: true,
         data: list
     })
 }))

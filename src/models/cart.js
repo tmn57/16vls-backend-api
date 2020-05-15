@@ -2,12 +2,12 @@ const { Schema, model } = require('mongoose')
 
 const cartSchema = new Schema(
     {
-        ownerId: { type: Schema.Types.ObjectId, ref: 'User' },
+        ownerId: String,
         products: 
         [{
             expiredTime: {type: Number, default: -1}, 
             reliablePrice: { type: Number, default: -1 }, // if <= -1 ? is normal product : is reliable added product 
-            productId: { type: Schema.Types.ObjectId, ref: 'Product' },
+            productId: String,
             variantIndex: { type: Number, default: 0 },
             qty: { type: Number, default: 1 }
         }],

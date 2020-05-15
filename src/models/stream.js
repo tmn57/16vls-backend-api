@@ -34,7 +34,7 @@ module.exports = model('Stream', StreamSchema)
             {
                 color:'white',
                 size:'32',
-                qty:32,
+                quantity:32,
                 streamPrice:120000,
                 inCartOf: ['uidtest',]
             }

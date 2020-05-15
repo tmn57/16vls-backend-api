@@ -111,7 +111,7 @@ const initIoServer = server => {
         })
 
         socket.on(eventKeys.USER_ADD_PRODUCT_TO_CART, payload => {
-            const { productId, variantIndex, qty } = payload
+            const { productId, variantIndex, quantity } = payload
         })
 
         socket.on('disconnect', reason => {
