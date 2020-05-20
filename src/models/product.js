@@ -22,10 +22,10 @@ const ProductSchema = new Schema(
           color: 'default',
           size: 'default',
           quantity: 1,
-          price: 1
         }
       ]
     },
+    price: Number,
     createdBy: String,
     storeId: String,
     description: String,

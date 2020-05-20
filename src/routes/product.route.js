@@ -1,8 +1,9 @@
 const express = require('express')
+const asyncHandler = require('express-async-handler')
 const router = express.Router()
 const createError = require('http-errors')
 const Product = require('../models/product')
-const { isAdmin } = require('../utils/common')
+const { isAdmin, raiseError } = require('../utils/common')
 
 router.post('/create', async (req, res, next) => {
   try {
@@ -179,5 +180,18 @@ router.post('/update', async (req, res, next) => {
     })
   }
 })
+
+router.post('/getByIds', asyncHandler(async (req, res, next) => {
+  const { ids } = req.body
+  if (Array.isArray(ids)) {
+    let data = await Product.find({ _id: { $in: ids } })
+    return res.status(200).json({
+      success: true,
+      data
+    })
+  } else {
+    return next(raiseError(400, 'ids must be an array'))
+  }
+}))
 
 module.exports = router

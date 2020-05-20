@@ -8,9 +8,10 @@
 module.exports = {
     //JSON payload
     STREAM_INIT: 'stream init',
-    STREAM_PRODUCTS_UPDATE: 'stream updates products',
-    STREAM_ADD_CHAT_MESSAGE: 'stream adds chat message',
+    STREAM_PRODUCT_QUANTITIES: 'stream updates quantities',
+    STREAM_CHAT_MESSAGE: 'stream chat message',
     USER_ADD_PRODUCT_TO_CART: 'user adds product',
+    
     //String payload
     SERVER_MESSAGE: 'server message',
     STREAM_MESSAGE: 'stream message',

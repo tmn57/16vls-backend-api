@@ -75,14 +75,18 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
 }))
 
 router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
-    let payload = { userId: req.userId }
+    const { userId } = req.tokenPayload
+    let rtPayload = { userId }
 
-    store = await storeModel.findOne({ ownerId: userId })
+    store = await StoreModel.findOne({ ownerId: userId })
+    
     if (store !== null) {
-        payload["storeId"] = store._id
+        rtPayload["storeId"] = store._id
     }
 
-    const tok = jwt.sign(payload, SOCKETIO_JWT_SECRET, { expiresIn: '6h' })
+    const tok = jwt.sign(rtPayload, SOCKETIO_JWT_SECRET, { expiresIn: '6h' })
+
+    console.log(rtPayload, tok)
 
     res.status(200).json({
         success:true,
@@ -93,7 +97,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
 router.post('/list', asyncHandler(async (req, res) => {
     //TODO: check req.body for checking type of stream ('live', 'incoming', 'archived')
 
-    let list = streamHandler.getStreamInfoList()
+    let list = await StreamModel.find()
 
     res.status(200).json({
         success: true,
