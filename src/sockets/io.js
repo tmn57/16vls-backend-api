@@ -112,11 +112,21 @@ const initIoServer = server => {
             }
         })
 
-        //socket.on(eventKeys)
-
-        socket.on(eventKeys.USER_ADD_PRODUCT_TO_CART, payload => {
-            const { productId, variantIndex, quantity, isSureBuying } = payload
+        socket.on(eventKeys.SELLER_SET_CURRENT_PRODUCT_INDEX, productIndex => {
+            const streamId = services.getStreamByUserId(userId)
+            if (streamId) {
+                if (storages.streamSessions.has(streamId)){
+                    let strm = storages.streamSessions.get(streamId)
+                    strm['currentProductIndex'] = productIndex
+                    storages.streamSessions.set(streamId,strm)
+                    emitToStream(streamId, eventKeys.STREAM_UPDATE_CURRENT_PRODUCT_INDEX, productIndex)
+                }
+            }
         })
+
+        // socket.on(eventKeys.USER_ADD_PRODUCT_TO_CART, payload => {
+        //     const { productId, variantIndex, quantity, isSureBuying } = payload
+        // })
 
         socket.on('disconnect', reason => {
             console.log(`socketio: client disconnected with reason ${reason}`)

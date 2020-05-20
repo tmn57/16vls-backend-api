@@ -21,4 +21,6 @@ module.exports = {
     SELLER_START_STREAM: 'seller starts stream',
     SELLER_END_STREAM: 'seller ends stream',
     STREAM_PUBLISH_TOKEN: 'stream publish token',
+    SELLER_SET_CURRENT_PRODUCT_INDEX: 'seller sets current product index',
+    STREAM_UPDATE_CURRENT_PRODUCT_INDEX: 'stream updates current product index'
 }
