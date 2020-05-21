@@ -56,10 +56,10 @@ router.post('rtmp-pub-auth', (req, res) => {
 })
 
 router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
-    const { startTime, title, products } = req.body
+    const { startTime, title, productIds } = req.body
 
     let prodDbObj = []
-    products.forEach(productId => {
+    productIds.forEach(productId => {
         prodDbObj.push({productId})
     })
 
