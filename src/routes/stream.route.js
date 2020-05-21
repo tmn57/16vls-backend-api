@@ -57,13 +57,17 @@ router.post('rtmp-pub-auth', (req, res) => {
 
 router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
     const { startTime, title, products } = req.body
-    //TODO: validating data
+
+    let prodDbObj = []
+    products.forEach(productId => {
+        prodDbObj.push({productId})
+    })
 
     let nStream = new StreamModel({
         startTime,
         title,
         storeId: req.storeId,
-        products
+        products: prodDbObj
     })
 
     addedStream = await nStream.save()

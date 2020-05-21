@@ -124,10 +124,18 @@ const initIoServer = server => {
             }
         })
 
-        // socket.on(eventKeys.USER_ADD_PRODUCT_TO_CART, payload => {
-        //     const { productId, variantIndex, quantity, isSureBuying } = payload
-        // })
-
+        socket.on(eventKeys.SELLER_GET_PUBLISH_TOKEN, () => {
+            StreamModel.findOne({storeId, endTime: Number.MAX_SAFE_INTEGER}).then(stream => {
+                if (stream === null) {
+                    return socket.emit(eventKeys.STREAM_ERROR,`the stream is not live OR invalid streamId for you, seller!`)
+                }
+                const tok = services.generateStreamToken(stream._id.toString(), true)
+                socket.emit(eventKeys.STREAM_UPDATE_PUBLISH_TOKEN, tok)                
+            }).catch(error=>{
+                socket.emit(eventKeys.SERVER_MESSAGE,`server error: ` + error)
+            })
+        })
+        
         socket.on('disconnect', reason => {
             console.log(`socketio: client disconnected with reason ${reason}`)
             const streamId = services.getStreamByUserId(userId)
