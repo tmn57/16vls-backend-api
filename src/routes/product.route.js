@@ -4,6 +4,7 @@ const router = express.Router()
 const createError = require('http-errors')
 const Product = require('../models/product')
 const { isAdmin, raiseError } = require('../utils/common')
+const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
 
 router.post('/create', async (req, res, next) => {
   try {
@@ -192,6 +193,15 @@ router.post('/getByIds', asyncHandler(async (req, res, next) => {
   } else {
     return next(raiseError(400, 'ids must be an array'))
   }
+}))
+
+router.get('/getProductsOfOwner', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
+  const storeId = req.storeId
+  const data = await Product.find({storeId})
+  res.status(200).json({
+    success: true,
+    data
+  })
 }))
 
 module.exports = router
