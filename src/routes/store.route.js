@@ -186,65 +186,21 @@ router.post('/update', async (req, res, next) => {
   }
 })
 
-router.post('/categories/add', async (req, res, next) => {
+router.post('/categories/update', async (req, res, next) => {
   try {
-    const { categories, storeId } = req.body
-    if (!categories || !storeId) {
-      throw createError(400, 'required field: categories, storeId')
+    const { categories, storeName } = req.body
+    const { userId } = req.tokenPayload
+    if (!categories || !storeName) {
+      throw createError(400, 'required field: categories, storeName')
     } else {
-      const storeFound = await Store.findById(storeId)
+      const storeFound = await Store.findOne({ name: storeName, createdBy: userId })
       if (!storeFound) {
         return res.status(400).json({
           success: false,
           message: 'store not found'
         })
       } else {
-        if (storeFound.categories.length < 1) {
-          storeFound.categories = [...categories]
-        } else {
-          let insert = Array.from(
-            new Set([...storeFound.categories, ...new Set(categories)])
-          )
-          storeFound.categories = [...insert]
-        }
-        await storeFound.save()
-        return res.status(201).json({
-          success: true,
-          storeFound
-        })
-      }
-    }
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.toString()
-    })
-  }
-})
-
-router.post('/categories/delete', async (req, res, next) => {
-  try {
-    const { categories, storeId } = req.body
-    if (!categories || !storeId) {
-      throw createError(400, 'required field: categories, storeId')
-    } else {
-      const storeFound = await Store.findById(storeId)
-      if (!storeFound) {
-        return res.status(400).json({
-          success: false,
-          message: 'store not found'
-        })
-      } else {
-        if (storeFound.categories.length < 1) {
-          return res.status(400).json({
-            success: false,
-            message: 'nothing to delete!'
-          })
-        }
-        let remain = storeFound.categories.filter(
-          (x) => !categories.includes(x)
-        )
-        storeFound.categories = [...remain]
+        storeFound.categories = [...categories]
         await storeFound.save()
         return res.status(201).json({
           success: true,
