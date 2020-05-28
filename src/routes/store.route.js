@@ -192,7 +192,7 @@ router.post('/categories/update', async (req, res, next) => {
     if (!categories || !storeName) {
       throw createError(400, 'required field: categories, storeName')
     } else {
-      const storeFound = await Store.findById({ name: storeName })
+      const storeFound = await Store.findOne({ name: storeName })
       if (!storeFound) {
         return res.status(400).json({
           success: false,
