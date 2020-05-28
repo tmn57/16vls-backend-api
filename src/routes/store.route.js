@@ -189,11 +189,10 @@ router.post('/update', async (req, res, next) => {
 router.post('/categories/update', async (req, res, next) => {
   try {
     const { categories, storeName } = req.body
-    const { userId } = req.tokenPayload
     if (!categories || !storeName) {
       throw createError(400, 'required field: categories, storeName')
     } else {
-      const storeFound = await Store.findOne({ name: storeName, createdBy: userId })
+      const storeFound = await Store.findById({ name: storeName })
       if (!storeFound) {
         return res.status(400).json({
           success: false,
