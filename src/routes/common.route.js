@@ -11,7 +11,7 @@ const sendSMSVerify = require('../utils/twilio.sms')
 const { isAuthenticated } = require('../middlewares/auth')
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
-const adapter = new FileSync('./src/models/sysCategory.json')
+const adapter = new FileSync('./public/common/sysCategory.json')
 const SYS_CATEGORY = low(adapter)
 
 router.post('/login', async (req, res, next) => {

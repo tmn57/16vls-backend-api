@@ -33,6 +33,7 @@ const ProductSchema = new Schema(
     tags: [String], //tag.key
     streamed: [{ streamId: String, time: Number }],
     categories: [String],
+    sysCategories: [String],
     isEnabled: { type: Boolean, default: true },
     createdAt: { type: Number, default: +new Date() },
     updatedBy: { type: Number, default: +new Date() }

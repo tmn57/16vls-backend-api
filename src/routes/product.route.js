@@ -7,11 +7,11 @@ const { isAdmin } = require('../utils/common')
 router.post('/create', async (req, res, next) => {
   try {
     const { userId } = req.tokenPayload
-    const { name, images, categories, variants, storeId } = req.body
-    if (!name || !images || !categories || !variants || !storeId) {
+    const { name, images, categories, sysCategories, variants, storeId } = req.body
+    if (!name || !images || !categories || !variants || !storeId || !sysCategories) {
       throw createError(
         400,
-        'required field: name, images, categories, variants, storeId'
+        'required field: name, images, categories, variants, storeId, sysCategories'
       )
     } else {
       const existedName = await Product.findOne({ name })
@@ -148,6 +148,7 @@ router.post('/update', async (req, res, next) => {
       description,
       tags,
       categories,
+      sysCategories,
       images
     } = content
     const { userId } = req.tokenPayload
@@ -160,6 +161,7 @@ router.post('/update', async (req, res, next) => {
       if (variants) product.variants = variants
       if (tags) product.tags = tags
       if (categories) product.categories = categories
+      if (sysCategories) product.sysCategories = sysCategories
       product.updatedAt = +new Date()
       await product.save()
       return res.status(201).json({
