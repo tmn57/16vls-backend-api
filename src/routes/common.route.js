@@ -421,7 +421,7 @@ router.post('/refreshToken', async (req, res) => {
   }
 })
 
-router.get('/sysCategory', isAuthenticated, async (req, res) => {
+router.get('/sysCategories', isAuthenticated, async (req, res) => {
   try {
     const data = SYS_CATEGORY.get('sysCategories').value()
     return res.json({
@@ -436,7 +436,7 @@ router.get('/sysCategory', isAuthenticated, async (req, res) => {
   }
 })
 
-router.get('/sysCategory/restore', isAuthenticated, async (req, res) => {
+router.get('/sysCategories/restore', isAuthenticated, async (req, res) => {
   try {
     if (req.tokenPayload.type !== 'admin') {
       res.status(403).json({
@@ -458,7 +458,7 @@ router.get('/sysCategory/restore', isAuthenticated, async (req, res) => {
   }
 })
 
-router.post('/sysCategory/replace', isAuthenticated, async (req, res) => {
+router.post('/sysCategories/replace', isAuthenticated, async (req, res) => {
   try {
     if (req.tokenPayload.type !== 'admin') {
       res.status(403).json({

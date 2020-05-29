@@ -66,4 +66,4 @@ secret-code:
  + get sysCategories: `./sysCategories` (GET)
  + (for ADMIN) - replace array SysCategories: `./sysCategories/replace`
       * `(POST: body: {sysCategories: [{"_id": uuid(), "name": "example"}]})`
- + (for ADMIN) - restore SysCategories: `./promotions/restore` (GET)
+ + (for ADMIN) - restore SysCategories: `./sysCategories/restore` (GET)
