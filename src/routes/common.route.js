@@ -8,10 +8,11 @@ const bcrypt = require('bcryptjs')
 const CryptoJS = require('crypto-js')
 const { phoneNumberVerify, getRandomCode } = require('../utils/common')
 const sendSMSVerify = require('../utils/twilio.sms')
+const Store = require('../models/store')
 
 router.post('/login', async (req, res, next) => {
-  try {
-    const { phone, password } = req.body
+    try {
+      const { phone, password } = req.body
     if (!phone || !password) {
       return res.json({
         success: false,
@@ -50,6 +51,7 @@ router.post('/login', async (req, res, next) => {
                   expiresIn: '24h'
                 }
               )
+
               return res.json({
                 success: true,
                 message: 'Login successfully!',
@@ -81,7 +83,7 @@ router.post('/login', async (req, res, next) => {
 
 router.post('/register', async (req, res, next) => {
   try {
-    const { phone, password, name } = req.body
+    const { phone, password, name, email } = req.body
     if (!phone || !password || !name) {
       return res.status(400).json({
         success: false,
@@ -120,6 +122,7 @@ router.post('/register', async (req, res, next) => {
       const newUser = new User()
       newUser.phone = phone
       newUser.name = name.trim()
+      newUser.email = email
       let decodedPassword = CryptoJS.AES.decrypt(
         password,
         PASSWORD_KEY

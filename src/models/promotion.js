@@ -2,6 +2,8 @@ const { Schema, model } = require('mongoose')
 
 const PromotionSchema = new Schema(
   {
+    storesId: [String],
+    name: String,
     code: {
       type: String,
       default: 'Promotion',
@@ -14,11 +16,11 @@ const PromotionSchema = new Schema(
       max: 100
     },
     description: String,
-    startDay: {
+    startDate: {
       type: Number,
       default: +new Date()
     },
-    endDay: {
+    endDate: {
       type: Number,
       default: +new Date()
     },
@@ -26,11 +28,11 @@ const PromotionSchema = new Schema(
       type: Boolean,
       default: true
     },
-    createdBy: String,
-    updatedAt: {
-      type: Number,
-      default: +new Date()
-    }
+    statusCode: String,
+    createdAt: { type: Number, default: +new Date() },
+    createdBy: String, //userID
+    updatedAt: { type: Number, default: +new Date() },
+    updatedBy: String
   },
   {
     versionKey: false // remove field "__v"

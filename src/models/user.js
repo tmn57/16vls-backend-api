@@ -17,8 +17,13 @@ const UserSchema = new Schema(
       type: String,
       default: randtoken.generate(80)
     },
+    isAdmin: {type: Boolean, default: false},
+    statusCode: String,
+    storeFollowed: [String],//listStoreId
+    createdAt: { type: Number, default: +new Date() },
+    createdBy: String,
     updatedAt: { type: Number, default: +new Date() },
-    createdAt: { type: Number, default: +new Date() }
+    updatedBy: String
   },
   {
     versionKey: false // remove field "__v"

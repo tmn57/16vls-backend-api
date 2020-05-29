@@ -7,18 +7,18 @@ const { isAdmin } = require('../utils/common')
 router.post('/create', async (req, res, next) => {
   try {
     const { userId } = req.tokenPayload
-    const { name, images, categories, variants, storeId } = req.body
-    if (!name || !images || !categories || !variants || !storeId) {
+    const { name, images, category, variants, storeId , categorySystemId} = req.body
+    if (!name || !images || !category || !variants || !storeId || !categorySystemId) {
       throw createError(
         400,
-        'required field: name, images, categories, variants, storeId'
+        'Required field: name, images, categories, variants, storeId, categorySystemId'
       )
     } else {
       const existedName = await Product.findOne({ name })
       if (existedName) {
         return res.status(400).json({
           success: false,
-          message: "product's name is already existed!"
+          message: "Product's name is already existed!"
         })
       } else {
         let newProduct = new Product({
@@ -45,9 +45,10 @@ router.get('/', async (req, res, next) => {
   try {
     const { userId, type } = req.tokenPayload
     const _id = req.query.id
-    const products = isAdmin(type)
-      ? await Product.findById({ _id })
-      : await Product.findOne({ _id, createdBy: userId })
+    // const products = isAdmin(type)
+    //   ? await Product.findById({ _id })
+    //   : await Product.findOne({ _id, createdBy: userId })
+    const products = await Product.findOne({ _id })
     if (products) {
       return res.status(200).json({
         success: true,
@@ -147,7 +148,8 @@ router.post('/update', async (req, res, next) => {
       storeId,
       description,
       tags,
-      categories,
+      category,
+      categorySystemId,
       images
     } = content
     const { userId } = req.tokenPayload
@@ -159,8 +161,10 @@ router.post('/update', async (req, res, next) => {
       if (images) product.images = images
       if (variants) product.variants = variants
       if (tags) product.tags = tags
-      if (categories) product.categories = categories
+      if (category) product.category = category
+      if (categorySystemId) product.categorySystemId = categorySystemId
       product.updatedAt = +new Date()
+      product.updatedBy = userId
       await product.save()
       return res.status(201).json({
         success: true,

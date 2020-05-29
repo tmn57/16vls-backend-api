@@ -22,20 +22,25 @@ const ProductSchema = new Schema(
           color: 'default',
           size: 'default',
           quantity: 1,
-          price: 1
+          price: 1,
+          promotionPrice: 0
         }
       ]
-    },
-    createdBy: String,
+    },    
     storeId: String,
+    code: String,
     description: String,
     images: [String],
     tags: [String], //tag.key
     streamed: [{ streamId: String, time: Number }],
-    categories: [String],
+    categorySystemId: String,
+    category: String,
+    statusCode:String,
     isEnabled: { type: Boolean, default: true },
     createdAt: { type: Number, default: +new Date() },
-    updatedBy: { type: Number, default: +new Date() }
+    createdBy: String,
+    updatedAt: { type: Number, default: +new Date() },
+    updatedBy: String
   },
   {
     versionKey: false // remove field "__v"

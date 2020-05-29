@@ -3,6 +3,7 @@ const { Schema, model } = require('mongoose')
 const cartSchema = new Schema(
     {
         ownerId: String,
+        userId: String,
         products: 
         [{
             expiredTime: {type: Number, default: -1}, 
