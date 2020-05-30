@@ -6,7 +6,7 @@ DB Diagram:
 https://drive.google.com/file/d/1VWH28GfMEtHXO61nvCVAfFkSyzd4mPa8/view?usp=sharing
 
 DB Mongo link: 
-mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-c2upe.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority
+mongodb+srv://16vls:16vls@cluster0-c2upe.mongodb.net/16vls?retryWrites=true&w=majority
 
 **
 
@@ -61,3 +61,9 @@ secret-code:
  + create promotion: `./promotions/create`
  + update promotion: `./promotions/update`
  + get promotion by code: `./promotions?code=...`
+
+  ## For sysCategories
+ + get sysCategories: `./sysCategories` (GET)
+ + (for ADMIN) - replace array SysCategories: `./sysCategories/replace`
+      * `(POST: body: {sysCategories: [{"_id": uuid(), "name": "example"}]})`
+ + (for ADMIN) - restore SysCategories: `./sysCategories/restore` (GET)

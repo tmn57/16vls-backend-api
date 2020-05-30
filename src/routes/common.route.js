@@ -8,7 +8,13 @@ const bcrypt = require('bcryptjs')
 const CryptoJS = require('crypto-js')
 const { phoneNumberVerify, getRandomCode } = require('../utils/common')
 const sendSMSVerify = require('../utils/twilio.sms')
-const Store = require('../models/store')
+
+const { isAuthenticated } = require('../middlewares/auth')
+const low = require('lowdb')
+const FileSync = require('lowdb/adapters/FileSync')
+const adapter = new FileSync('./public/common/sysCategory.json')
+const SYS_CATEGORY = low(adapter)
+
 
 router.post('/login', async (req, res, next) => {
     try {
@@ -398,15 +404,86 @@ router.post('/refreshToken', async (req, res) => {
             message: 'refreshToken is incorrect!'
           })
         }
-        const newAccessToken = jwt.sign({ userId: user._id, type: user.type }, JWT_KEY, {
-          expiresIn: '24h'
-        })
+        const newAccessToken = jwt.sign(
+          { userId: user._id, type: user.type },
+          JWT_KEY,
+          {
+            expiresIn: '24h'
+          }
+        )
         return res.json({
           success: true,
           newAccessToken
         })
       }
     )
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.toString()
+    })
+  }
+})
+
+router.get('/sysCategories', isAuthenticated, async (req, res) => {
+  try {
+    const data = SYS_CATEGORY.get('sysCategories').value()
+    return res.json({
+      success: true,
+      sysCategories: data || []
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.toString()
+    })
+  }
+})
+
+router.get('/sysCategories/restore', isAuthenticated, async (req, res) => {
+  try {
+    if (req.tokenPayload.type !== 'admin') {
+      res.status(403).json({
+        success: false,
+        message: 'only administrator can access this api!'
+      })
+    }
+    const original = SYS_CATEGORY.get('originalSysCategories').value()
+    SYS_CATEGORY.set('sysCategories', [...original]).write()
+    return res.json({
+      success: true,
+      sysCategories: original || []
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.toString()
+    })
+  }
+})
+
+router.post('/sysCategories/replace', isAuthenticated, async (req, res) => {
+  try {
+    if (req.tokenPayload.type !== 'admin') {
+      res.status(403).json({
+        success: false,
+        message: 'only administrator can access this api!'
+      })
+    }
+    const { sysCategories } = req.body
+    if (sysCategories && sysCategories.length > 0) {
+      SYS_CATEGORY.set('sysCategories', [...sysCategories]).write()
+      const data = SYS_CATEGORY.get('sysCategories').value()
+      return res.json({
+        success: true,
+        sysCategories: data || []
+      })
+    } else {
+      return res.json({
+        success: true,
+        message: 'sysCategories is required!'
+      })
+    }
   } catch (error) {
     res.status(500).json({
       success: false,
