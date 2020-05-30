@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const {raiseError} = require('../utils/common')
+const { raiseError } = require('../utils/common')
 const { JWT_KEY } = require('../config')
 const createError = require('http-errors')
 const User = require('../models/user')
@@ -28,7 +28,7 @@ const storeOwnerRequired = async (req, res, next) => {
     return next(raiseError(401, 'invalid userId'))
   }
 
-  const userId  = req.tokenPayload.userId
+  const userId = req.tokenPayload.userId
 
   await storeModel.findOne({ ownerId: userId }).then(store => {
     req.storeId = store._id
@@ -38,4 +38,17 @@ const storeOwnerRequired = async (req, res, next) => {
   })
 }
 
-module.exports = { isAuthenticated, storeOwnerRequired }
+const isAdministrator = async (req, res, next) => {
+  if (!req.tokenPayload.userId) {
+    return next(raiseError(401, 'invalid userId'))
+  }
+
+  if (req.tokenPayload.type == 'admin') {
+    next()
+  }
+  else {
+    return next(raiseError(401, 'Your account may not have permission to access!'))
+  }
+}
+
+module.exports = { isAuthenticated, storeOwnerRequired, isAdministrator }

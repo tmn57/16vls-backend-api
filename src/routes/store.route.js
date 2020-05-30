@@ -2,7 +2,9 @@ const express = require('express')
 const router = express.Router()
 const createError = require('http-errors')
 const Store = require('../models/store')
+const asyncHandler = require('express-async-handler')
 const { phoneNumberVerify, isAdmin } = require('../utils/common')
+const { isAuthenticated, storeOwnerRequired, isAdministrator } = require('../middlewares/auth')
 
 router.post('/create', async (req, res, next) => {
   try {
@@ -27,6 +29,7 @@ router.post('/create', async (req, res, next) => {
         let newStore = new Store({
           createdBy: userId,
           userId: userId,
+          ownerId: userId,
           ...req.body
         })
         await newStore.save()
@@ -220,37 +223,23 @@ router.post('/categories/update', async (req, res, next) => {
 })
 
 
-router.post('/updatestatus', async (req, res, next) => {
-  try {
-    const { _id } = req.body;
-    const { userId, type } = req.tokenPayload
-    if (!isAdmin(type)) {
-      return res.status(400).json({
-        success: false,
-        message: "Cannot update status store!"
-      })
-    }
-    const storeFound = await Store.findById({ _id })
-    if (!storeFound) {
-      return res.status(400).json({
-        success: false,
-        message: 'Store not found!'
-      })
-    }
-    else {
-      storeFound.isApproved = true;
-      await storeFound.save()
-      return res.status(201).json({
-        success: true,
-        reuslt: storeFound
-      })
-    }
-  } catch (error) {
-    return res.status(500).json({
+router.post('/updatestatus', isAdministrator, asyncHandler(async (req, res, next) => {
+  const { _id } = req.body;
+  const storeFound = await Store.findById({ _id })
+  if (!storeFound) {
+    return res.status(400).json({
       success: false,
-      message: error.toString()
+      message: 'Store not found!'
     })
   }
-})
+  else {
+    storeFound.isApproved = true;
+    await storeFound.save()
+    return res.status(201).json({
+      success: true,
+      reuslt: storeFound
+    })
+  }
+}))
 
 module.exports = router
