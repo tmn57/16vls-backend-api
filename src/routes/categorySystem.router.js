@@ -118,7 +118,7 @@ router.post('/delete', async (req, res, next) => {
 
 router.post('/update', async (req, res, next) => {
     try {
-        const { _id, name, description} = req.body
+        const { _id, content} = req.body
         const { userId, type } = req.tokenPayload
         if (!isAdmin(type)) {
             return res.status(400).json({
@@ -126,12 +126,14 @@ router.post('/update', async (req, res, next) => {
                 message: "Cannot update category system!"
             })
         }
-        if (!_id || !name) {
+        if (!_id || !content) {
             return res.status(400).json({
                 success: false,
                 message: 'Id, Name are required!'
             })
         }
+
+        const {name, description} = content
         
         const cateSystem = await CategorySystem.findOne({ _id })
 

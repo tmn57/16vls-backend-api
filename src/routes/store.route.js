@@ -26,6 +26,7 @@ router.post('/create', async (req, res, next) => {
       } else {
         let newStore = new Store({
           createdBy: userId,
+          userId: userId,
           ...req.body
         })
         await newStore.save()
@@ -95,6 +96,8 @@ router.get('/all', async (req, res, next) => {
     })
   }
 })
+
+
 
 router.post('/getByConditions', async (req, res, next) => {
   try {
@@ -188,6 +191,36 @@ router.post('/update', async (req, res, next) => {
 })
 
 router.post('/categories/update', async (req, res, next) => {
+  try {
+    const { categories, storeName } = req.body
+    if (!categories || !storeName) {
+      throw createError(400, 'required field: categories, storeName')
+    } else {
+      const storeFound = await Store.findOne({ name: storeName })
+      if (!storeFound) {
+        return res.status(400).json({
+          success: false,
+          message: 'store not found'
+        })
+      } else {
+        storeFound.categories = [...categories]
+        await storeFound.save()
+        return res.status(201).json({
+          success: true,
+          storeFound
+        })
+      }
+    }
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.toString()
+    })
+  }
+})
+
+
+router.post('/updatestatus', async (req, res, next) => {
   try {
     const { categories, storeName } = req.body
     if (!categories || !storeName) {

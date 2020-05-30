@@ -8,7 +8,7 @@ const bcrypt = require('bcryptjs')
 const CryptoJS = require('crypto-js')
 const { phoneNumberVerify, getRandomCode } = require('../utils/common')
 const sendSMSVerify = require('../utils/twilio.sms')
-
+const Store = require('../models/store')
 const { isAuthenticated } = require('../middlewares/auth')
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
@@ -17,8 +17,8 @@ const SYS_CATEGORY = low(adapter)
 
 
 router.post('/login', async (req, res, next) => {
-    try {
-      const { phone, password } = req.body
+  try {
+    const { phone, password } = req.body
     if (!phone || !password) {
       return res.json({
         success: false,
@@ -57,12 +57,16 @@ router.post('/login', async (req, res, next) => {
                   expiresIn: '24h'
                 }
               )
+              const store = await Store.findOne({ userId: user._id })
 
               return res.json({
                 success: true,
                 message: 'Login successfully!',
                 token,
-                user
+                result: {
+                  user,
+                  store: store || false
+                }
               })
             } else {
               return res.status(400).json({
