@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 const createError = require('http-errors')
 const CategorySystem = require('../models/categorySystem')
-const { isAdmin } = require('../utils/common')
 const asyncHandler = require('express-async-handler')
 const { isAuthenticated, storeOwnerRequired, isAdministrator } = require('../middlewares/auth')
 
@@ -29,7 +28,7 @@ router.post('/create', isAdministrator, asyncHandler(async (req, res, next) => {
                 ...req.body
             })
             await newCategorySystem.save()
-            return res.status(201).json({
+            return res.status(200).json({
                 success: true,
                 result: newCategorySystem
             })
@@ -67,7 +66,7 @@ router.post('/delete', isAdministrator, asyncHandler(async (req, res, next) => {
         else {
             const result = await CategorySystem.deleteOne({ _id: categorySystemId });
             if (result.n == 1) {
-                return res.status(201).json({
+                return res.status(200).json({
                     success: true,
                     message: 'Delete successfully!',
                 })
@@ -103,7 +102,7 @@ router.post('/update', isAdministrator, asyncHandler(async (req, res, next) => {
         cateSystem.updatedBy = userId
         cateSystem.updatedAt = +new Date()
         await cateSystem.save()
-        return res.status(201).json({
+        return res.status(200).json({
             success: true,
             result: cateSystem
         })

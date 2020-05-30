@@ -2,8 +2,10 @@ const express = require('express')
 const router = express.Router()
 const createError = require('http-errors')
 const Product = require('../models/product')
+const Store = require('../models/store')
 const CategorySystem = require('../models/categorySystem')
 const { isAdmin } = require('../utils/common')
+const asyncHandler = require('express-async-handler')
 
 router.post('/create', async (req, res, next) => {
   try {
@@ -44,18 +46,18 @@ router.post('/create', async (req, res, next) => {
 
 router.get('/', async (req, res, next) => {
   try {
-    const { userId, type } = req.tokenPayload
-    const _id = req.query.id
+    // const { userId, type } = req.tokenPayload
     // const products = isAdmin(type)
     //   ? await Product.findById({ _id })
     //   : await Product.findOne({ _id, createdBy: userId })
-    const products = await Product.findOne({ _id })
-    const categorySystem = await CategorySystem.findById({ _id: products.categorySystemId })
+
+    const _id = req.query.id
+    const products = await Product.findById({ _id })
 
     if (products) {
       return res.status(200).json({
         success: true,
-        products
+        result: products
       })
     } else {
       return res.status(400).json({
@@ -71,31 +73,31 @@ router.get('/', async (req, res, next) => {
   }
 })
 
-router.get('/allByStore', async (req, res, next) => {
-  try {
-    const { userId, type } = req.tokenPayload
-    const storeId = req.query.id
-    const products = isAdmin(type)
-      ? await Product.find({ storeId })
-      : await Product.find({ storeId, createdBy: userId })
-    if (products && products.length > 0) {
-      return res.status(200).json({
-        success: true,
-        products
-      })
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: 'product not found!'
-      })
-    }
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.toString()
-    })
-  }
-})
+// router.get('/allByStore', async (req, res, next) => {
+//   try {
+//     const { userId, type } = req.tokenPayload
+//     const storeId = req.query.id
+//     const products = isAdmin(type)
+//       ? await Product.find({ storeId })
+//       : await Product.find({ storeId, createdBy: userId })
+//     if (products && products.length > 0) {
+//       return res.status(200).json({
+//         success: true,
+//         products
+//       })
+//     } else {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'product not found!'
+//       })
+//     }
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: error.toString()
+//     })
+//   }
+// })
 
 router.post('/getByConditions', async (req, res, next) => {
   try {
@@ -186,5 +188,52 @@ router.post('/update', async (req, res, next) => {
     })
   }
 })
+
+
+router.get('/allByCategorySystem', asyncHandler(async (req, res, next) => {
+  const categorySystemId = req.query.categorySystemId
+
+  if (!categorySystemId) {
+    return res.status(400).json({
+      success: false,
+      message: "Required field: CategorySystemId"
+    })
+  }
+
+  const products = await Product.find({ categorySystemId })
+  return res.status(200).json({
+    success: true,
+    result: products
+  })
+}))
+
+router.get('/allByStore', asyncHandler(async (req, res, next) => {
+  const storeId = req.query.id
+
+  if (!storeId) {
+    return res.status(400).json({
+      success: false,
+      message: "Required field: storeId"
+    })
+  }
+
+  const currentStore = await Store.findById({ _id: storeId })
+  const categories = currentStore.categories
+  const result = [];
+
+  for (let i = 0; i < categories.length; i++) {
+    const products = await Product.find({ storeId, category: categories[i] })
+    result.push({
+      categoryName: categories[i],
+      listProducts: products
+    })
+  }
+
+  return res.status(200).json({
+    success: true,
+    result
+  })
+
+}))
 
 module.exports = router
