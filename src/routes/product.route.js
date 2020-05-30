@@ -11,7 +11,7 @@ router.post('/create', async (req, res, next) => {
     if (!name || !images || !category || !variants || !storeId || !categorySystemId) {
       throw createError(
         400,
-        'Required field: name, images, categories, variants, storeId, categorySystemId'
+        'Required field: name, images, category, variants, storeId, categorySystemId'
       )
     } else {
       const existedName = await Product.findOne({ name })

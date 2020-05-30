@@ -50,7 +50,6 @@ router.post('/create', async (req, res, next) => {
 router.get('/all', async (req, res, next) => {
     try {
         const categoriesSystem = await CategorySystem.find()
-        console.log(categoriesSystem)
         if (categoriesSystem && categoriesSystem.length > 0) {
             return res.status(200).json({
                 success: true,
@@ -93,7 +92,6 @@ router.post('/delete', async (req, res, next) => {
                 })
             } else {
                 const result = await CategorySystem.deleteOne({ _id: categorySystemId });
-                console.log('resultaaaaaaaaaaaaa', result);
                 if (result.n == 1) {
                     return res.status(201).json({
                         success: true,

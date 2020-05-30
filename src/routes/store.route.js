@@ -48,9 +48,10 @@ router.get('/', async (req, res, next) => {
   try {
     const { userId, type } = req.tokenPayload
     const _id = req.query.id
-    const storeFound = isAdmin(type)
-      ? await Store.findById({ _id })
-      : await Store.findOne({ _id, createdBy: userId })
+    // const storeFound = isAdmin(type)
+    //   ? await Store.findById({ _id })
+    //   : await Store.findOne({ _id, createdBy: userId })
+    const storeFound = await Store.findById({_id})
     if (storeFound) {
       return res.status(200).json({
         success: true,
