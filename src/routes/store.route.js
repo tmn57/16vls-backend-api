@@ -52,7 +52,7 @@ router.get('/', async (req, res, next) => {
     // const storeFound = isAdmin(type)
     //   ? await Store.findById({ _id })
     //   : await Store.findOne({ _id, createdBy: userId })
-    const storeFound = await Store.findById({_id})
+    const storeFound = await Store.findById({ _id })
     if (storeFound) {
       return res.status(200).json({
         success: true,
@@ -222,24 +222,28 @@ router.post('/categories/update', async (req, res, next) => {
 
 router.post('/updatestatus', async (req, res, next) => {
   try {
-    const { categories, storeName } = req.body
-    if (!categories || !storeName) {
-      throw createError(400, 'required field: categories, storeName')
-    } else {
-      const storeFound = await Store.findOne({ name: storeName })
-      if (!storeFound) {
-        return res.status(400).json({
-          success: false,
-          message: 'store not found'
-        })
-      } else {
-        storeFound.categories = [...categories]
-        await storeFound.save()
-        return res.status(201).json({
-          success: true,
-          storeFound
-        })
-      }
+    const { _id } = req.body;
+    const { userId, type } = req.tokenPayload
+    if (!isAdmin(type)) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot update status store!"
+      })
+    }
+    const storeFound = await Store.findById({ _id })
+    if (!storeFound) {
+      return res.status(400).json({
+        success: false,
+        message: 'Store not found!'
+      })
+    }
+    else {
+      storeFound.isApproved = true;
+      await storeFound.save()
+      return res.status(201).json({
+        success: true,
+        reuslt: storeFound
+      })
     }
   } catch (error) {
     return res.status(500).json({
