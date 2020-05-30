@@ -2,12 +2,13 @@ const express = require('express')
 const router = express.Router()
 const createError = require('http-errors')
 const Product = require('../models/product')
+const CategorySystem = require('../models/categorySystem')
 const { isAdmin } = require('../utils/common')
 
 router.post('/create', async (req, res, next) => {
   try {
     const { userId } = req.tokenPayload
-    const { name, images, category, variants, storeId , categorySystemId} = req.body
+    const { name, images, category, variants, storeId, categorySystemId } = req.body
     if (!name || !images || !category || !variants || !storeId || !categorySystemId) {
       throw createError(
         400,
@@ -49,6 +50,8 @@ router.get('/', async (req, res, next) => {
     //   ? await Product.findById({ _id })
     //   : await Product.findOne({ _id, createdBy: userId })
     const products = await Product.findOne({ _id })
+    const categorySystem = await CategorySystem.findById({ _id: products.categorySystemId })
+
     if (products) {
       return res.status(200).json({
         success: true,
