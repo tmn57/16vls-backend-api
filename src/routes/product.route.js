@@ -222,7 +222,7 @@ router.get('/allByStore', asyncHandler(async (req, res, next) => {
   const result = [];
 
   for (let i = 0; i < categories.length; i++) {
-    const products = await Product.find({ storeId, category: categories[i] })
+    const products = await Product.find({ storeId, category: categories[i] }).limit(10)
     result.push({
       categoryName: categories[i],
       listProducts: products
@@ -235,5 +235,30 @@ router.get('/allByStore', asyncHandler(async (req, res, next) => {
   })
 
 }))
+
+
+router.get('/allByCategoryStore', asyncHandler(async (req, res, next) => {
+  const storeId = req.query.storeId
+  const category = req.query.categoryName
+  if (!storeId || !category) {
+    return res.status(400).json({
+      success: false,
+      message: "Required field: storeId, category name"
+    })
+  }
+
+  const products = await Product.find({ storeId, category})
+  return res.status(200).json({
+    success: true,
+    result: products
+  })
+
+}))
+
+
+// router.post('/search', asyncHandler(async (req, res, next) => {
+//     const { productName} = req.body
+//     console.log(productName)
+// }))
 
 module.exports = router
