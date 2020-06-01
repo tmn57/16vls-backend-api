@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs')
 const CryptoJS = require('crypto-js')
 const { PASSWORD_KEY } = require('../config')
 const randtoken = require('rand-token')
+const Store = require('../models/store')
 
 router.post('/update', async (req, res, next) => {
   try {
@@ -83,10 +84,16 @@ router.get('/info', async (req, res) => {
     let user = await User.findById(userId, {
       refreshToken: false
     })
+
+    const store = await Store.findOne({ userId: user._id })
+
     if (user) {
       return res.status(200).json({
         success: true,
-        user
+        result: {
+          user,
+          store: store || false
+        }
       })
     } else {
       res.status(403).json({

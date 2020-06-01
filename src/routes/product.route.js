@@ -3,24 +3,26 @@ const asyncHandler = require('express-async-handler')
 const router = express.Router()
 const createError = require('http-errors')
 const Product = require('../models/product')
-const { isAdmin, raiseError } = require('../utils/common')
-const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
+const Store = require('../models/store')
+const CategorySystem = require('../models/categorySystem')
+const { isAdmin } = require('../utils/common')
+const asyncHandler = require('express-async-handler')
 
 router.post('/create', async (req, res, next) => {
   try {
     const { userId } = req.tokenPayload
-    const { name, images, categories, variants, storeId } = req.body
-    if (!name || !images || !categories || !variants || !storeId) {
+    const { name, images, category, variants, storeId, categorySystemId } = req.body
+    if (!name || !images || !category || !variants || !storeId || !categorySystemId) {
       throw createError(
         400,
-        'required field: name, images, categories, variants, storeId'
+        'Required field: name, images, category, variants, storeId, categorySystemId'
       )
     } else {
       const existedName = await Product.findOne({ name })
       if (existedName) {
         return res.status(400).json({
           success: false,
-          message: "product's name is already existed!"
+          message: "Product's name is already existed!"
         })
       } else {
         let newProduct = new Product({
@@ -45,15 +47,18 @@ router.post('/create', async (req, res, next) => {
 
 router.get('/', async (req, res, next) => {
   try {
-    const { userId, type } = req.tokenPayload
+    // const { userId, type } = req.tokenPayload
+    // const products = isAdmin(type)
+    //   ? await Product.findById({ _id })
+    //   : await Product.findOne({ _id, createdBy: userId })
+
     const _id = req.query.id
-    const products = isAdmin(type)
-      ? await Product.findById({ _id })
-      : await Product.findOne({ _id, createdBy: userId })
+    const products = await Product.findById({ _id })
+
     if (products) {
       return res.status(200).json({
         success: true,
-        products
+        result: products
       })
     } else {
       return res.status(400).json({
@@ -69,31 +74,31 @@ router.get('/', async (req, res, next) => {
   }
 })
 
-router.get('/allByStore', async (req, res, next) => {
-  try {
-    const { userId, type } = req.tokenPayload
-    const storeId = req.query.id
-    const products = isAdmin(type)
-      ? await Product.find({ storeId })
-      : await Product.find({ storeId, createdBy: userId })
-    if (products && products.length > 0) {
-      return res.status(200).json({
-        success: true,
-        products
-      })
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: 'product not found!'
-      })
-    }
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.toString()
-    })
-  }
-})
+// router.get('/allByStore', async (req, res, next) => {
+//   try {
+//     const { userId, type } = req.tokenPayload
+//     const storeId = req.query.id
+//     const products = isAdmin(type)
+//       ? await Product.find({ storeId })
+//       : await Product.find({ storeId, createdBy: userId })
+//     if (products && products.length > 0) {
+//       return res.status(200).json({
+//         success: true,
+//         products
+//       })
+//     } else {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'product not found!'
+//       })
+//     }
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: error.toString()
+//     })
+//   }
+// })
 
 router.post('/getByConditions', async (req, res, next) => {
   try {
@@ -149,7 +154,8 @@ router.post('/update', async (req, res, next) => {
       storeId,
       description,
       tags,
-      categories,
+      category,
+      categorySystemId,
       images
     } = content
     const { userId } = req.tokenPayload
@@ -161,8 +167,10 @@ router.post('/update', async (req, res, next) => {
       if (images) product.images = images
       if (variants) product.variants = variants
       if (tags) product.tags = tags
-      if (categories) product.categories = categories
+      if (category) product.category = category
+      if (categorySystemId) product.categorySystemId = categorySystemId
       product.updatedAt = +new Date()
+      product.updatedBy = userId
       await product.save()
       return res.status(201).json({
         success: true,
@@ -203,5 +211,77 @@ router.get('/getProductsOfOwner', isAuthenticated, storeOwnerRequired, asyncHand
     data
   })
 }))
+
+
+router.get('/allByCategorySystem', asyncHandler(async (req, res, next) => {
+  const categorySystemId = req.query.categorySystemId
+
+  if (!categorySystemId) {
+    return res.status(400).json({
+      success: false,
+      message: "Required field: CategorySystemId"
+    })
+  }
+
+  const products = await Product.find({ categorySystemId })
+  return res.status(200).json({
+    success: true,
+    result: products
+  })
+}))
+
+router.get('/allByStore', asyncHandler(async (req, res, next) => {
+  const storeId = req.query.id
+
+  if (!storeId) {
+    return res.status(400).json({
+      success: false,
+      message: "Required field: storeId"
+    })
+  }
+
+  const currentStore = await Store.findById({ _id: storeId })
+  const categories = currentStore.categories
+  const result = [];
+
+  for (let i = 0; i < categories.length; i++) {
+    const products = await Product.find({ storeId, category: categories[i] }).limit(10)
+    result.push({
+      categoryName: categories[i],
+      listProducts: products
+    })
+  }
+
+  return res.status(200).json({
+    success: true,
+    result
+  })
+
+}))
+
+
+router.get('/allByCategoryStore', asyncHandler(async (req, res, next) => {
+  const storeId = req.query.storeId
+  const category = req.query.categoryName
+  if (!storeId || !category) {
+    return res.status(400).json({
+      success: false,
+      message: "Required field: storeId, category name"
+    })
+  }
+
+  const products = await Product.find({ storeId, category})
+  return res.status(200).json({
+    success: true,
+    result: products
+  })
+
+}))
+
+
+// router.post('/search', asyncHandler(async (req, res, next) => {
+//     const { productName} = req.body
+//     console.log(productName)
+// }))
 
 module.exports = router

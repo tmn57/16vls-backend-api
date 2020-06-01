@@ -59,6 +59,7 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
     const { startTime, title, productIds } = req.body
 
     let prodDbObj = []
+    
     productIds.forEach(productId => {
         prodDbObj.push({productId})
     })

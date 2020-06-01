@@ -7,6 +7,7 @@ const StoreSchema = new Schema(
     email: String,
     ownerName: String,
     ownerId: String,
+    userId: String,
     categories: [String],
     discounts: [String],
     isActive: Boolean,
@@ -14,11 +15,14 @@ const StoreSchema = new Schema(
     profileLink: String,
     websiteLink: String,
     isApproved: { type: Boolean, default: false },
-    createdAt: { type: Number, default: +new Date() },
     avatar: String,
     description: String,
+    statusCode: String,
+    followers: [String], // listUserId
+    createdAt: { type: Number, default: +new Date() },
     createdBy: String, //userID
-    updatedAt: { type: Number, default: +new Date() }
+    updatedAt: { type: Number, default: +new Date() },
+    updatedBy: String
   },
   {
     versionKey: false // remove field "__v"

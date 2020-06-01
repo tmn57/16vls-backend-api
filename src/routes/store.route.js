@@ -2,7 +2,9 @@ const express = require('express')
 const router = express.Router()
 const createError = require('http-errors')
 const Store = require('../models/store')
+const asyncHandler = require('express-async-handler')
 const { phoneNumberVerify, isAdmin } = require('../utils/common')
+const { isAuthenticated, storeOwnerRequired, isAdministrator } = require('../middlewares/auth')
 
 router.post('/create', async (req, res, next) => {
   try {
@@ -26,13 +28,15 @@ router.post('/create', async (req, res, next) => {
       } else {
         let newStore = new Store({
           createdBy: userId,
+          userId: userId,
+          ownerId: userId,
           ...req.body
         })
         await newStore.save()
         return res.status(201).json({
           success: true,
           message: 'Wait for approval!',
-          newStore
+          result: newStore
         })
       }
     }
@@ -48,9 +52,10 @@ router.get('/', async (req, res, next) => {
   try {
     const { userId, type } = req.tokenPayload
     const _id = req.query.id
-    const storeFound = isAdmin(type)
-      ? await Store.findById({ _id })
-      : await Store.findOne({ _id, createdBy: userId })
+    // const storeFound = isAdmin(type)
+    //   ? await Store.findById({ _id })
+    //   : await Store.findOne({ _id, createdBy: userId })
+    const storeFound = await Store.findById({ _id })
     if (storeFound) {
       return res.status(200).json({
         success: true,
@@ -94,6 +99,8 @@ router.get('/all', async (req, res, next) => {
     })
   }
 })
+
+
 
 router.post('/getByConditions', async (req, res, next) => {
   try {
@@ -186,27 +193,20 @@ router.post('/update', async (req, res, next) => {
   }
 })
 
-router.post('/categories/add', async (req, res, next) => {
+router.post('/categories/update', async (req, res, next) => {
   try {
-    const { categories, storeId } = req.body
-    if (!categories || !storeId) {
-      throw createError(400, 'required field: categories, storeId')
+    const { categories, storeName } = req.body
+    if (!categories || !storeName) {
+      throw createError(400, 'required field: categories, storeName')
     } else {
-      const storeFound = await Store.findById(storeId)
+      const storeFound = await Store.findOne({ name: storeName })
       if (!storeFound) {
         return res.status(400).json({
           success: false,
           message: 'store not found'
         })
       } else {
-        if (storeFound.categories.length < 1) {
-          storeFound.categories = [...categories]
-        } else {
-          let insert = Array.from(
-            new Set([...storeFound.categories, ...new Set(categories)])
-          )
-          storeFound.categories = [...insert]
-        }
+        storeFound.categories = [...categories]
         await storeFound.save()
         return res.status(201).json({
           success: true,
@@ -222,42 +222,24 @@ router.post('/categories/add', async (req, res, next) => {
   }
 })
 
-router.post('/categories/delete', async (req, res, next) => {
-  try {
-    const { categories, storeId } = req.body
-    if (!categories || !storeId) {
-      throw createError(400, 'required field: categories, storeId')
-    } else {
-      const storeFound = await Store.findById(storeId)
-      if (!storeFound) {
-        return res.status(400).json({
-          success: false,
-          message: 'store not found'
-        })
-      } else {
-        if (storeFound.categories.length < 1) {
-          return res.status(400).json({
-            success: false,
-            message: 'nothing to delete!'
-          })
-        }
-        let remain = storeFound.categories.filter(
-          (x) => !categories.includes(x)
-        )
-        storeFound.categories = [...remain]
-        await storeFound.save()
-        return res.status(201).json({
-          success: true,
-          storeFound
-        })
-      }
-    }
-  } catch (error) {
-    return res.status(500).json({
+
+router.post('/updatestatus', isAdministrator, asyncHandler(async (req, res, next) => {
+  const { _id } = req.body;
+  const storeFound = await Store.findById({ _id })
+  if (!storeFound) {
+    return res.status(400).json({
       success: false,
-      message: error.toString()
+      message: 'Store not found!'
     })
   }
-})
+  else {
+    storeFound.isApproved = true;
+    await storeFound.save()
+    return res.status(201).json({
+      success: true,
+      reuslt: storeFound
+    })
+  }
+}))
 
 module.exports = router

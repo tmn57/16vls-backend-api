@@ -32,8 +32,12 @@ const OrderSchema = new Schema(
     },
     totalMoney: Number, // Sum([total per Product])
     description?: String,
-    createdBy: String,
-    createdAt: { type: Number, default: +new Date() }
+    transportationCost: Number,
+    shippingAddress: String,
+    createdAt: { type: Number, default: +new Date() },
+    createdBy: String, //userID
+    updatedAt: { type: Number, default: +new Date() },
+    updatedBy: String
   },
   {
     versionKey: false // remove field "__v"
