@@ -1,11 +1,12 @@
 const express = require('express')
+const asyncHandler = require('express-async-handler')
 const router = express.Router()
 const createError = require('http-errors')
 const Product = require('../models/product')
 const Store = require('../models/store')
 const CategorySystem = require('../models/categorySystem')
 const { isAdmin } = require('../utils/common')
-const asyncHandler = require('express-async-handler')
+const { isAuthenticated, storeOwnerRequired} = require('../middlewares/auth')
 
 router.post('/create', async (req, res, next) => {
   try {
@@ -194,6 +195,28 @@ router.post('/update', async (req, res, next) => {
     })
   }
 })
+
+router.post('/getByIds', asyncHandler(async (req, res, next) => {
+  const { ids } = req.body
+  if (Array.isArray(ids)) {
+    let data = await Product.find({ _id: { $in: ids } })
+    return res.status(200).json({
+      success: true,
+      data
+    })
+  } else {
+    return next(raiseError(400, 'ids must be an array'))
+  }
+}))
+
+router.get('/getProductsOfOwner', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
+  const storeId = req.storeId
+  const data = await Product.find({storeId})
+  res.status(200).json({
+    success: true,
+    data
+  })
+}))
 
 
 router.get('/allByCategorySystem', asyncHandler(async (req, res, next) => {

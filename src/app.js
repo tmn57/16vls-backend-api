@@ -49,9 +49,11 @@ app.use('/categorysystem', isAuthenticated, require('./routes/categorySystem.rou
 
 //handle error
 app.use((err, req, res, next) => {
+  console.log(err)
   res.status(err.status || 500)
   res.json({
-    error: err
+    success: false,
+    error: err.toString()
   })
 })
 
@@ -76,6 +78,7 @@ socketServer.on('listening', () => onListening(socketServer))
 
 //connect database
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-c2upe.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-zeckz.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
 const connectDatabase = () => {
   mongoose.connect(
     uri,
