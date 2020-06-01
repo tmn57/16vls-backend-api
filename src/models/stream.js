@@ -2,21 +2,18 @@ const { Schema, model } = require('mongoose')
 
 const StreamSchema = new Schema(
   {
-    startTime: { type: Number, default: 0 }, //0 means not scheduled
-    endTime: { type: Number, default: Number.MIN_SAFE_INTEGER },
-    //Number.MAX_SAFE_INTEGER means the stream is live and has not end yet
-    //Number.MIN_SAFE_INTEGER means the stream is still not live yet
-    //endTime < Number.MAX_SAFE_INTEGER: //stream was live 
+    startTime: { type: Number, default: Date.now },
+    duration: { type: Number, default: 0 }, // -1 means is 'live' / 0: means 'incoming' / >0: is lived
     title: String,
     storeId: String, //owner of store is host
     products: [{
       productId: String,
-      inStreamAt: [Number],
+      inStreamAt: [Number]
     }],
     messages: [{
       userId: String,
-      message: { type: String, default: 'text message' },
-      inStreamAt: { type: Number, default: 0 }
+      message: { type: String, default: 'text message'},
+      inStreamAt: {type: Number, default: 0}
     }]
   },
   {
