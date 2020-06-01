@@ -15,7 +15,8 @@ router.post('/create', isAdministrator, asyncHandler(async (req, res, next) => {
   }
 
   const sd = Date.parse(startDate);
-  console.log(sd)
+  const ed = Date.parse(endDate);
+  console.log(sd, ed)
 
   const codeExisted = await Promotion.findOne({ code: code.trim() })
   if (codeExisted) {
@@ -30,8 +31,8 @@ router.post('/create', isAdministrator, asyncHandler(async (req, res, next) => {
     code,
     saleOff,
     description,
-    startDate,
-    endDate,
+    startDate: sd,
+    endDate: ed,
     createdBy: userId
   })
   await newPromotion.save()
@@ -52,6 +53,11 @@ router.post('/update', isAdministrator, asyncHandler(async (req, res, next) => {
       message: 'Required fields: name, code, saleOff, startDate, endDate'
     })
   }
+
+  const sd = Date.parse(startDate);
+  const ed = Date.parse(endDate);
+  console.log(sd, ed)
+
 
   const promotion = await Promotion.findById({ _id: promotionId })
   if (!promotion) {
@@ -75,8 +81,8 @@ router.post('/update', isAdministrator, asyncHandler(async (req, res, next) => {
   promotion.code = code;
   promotion.saleOff = saleOff
   promotion.description = description
-  promotion.startDate = startDate
-  promotion.endDate = endDate
+  promotion.startDate = sd
+  promotion.endDate = ed
   if (isEnabled) promotion.isEnabled = isEnabled
   promotion.updatedAt = +new Date()
   promotion.updatedBy = userId
@@ -98,8 +104,9 @@ router.post('/register', asyncHandler(async (req, res, next) => {
   }
 
   const promotion = await Promotion.findById({ _id: promotionId })
+  const now = +new Date();
 
-  if (!promotion) {
+  if (!promotion ||(promotion.endDate < now || promotion.startDate > now)) {
     return res.status(400).json({
       success: false,
       message: 'Promotion not found!'
@@ -135,18 +142,27 @@ router.get('/', asyncHandler(async (req, res, next) => {
     })
   }
   const promotion = await Promotion.findById({ _id })
-  return res.status(200).json({
-    success: true,
-    result: promotion
-  })
+  const now = +new Date();
+  if (promotion.endDate < now || promotion.startDate > now) {
+    return res.status(200).json({
+      success: false,
+      message: "Promotion not found!"
+    })
+  }
+  else {
+    return res.status(200).json({
+      success: true,
+      result: promotion
+    })
+  }
 }))
 
 router.get('/all', asyncHandler(async (req, res, next) => {
-  
-  const promotions = await Promotion.find()
+  const now = +new Date();
+  const promotions = await Promotion.find({ $and: [{ startDate: { $lte: now } }, { endDate: { $gte: now } }] })
   return res.status(200).json({
-      success: true,
-      result: promotions
+    success: true,
+    result: promotions
   })
 }))
 
