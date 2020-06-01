@@ -52,6 +52,12 @@ router.get('/', async (req, res, next) => {
     //   : await Product.findOne({ _id, createdBy: userId })
 
     const _id = req.query.id
+    if (!_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Required field: id'
+      })
+    }
     const products = await Product.findById({ _id })
 
     if (products) {

@@ -1,120 +1,153 @@
 const express = require('express')
 const router = express.Router()
 const Promotion = require('../models/promotion')
+const asyncHandler = require('express-async-handler')
+const { isAuthenticated, storeOwnerRequired, isAdministrator } = require('../middlewares/auth')
 
-router.post('/create', async (req, res, next) => {
-  try {
-    const { userId } = req.tokenPayload
-    let { code, saleOff, description, startDay, endDay } = req.body
-    if (!code || !saleOff || !description || !startDay || !endDay) {
-      return res.status(400).json({
-        success: false,
-        message: 'required fields: code, saleOff, description, startDay, endDay'
-      })
-    }
-    const codeExisted = await Promotion.findOne({
-      code: code.trim(),
-      createdBy: userId
-    })
-    if (codeExisted) {
-      return res.status(400).json({
-        success: false,
-        message: 'code already exists!'
-      })
-    }
-    saleOff = (!saleOff || saleOff > 100) ? 0 : saleOff
-    let newPromotion = Promotion({
-      code,
-      saleOff,
-      description,
-      startDay,
-      endDay,
-      createdBy: userId
-    })
-    await newPromotion.save()
-    res.status(201).json({
-      success: true,
-      newPromotion
-    })
-  } catch (error) {
-    return res.status(500).json({
+router.post('/create', isAdministrator, asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+  let { name, code, saleOff, startDate, endDate, description } = req.body
+  if (!name || !code || !saleOff || !startDate || !endDate) {
+    return res.status(400).json({
       success: false,
-      message: error.toString()
+      message: 'Required fields: name, code, saleOff, startDate, endDate'
     })
   }
-})
 
-router.post('/update', async (req, res, next) => {
-  try {
-    const { userId } = req.tokenPayload
-    const { code, content } = req.body
-    let { saleOff, description, startDay, endDay, isEnabled } = content
-    if (!code) {
-      return res.status(400).json({
-        success: false,
-        message: 'required field: code'
-      })
-    }
-    const promotion = await Promotion.findOne({
-      code: code.trim(),
-      createdBy: userId
-    })
-    if (!promotion) {
-      return res.status(400).json({
-        success: false,
-        message: 'promotion not found!'
-      })
-    }
-    saleOff = (!saleOff || saleOff > 100) ? 0 : saleOff
-    if (saleOff) promotion.saleOff = saleOff
-    if (description) promotion.description = description
-    if (startDay) promotion.startDay = startDay
-    if (endDay) promotion.endDay = endDay
-    if (isEnabled) promotion.isEnabled = isEnabled
-    promotion.updatedAt = +new Date()
-    await promotion.save()
-    res.status(201).json({
-      success: true,
-      promotion
-    })
-  } catch (error) {
-    return res.status(500).json({
+  const sd = Date.parse(startDate);
+  console.log(sd)
+
+  const codeExisted = await Promotion.findOne({ code: code.trim() })
+  if (codeExisted) {
+    return res.status(400).json({
       success: false,
-      message: error.toString()
+      message: 'Code Promotion already exists!'
     })
   }
-})
+  saleOff = (saleOff < 0 || saleOff > 100) ? 0 : saleOff
+  let newPromotion = Promotion({
+    name,
+    code,
+    saleOff,
+    description,
+    startDate,
+    endDate,
+    createdBy: userId
+  })
+  await newPromotion.save()
+  return res.status(200).json({
+    success: true,
+    result: newPromotion
+  })
+}))
 
-router.get('/', async (req, res, next) => {
-  try {
-    const { userId } = req.tokenPayload
-    const { code } = req.query
-    if (!code) {
-      return res.status(400).json({
-        success: false,
-        message: 'required field: code'
-      })
-    }
-    const promotion = await Promotion.findOne({
-      code: code.trim(),
-      createdBy: userId
-    })
-    if (!promotion) {
-      return res.status(400).json({
-        success: false,
-        message: 'promotion not found!'
-      })
-    }
-    res.status(200).json({
-      success: true,
-      promotion
-    })
-  } catch (error) {
-    return res.status(500).json({
+router.post('/update', isAdministrator, asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+  const { promotionId, content } = req.body
+  let { name, code, saleOff, startDate, endDate, description, isEnabled } = content
+
+  if (!name || !code || !saleOff || !startDate || !endDate) {
+    return res.status(400).json({
       success: false,
-      message: error.toString()
+      message: 'Required fields: name, code, saleOff, startDate, endDate'
     })
   }
-})
+
+  const promotion = await Promotion.findById({ _id: promotionId })
+  if (!promotion) {
+    return res.status(400).json({
+      success: false,
+      message: 'Promotion not found!'
+    })
+  }
+
+  const codeExisted = await Promotion.findOne({ $and: [{ code: code.trim() }, { _id: { $ne: promotionId } }] })
+  if (codeExisted) {
+    return res.status(400).json({
+      success: false,
+      message: 'Code Promotion already exists!'
+    })
+  }
+
+  saleOff = (saleOff < 0 || saleOff > 100) ? 0 : saleOff
+
+  promotion.name = name;
+  promotion.code = code;
+  promotion.saleOff = saleOff
+  promotion.description = description
+  promotion.startDate = startDate
+  promotion.endDate = endDate
+  if (isEnabled) promotion.isEnabled = isEnabled
+  promotion.updatedAt = +new Date()
+  promotion.updatedBy = userId
+  await promotion.save()
+
+  return res.status(200).json({
+    success: true,
+    result: promotion
+  })
+}))
+
+router.post('/register', asyncHandler(async (req, res, next) => {
+  const { storeId, promotionId } = req.body
+  if (!storeId || !promotionId) {
+    return res.status(400).json({
+      success: false,
+      message: 'Required field: storeId, promotionId'
+    })
+  }
+
+  const promotion = await Promotion.findById({ _id: promotionId })
+
+  if (!promotion) {
+    return res.status(400).json({
+      success: false,
+      message: 'Promotion not found!'
+    })
+  }
+
+  const listStoresInPromotion = promotion.storesId
+  if (listStoresInPromotion.indexOf(storeId) >= 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Store has subscribed to this promotion!'
+    })
+  }
+  else {
+    listStoresInPromotion.push(storeId)
+  }
+
+  promotion.storesId = listStoresInPromotion;
+  await promotion.save()
+
+  return res.status(200).json({
+    success: true,
+    result: promotion
+  })
+}))
+
+router.get('/', asyncHandler(async (req, res, next) => {
+  const _id = req.query.id
+  if (!_id) {
+    return res.status(400).json({
+      success: false,
+      message: 'Required field: id'
+    })
+  }
+  const promotion = await Promotion.findById({ _id })
+  return res.status(200).json({
+    success: true,
+    result: promotion
+  })
+}))
+
+router.get('/all', asyncHandler(async (req, res, next) => {
+  
+  const promotions = await Promotion.find()
+  return res.status(200).json({
+      success: true,
+      result: promotions
+  })
+}))
 
 module.exports = router
