@@ -56,19 +56,14 @@ router.post('rtmp-pub-auth', (req, res) => {
 })
 
 router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
-    const { startTime, title, productIds } = req.body
-
-    let prodDbObj = []
-    
-    productIds.forEach(productId => {
-        prodDbObj.push({productId})
-    })
+    const { startTime, title, products } = req.body
+    //TODO: validating data
 
     let nStream = new StreamModel({
         startTime,
         title,
         storeId: req.storeId,
-        products: prodDbObj
+        products
     })
 
     addedStream = await nStream.save()
@@ -80,18 +75,14 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
 }))
 
 router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
-    const { userId } = req.tokenPayload
-    let rtPayload = { userId }
+    let payload = { userId: req.userId }
 
-    store = await StoreModel.findOne({ ownerId: userId })
-    
+    store = await storeModel.findOne({ ownerId: userId })
     if (store !== null) {
-        rtPayload["storeId"] = store._id
+        payload["storeId"] = store._id
     }
 
-    const tok = jwt.sign(rtPayload, SOCKETIO_JWT_SECRET, { expiresIn: '6h' })
-
-    console.log(rtPayload, tok)
+    const tok = jwt.sign(payload, SOCKETIO_JWT_SECRET, { expiresIn: '6h' })
 
     res.status(200).json({
         success:true,
@@ -102,7 +93,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
 router.post('/list', asyncHandler(async (req, res) => {
     //TODO: check req.body for checking type of stream ('live', 'incoming', 'archived')
 
-    let list = await StreamModel.find()
+    let list = streamHandler.getStreamInfoList()
 
     res.status(200).json({
         success: true,
