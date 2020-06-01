@@ -6,6 +6,7 @@ const Product = require('../models/product')
 const Store = require('../models/store')
 const CategorySystem = require('../models/categorySystem')
 const { isAdmin } = require('../utils/common')
+const { isAuthenticated, storeOwnerRequired} = require('../middlewares/auth')
 
 router.post('/create', async (req, res, next) => {
   try {
