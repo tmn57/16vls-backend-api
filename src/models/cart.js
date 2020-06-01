@@ -6,8 +6,8 @@ const cartSchema = new Schema(
         userId: String,
         products: 
         [{
-            expiredTime: {type: Number, default: -1}, 
-            reliablePrice: { type: Number, default: -1 }, // if <= -1 ? is normal product : is reliable added product 
+            expiredTime: {type: Number, default: Number.MAX_SAFE_INTEGER},  
+            reliablePrice: { type: Number, default: 0 }, // if 0 ? is normal product : is reliable added product 
             productId: String,
             variantIndex: { type: Number, default: 0 },
             quantity: { type: Number, default: 1 }
