@@ -46,6 +46,7 @@ app.use('/promotions', isAuthenticated, require('./routes/promotion.route'))
 app.use('/users', isAuthenticated, require('./routes/user.route'))
 app.use('/streams', require('./routes/stream.route'))
 app.use('/categorysystem', isAuthenticated, require('./routes/categorySystem.router'))
+app.use('/carts', isAuthenticated, require('./routes/cart.router'))
 
 //handle error
 app.use((err, req, res, next) => {
