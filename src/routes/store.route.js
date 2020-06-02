@@ -49,32 +49,56 @@ router.post('/create', async (req, res, next) => {
   }
 })
 
-router.get('/', async (req, res, next) => {
-  try {
-    const { userId, type } = req.tokenPayload
-    const _id = req.query.id
-    // const storeFound = isAdmin(type)
-    //   ? await Store.findById({ _id })
-    //   : await Store.findOne({ _id, createdBy: userId })
-    const storeFound = await Store.findById({ _id })
-    if (storeFound) {
-      return res.status(200).json({
-        success: true,
-        store: storeFound
-      })
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: 'store not found!'
-      })
-    }
-  } catch (error) {
-    return res.status(500).json({
+// router.get('/', async (req, res, next) => {
+//   try {
+//     const { userId, type } = req.tokenPayload
+//     const _id = req.query.id
+//     const storeFound = await Store.findById({ _id })
+//     if (storeFound) {
+//       return res.status(200).json({
+//         success: true,
+//         store: storeFound
+//       })
+//     } else {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'store not found!'
+//       })
+//     }
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: error.toString()
+//     })
+//   }
+// })
+
+
+router.get('/', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+  const _id = req.query.id
+  const store = await Store.findById({ _id })
+
+  if (!store) {
+    return res.status(400).json({
       success: false,
-      message: error.toString()
+      message: 'Store not found!'
     })
   }
-})
+  else {
+    let listFollowers = store.followers;
+    let check = listFollowers.map(val => val).some(el => el == userId)
+    console.log(check)
+    return res.status(200).json({
+      success: true,
+      result: {
+        isFollowed: check,
+        store: store
+      }
+    })
+  }
+
+}))
 
 router.get('/all', async (req, res, next) => {
   try {
@@ -246,20 +270,12 @@ router.post('/updatestatus', isAdministrator, asyncHandler(async (req, res, next
 
 router.post('/follow', asyncHandler(async (req, res, next) => {
   const { userId } = req.tokenPayload
-  const { storeId } = req.body.storeId;
-
+  const { storeId } = req.body
+  console.log(storeId)
   const user = await User.findById({ _id: userId })
   const store = await Store.findById({ _id: storeId })
 
-  // const liststoreFollowed = user.storeFollowed;
-
-  // if (liststoreFollowed.length == 0) {
-  //   user.storeFollowed.push(storeId);
-  //   store.followers.push(userId)
-  // }
-
   let removeFollow = false;
-
   for (let i = 0; i < user.storeFollowed.length; i++) {
     if (user.storeFollowed[i] == storeId) {
       removeFollow = true;
@@ -282,6 +298,10 @@ router.post('/follow', asyncHandler(async (req, res, next) => {
   await store.save();
   return res.status(201).json({
     success: true,
+    result: {
+      isFollowed: !removeFollow,
+      store: store
+    }
   })
 }))
 

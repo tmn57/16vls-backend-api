@@ -40,36 +40,36 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     }
 
     const cart = await Cart.findOne({ userId })
-    if (!cart) {
-        let newCart = new Cart({
-            ownerId: userId,
-            userId: userId
-        })
-        newCart.products.push(objProduct)
-        await newCart.save()
-        return res.status(200).json({
-            success: true,
-            result: newCart
-        })
-    }
-    else {
-        let isExisted = false;
-        for (let i = 0; i < cart.products.length; i++) {
-            if (cart.products[i].productId == productId && cart.products[i].variantIndex == variantIndex) {
-                isExisted = true;
-                cart.products[i].quantity = cart.products[i].quantity + quantity;
-                break;
-            }
+    // if (!cart) {
+    //     let newCart = new Cart({
+    //         ownerId: userId,
+    //         userId: userId
+    //     })
+    //     newCart.products.push(objProduct)
+    //     await newCart.save()
+    //     return res.status(200).json({
+    //         success: true,
+    //         result: newCart
+    //     })
+    // }
+    // else {
+    let isExisted = false;
+    for (let i = 0; i < cart.products.length; i++) {
+        if (cart.products[i].productId == productId && cart.products[i].variantIndex == variantIndex) {
+            isExisted = true;
+            cart.products[i].quantity = cart.products[i].quantity + quantity;
+            break;
         }
-        if (!isExisted) {
-            cart.products.push(objProduct);
-        }
-        await cart.save()
-        return res.status(200).json({
-            success: true,
-            result: cart
-        })
     }
+    if (!isExisted) {
+        cart.products.push(objProduct);
+    }
+    await cart.save()
+    return res.status(200).json({
+        success: true,
+        result: cart
+    })
+    // }
 }))
 
 
@@ -85,7 +85,7 @@ router.get('/info', asyncHandler(async (req, res, next) => {
 router.post('/updateQuantityProduct', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const { productId, quantity, variantIndex } = req.body
-    
+
     // if (!productId || !quantity || !variantIndex) {
     //     return res.status(400).json({
     //         success: false,
@@ -112,7 +112,7 @@ router.post('/updateQuantityProduct', asyncHandler(async (req, res, next) => {
 router.post('/removeProduct', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const { productId, variantIndex } = req.body
-    
+
     // const { productId, quantity, color, size } = req.body
     // if (!productId || !variantIndex) {
     //     return res.status(400).json({

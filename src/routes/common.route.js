@@ -14,7 +14,7 @@ const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
 const adapter = new FileSync('./public/common/sysCategory.json')
 const SYS_CATEGORY = low(adapter)
-
+const Cart = require('../models/cart')
 
 router.post('/login', async (req, res, next) => {
   try {
@@ -139,6 +139,11 @@ router.post('/register', async (req, res, next) => {
       ).toString(CryptoJS.enc.Utf8)
       newUser.password = await bcrypt.hash(decodedPassword, 10)
       await newUser.save()
+
+      let newCart = new Cart({
+        ownerId: newUser._id,
+        userId: newUser._id
+      })
 
       return res.json({
         success: true,
