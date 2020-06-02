@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const createError = require('http-errors')
 const Store = require('../models/store')
+const User = require('../models/user')
 const asyncHandler = require('express-async-handler')
 const { phoneNumberVerify, isAdmin } = require('../utils/common')
 const { isAuthenticated, storeOwnerRequired, isAdministrator } = require('../middlewares/auth')
@@ -240,6 +241,48 @@ router.post('/updatestatus', isAdministrator, asyncHandler(async (req, res, next
       reuslt: storeFound
     })
   }
+}))
+
+
+router.post('/follow', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+  const { storeId } = req.body.storeId;
+
+  const user = await User.findById({ _id: userId })
+  const store = await Store.findById({ _id: storeId })
+
+  // const liststoreFollowed = user.storeFollowed;
+
+  // if (liststoreFollowed.length == 0) {
+  //   user.storeFollowed.push(storeId);
+  //   store.followers.push(userId)
+  // }
+
+  let removeFollow = false;
+
+  for (let i = 0; i < user.storeFollowed.length; i++) {
+    if (user.storeFollowed[i] == storeId) {
+      removeFollow = true;
+      user.storeFollowed.splice(i, 1);
+      for (let j = 0; j < store.followers.length; j++) {
+        if (store.followers[j] == userId) {
+          store.followers.splice(j, 1);
+          break;
+        }
+      }
+      break;
+    }
+  }
+  if (!removeFollow) {
+    user.storeFollowed.push(storeId)
+    store.followers.push(userId)
+  }
+
+  await user.save()
+  await store.save();
+  return res.status(201).json({
+    success: true,
+  })
 }))
 
 module.exports = router

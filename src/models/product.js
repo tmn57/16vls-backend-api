@@ -21,12 +21,12 @@ const ProductSchema = new Schema(
         {
           color: 'default',
           size: 'default',
-          quantity: 1,
-          price: 1,
-          promotionPrice: 0
+          quantity: 1
         }
       ]
-    },    
+    },
+    price: Number,
+    promotionPrice: { type: Number, default: 0 },
     storeId: String,
     code: String,
     description: String,
@@ -35,7 +35,7 @@ const ProductSchema = new Schema(
     streamed: [{ streamId: String, time: Number }],
     categorySystemId: String,
     category: String,
-    statusCode:String,
+    statusCode: String,
     isEnabled: { type: Boolean, default: true },
     createdAt: { type: Number, default: +new Date() },
     createdBy: String,

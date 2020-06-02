@@ -10,11 +10,11 @@ const asyncHandler = require('express-async-handler')
 router.post('/create', async (req, res, next) => {
   try {
     const { userId } = req.tokenPayload
-    const { name, images, category, variants, storeId, categorySystemId } = req.body
-    if (!name || !images || !category || !variants || !storeId || !categorySystemId) {
+    const { name, images, category, variants, storeId, categorySystemId, price } = req.body
+    if (!name || !images || !category || !variants || !storeId || !categorySystemId || !price) {
       throw createError(
         400,
-        'Required field: name, images, category, variants, storeId, categorySystemId'
+        'Required field: name, images, category, variants, storeId, categorySystemId, price'
       )
     } else {
       const existedName = await Product.findOne({ name })
@@ -161,7 +161,9 @@ router.post('/update', async (req, res, next) => {
       tags,
       category,
       categorySystemId,
-      images
+      images,
+      price,
+      promotionPrice
     } = content
     const { userId } = req.tokenPayload
     const product = await Product.findOne({ _id, createdBy: userId })
@@ -174,6 +176,8 @@ router.post('/update', async (req, res, next) => {
       if (tags) product.tags = tags
       if (category) product.category = category
       if (categorySystemId) product.categorySystemId = categorySystemId
+      if (price) product.price = price
+      if (promotionPrice) product.promotionPrice = promotionPrice
       product.updatedAt = +new Date()
       product.updatedBy = userId
       await product.save()
