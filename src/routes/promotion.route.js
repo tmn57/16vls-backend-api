@@ -106,7 +106,7 @@ router.post('/register', asyncHandler(async (req, res, next) => {
   const promotion = await Promotion.findById({ _id: promotionId })
   const now = +new Date();
 
-  if (!promotion ||(promotion.endDate < now || promotion.startDate > now)) {
+  if (!promotion || (promotion.endDate < now)) {
     return res.status(400).json({
       success: false,
       message: 'Promotion not found!'
@@ -143,7 +143,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
   }
   const promotion = await Promotion.findById({ _id })
   const now = +new Date();
-  if (promotion.endDate < now || promotion.startDate > now) {
+  if (promotion.endDate < now) {
     return res.status(200).json({
       success: false,
       message: "Promotion not found!"
@@ -159,7 +159,8 @@ router.get('/', asyncHandler(async (req, res, next) => {
 
 router.get('/all', asyncHandler(async (req, res, next) => {
   const now = +new Date();
-  const promotions = await Promotion.find({ $and: [{ startDate: { $lte: now } }, { endDate: { $gte: now } }] })
+  const promotions = await Promotion.find({ endDate: { $gte: now } })
+  // const promotions = await Promotion.find({ $and: [{ startDate: { $lte: now } }, { endDate: { $gte: now } }] })
   return res.status(200).json({
     success: true,
     result: promotions
