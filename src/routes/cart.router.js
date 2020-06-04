@@ -35,8 +35,16 @@ router.post('/create', asyncHandler(async (req, res, next) => {
 
     let objProduct = {
         productId: productId,
+        productName: product.name,
+        productImage: product.images[0],
+        productPrice: product.promotionPrice == 0 ? product.price : product.promotionPrice,
+        storeId: product.storeId,
+        variant:{
+            color: color,
+            size: size
+        },
         variantIndex: variantIndex,
-        quantity: quantity
+        quantity: quantity,
     }
 
     const cart = await Cart.findOne({ userId })
@@ -76,9 +84,31 @@ router.post('/create', asyncHandler(async (req, res, next) => {
 router.get('/info', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const cart = await Cart.findOne({ userId })
+    let listProductOfStore = []
+
+    console.log(listProductOfStore.length)
+
+    for (let i = 0; i < cart.products.length; i++) {
+        let check = false;
+        for (let j = 0; j < listProductOfStore.length; j++) {
+            if (listProductOfStore[j].storeId == cart.products[i].storeId) {
+                listProductOfStore[j].products.push(cart.products[i])
+                check = true
+                break;
+            }
+        }
+        if (!check) {            
+            listProductOfStore.push({
+                storeId: cart.products[i].storeId,
+                products: [cart.products[i]]
+            })
+        }
+        console.log(listProductOfStore)
+    }
+
     return res.status(200).json({
         success: true,
-        result: cart
+        result: listProductOfStore
     })
 }))
 

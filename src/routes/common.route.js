@@ -142,7 +142,8 @@ router.post('/register', async (req, res, next) => {
 
       let newCart = new Cart({
         ownerId: newUser._id,
-        userId: newUser._id
+        userId: newUser._id,
+        products: []
       })
 
       return res.json({

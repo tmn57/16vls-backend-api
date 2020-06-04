@@ -3,6 +3,7 @@ const router = express.Router()
 const createError = require('http-errors')
 const Store = require('../models/store')
 const User = require('../models/user')
+const Order = require('../models/order')
 const asyncHandler = require('express-async-handler')
 const { phoneNumberVerify, isAdmin } = require('../utils/common')
 const { isAuthenticated, storeOwnerRequired, isAdministrator } = require('../middlewares/auth')
@@ -305,4 +306,74 @@ router.post('/follow', asyncHandler(async (req, res, next) => {
   })
 }))
 
+
+// router.get('/orderOfStore', asyncHandler(async (req, res, next) => {
+//   const { userId } = req.tokenPayload
+//   const { storeId } = req.query.id
+
+//   // Check store có phải của UserId k?
+//   const store = await Store.findOne({ userId })
+//   if(storeId != store._id){
+//     return res.status(400).json({
+//       success: false,
+//       message: 'StoreId is incorrect!'
+//     })
+//   }
+
+//   const order = await Order.find({$and: [{ storeId: storeId }, { isCompleted: false }]})
+//   return res.status(200).json({
+//     success: true,
+//     result: order
+//   })
+  
+// }))
+
+// router.post('/approve', asyncHandler(async (req, res, next) => {
+//   const { userId } = req.tokenPayload
+//   const { storeId, orderId } = req.body
+
+//   // Check store có phải của UserId k?
+//   const store = await Store.findOne({ userId })
+//   if(storeId != store._id){
+//     return res.status(400).json({
+//       success: false,
+//       message: 'StoreId is incorrect!'
+//     })
+//   }
+
+//   // iscompleted : true
+
+//   // const order = await Order.find({$and: [{ storeId: storeId }, { isCompleted: false }]})
+//   // return res.status(200).json({
+//   //   success: true,
+//   //   result: order
+//   // })
+  
+// }))
+
+
+// router.post('/reject', asyncHandler(async (req, res, next) => {
+//   const { userId } = req.tokenPayload
+//   const { storeId, orderId } = req.body
+
+//   // Check store có phải của UserId k?
+//   const store = await Store.findOne({ userId })
+//   if(storeId != store._id){
+//     return res.status(400).json({
+//       success: false,
+//       message: 'StoreId is incorrect!'
+//     })
+//   }
+
+//   // iscompleted : true
+
+//   // const order = await Order.find({$and: [{ storeId: storeId }, { isCompleted: false }]})
+//   // return res.status(200).json({
+//   //   success: true,
+//   //   result: order
+//   // })
+  
+// }))
+
 module.exports = router
+
