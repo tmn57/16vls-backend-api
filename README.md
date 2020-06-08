@@ -11,6 +11,8 @@ http://13.250.161.81:4000
 Unstable Socket server:
 http://13.250.161.81:6000
 
+Video Stream Server IP: 52.220.101.125
+
 DB Diagram:
 https://drive.google.com/file/d/1VWH28GfMEtHXO61nvCVAfFkSyzd4mPa8/view?usp=sharing
 
