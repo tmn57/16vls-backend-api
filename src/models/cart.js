@@ -11,7 +11,7 @@ const cartSchema = new Schema(
             productId: String,
             productName: String,
             productImage: String,
-            productPrice: Number,
+            productPrice: { type: Number, default: 0 },
             storeId: String,
             variant:{
                 color: String,

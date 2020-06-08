@@ -32,10 +32,17 @@ const OrderSchema = new Schema(
     // },
     products: [{
       productId: String,
+      productName: String,
+      productImage: String,
+      productPrice: Number,
+      variant: {
+        color: String,
+        size: String
+      },
       variantIndex: { type: Number, default: 0 },
       quantity: { type: Number, default: 1 }
     }],
-    isCompleted: {type: Boolean, default: false},
+    isCompleted: { type: Boolean, default: false },
     storeId: String,
     totalMoney: { type: Number, default: 0 }, // Sum([total per Product])
     description: String,

@@ -217,6 +217,25 @@ router.get('/allByCategorySystem', asyncHandler(async (req, res, next) => {
   })
 }))
 
+router.get('/allByCategoriesSystem', asyncHandler(async (req, res, next) => {
+
+  const categoriesSystem = await CategorySystem.find()
+  let listProducts = []
+  for (let i = 0; i < categoriesSystem.length; i++) {
+    const products = await Product.find({ categorySystemId: categoriesSystem[i].id }).limit(10)
+    console.log(categoriesSystem[i].id)
+    console.log(products)
+    listProducts.push({
+      _id: categoriesSystem[i].id,
+      products: products
+    })
+  }
+  return res.status(200).json({
+    success: true,
+    result: listProducts
+  })
+}))
+
 router.get('/allByStore', asyncHandler(async (req, res, next) => {
   const storeId = req.query.id
 
@@ -257,7 +276,7 @@ router.get('/allByCategoryStore', asyncHandler(async (req, res, next) => {
     })
   }
 
-  const products = await Product.find({ storeId, category})
+  const products = await Product.find({ storeId, category })
   return res.status(200).json({
     success: true,
     result: products
