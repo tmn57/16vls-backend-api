@@ -224,8 +224,6 @@ router.get('/allByCategoriesSystem', asyncHandler(async (req, res, next) => {
   let listProducts = []
   for (let i = 0; i < categoriesSystem.length; i++) {
     const products = await Product.find({ categorySystemId: categoriesSystem[i].id }).limit(10)
-    console.log(categoriesSystem[i].id)
-    console.log(products)
     listProducts.push({
       _id: categoriesSystem[i].id,
       products: products
