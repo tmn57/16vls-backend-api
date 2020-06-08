@@ -1,5 +1,5 @@
-// const express = require('express')
-// const router = express.Router()
+const express = require('express')
+const router = express.Router()
 // const createError = require('http-errors')
 // const Cart = require('../models/cart')
 // const Order = require('../models/order')
@@ -151,4 +151,4 @@
 // }))
 
 
-// module.exports = router
+module.exports = router

@@ -5,6 +5,7 @@ const Product = require('../models/product')
 const Store = require('../models/store')
 const CategorySystem = require('../models/categorySystem')
 const { isAdmin } = require('../utils/common')
+const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
 const asyncHandler = require('express-async-handler')
 
 router.post('/create', async (req, res, next) => {
@@ -289,5 +290,14 @@ router.get('/allByCategoryStore', asyncHandler(async (req, res, next) => {
 //     const { productName} = req.body
 //     console.log(productName)
 // }))
+
+router.get('/getProductsOfOwner', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
+  const storeId = req.storeId
+  const data = await Product.find({storeId})
+  res.status(200).json({
+    success: true,
+    data
+  })
+}))
 
 module.exports = router
