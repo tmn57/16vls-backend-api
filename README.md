@@ -1,6 +1,15 @@
 # 16vls-backend
 API server:
-http://18.139.1.106:3000
+http://13.250.161.81:3000
+
+Socket server:
+http://13.250.161.81:5000
+
+Unstable API server:
+http://13.250.161.81:4000
+
+Unstable Socket server:
+http://13.250.161.81:6000
 
 DB Diagram:
 https://drive.google.com/file/d/1VWH28GfMEtHXO61nvCVAfFkSyzd4mPa8/view?usp=sharing
