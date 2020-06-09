@@ -226,6 +226,7 @@ router.get('/allByCategoriesSystem', asyncHandler(async (req, res, next) => {
     const products = await Product.find({ categorySystemId: categoriesSystem[i].id }).limit(10)
     listProducts.push({
       _id: categoriesSystem[i].id,
+      systemCateName: categoriesSystem[i].name,
       products: products
     })
   }
