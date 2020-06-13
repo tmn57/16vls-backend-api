@@ -12,6 +12,7 @@ const StreamSchema = new Schema(
     products: [{
       productId: String,
       inStreamAt: [Number],
+      streamPrice: Number
     }],
     messages: [{
       userId: String,

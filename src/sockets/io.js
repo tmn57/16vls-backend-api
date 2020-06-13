@@ -28,11 +28,9 @@ const initIoServer = server => {
 
     io.on('connection', socket => {
         const userId = socket.decoded_token.userId
-        const storeId = socket.decoded_token.storeId || 'none'
+        const storeId = socket.decoded_token.storeId || null
 
         console.log(`user ${userId} connected`)
-
-        socket.emit(eventKeys.SERVER_MESSAGE, 'hello' + userId + '!')
 
         socket.on(eventKeys.USER_JOIN_STREAM, streamId => {
             StreamModel.findById(streamId).then(stream => {
@@ -115,27 +113,27 @@ const initIoServer = server => {
         socket.on(eventKeys.SELLER_SET_CURRENT_PRODUCT_INDEX, productIndex => {
             const streamId = services.getStreamByUserId(userId)
             if (streamId) {
-                if (storages.streamSessions.has(streamId)){
+                if (storages.streamSessions.has(streamId)) {
                     let strm = storages.streamSessions.get(streamId)
                     strm['currentProductIndex'] = productIndex
-                    storages.streamSessions.set(streamId,strm)
+                    storages.streamSessions.set(streamId, strm)
                     emitToStream(streamId, eventKeys.STREAM_UPDATE_CURRENT_PRODUCT_INDEX, productIndex)
                 }
             }
         })
 
         socket.on(eventKeys.SELLER_GET_PUBLISH_TOKEN, () => {
-            StreamModel.findOne({storeId, endTime: Number.MAX_SAFE_INTEGER}).then(stream => {
+            StreamModel.findOne({ storeId, endTime: Number.MAX_SAFE_INTEGER }).then(stream => {
                 if (stream === null) {
-                    return socket.emit(eventKeys.STREAM_ERROR,`the stream is not live OR invalid streamId for you, seller!`)
+                    return socket.emit(eventKeys.STREAM_ERROR, `the stream is not live OR invalid streamId for you, seller!`)
                 }
                 const tok = services.generateStreamToken(stream._id.toString(), true)
-                socket.emit(eventKeys.STREAM_UPDATE_PUBLISH_TOKEN, tok)                
-            }).catch(error=>{
-                socket.emit(eventKeys.SERVER_MESSAGE,`server error: ` + error)
+                socket.emit(eventKeys.STREAM_UPDATE_PUBLISH_TOKEN, tok)
+            }).catch(error => {
+                socket.emit(eventKeys.SERVER_MESSAGE, `server error: ` + error)
             })
         })
-        
+
         socket.on('disconnect', reason => {
             console.log(`socketio: client disconnected with reason ${reason}`)
             const streamId = services.getStreamByUserId(userId)
@@ -149,12 +147,18 @@ const initIoServer = server => {
 }
 
 const userJoinsStream = (socket, streamId) => {
-    const userId = socket.decoded_token.userId
-    const oldStreamId = services.getStreamByUserId(userId)
-    oldStreamId && socket.leave(oldStreamId)
-    services.setStreamWithUserId(userId, streamId)
-    socket.join(streamId)
-    emitToStream(streamId, eventKeys.STREAM_MESSAGE, `${userId} joined the stream`)
+    try {
+        const userId = socket.decoded_token.userId
+        const oldStreamId = services.getStreamByUserId(userId)
+        oldStreamId && socket.leave(oldStreamId)
+        services.setStreamWithUserId(userId, streamId)
+        socket.join(streamId)
+        emitToStream(streamId, eventKeys.STREAM_MESSAGE, `${userId} joined the stream`)
+    }
+    catch (error) {
+        console.log(error)
+        emitToStream(streamId, eventKeys.SERVER_MESSAGE, `error: ${error}`)
+    }
 }
 
 const emitToStream = (streamId, eventKeys, payload) => {
