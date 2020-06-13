@@ -11,11 +11,10 @@ module.exports = {
     STREAM_PRODUCT_QUANTITIES: 'stream updates quantities',
     STREAM_CHAT_MESSAGE: 'stream chat message',
     USER_ADD_PRODUCT_TO_CART: 'user adds product',
+    SERVER_MESSAGE: 'server message', //{type:"error"/"message", message}
+    STREAM_MESSAGE: 'stream message',
     
     //String payload
-    SERVER_MESSAGE: 'server message',
-    STREAM_MESSAGE: 'stream message',
-    STREAM_ERROR: 'stream error',
     USER_JOIN_STREAM: 'user joins stream',
     USER_ADD_MESSAGE: 'user adds chat message',
     SELLER_START_STREAM: 'seller starts stream',
