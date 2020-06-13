@@ -60,6 +60,8 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
 
     let prodsDbObj = []
 
+    console.log("products payload", products)
+
     products.forEach(product => {
         const { productId, streamPrice } = product
         prodsDbObj.push({ productId, streamPrice })
