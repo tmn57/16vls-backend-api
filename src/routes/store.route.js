@@ -89,7 +89,6 @@ router.get('/', asyncHandler(async (req, res, next) => {
   else {
     let listFollowers = store.followers;
     let check = listFollowers.map(val => val).some(el => el == userId)
-    console.log(check)
     return res.status(200).json({
       success: true,
       result: {
@@ -307,73 +306,68 @@ router.post('/follow', asyncHandler(async (req, res, next) => {
 }))
 
 
-// router.get('/orderOfStore', asyncHandler(async (req, res, next) => {
-//   const { userId } = req.tokenPayload
-//   const { storeId } = req.query.id
+router.get('/orderOfStore', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
 
-//   // Check store có phải của UserId k?
-//   const store = await Store.findOne({ userId })
-//   if(storeId != store._id){
-//     return res.status(400).json({
-//       success: false,
-//       message: 'StoreId is incorrect!'
-//     })
-//   }
+  const store = await Store.findOne({ userId })
+  const order = await Order.find({ $and: [{ storeId: store._id }, { isCompleted: false }, { status: 'PEDDING' }] })
 
-//   const order = await Order.find({$and: [{ storeId: storeId }, { isCompleted: false }]})
-//   return res.status(200).json({
-//     success: true,
-//     result: order
-//   })
-  
-// }))
+  return res.status(200).json({
+    success: true,
+    result: order
+  })
 
-// router.post('/approve', asyncHandler(async (req, res, next) => {
-//   const { userId } = req.tokenPayload
-//   const { storeId, orderId } = req.body
+}))
 
-//   // Check store có phải của UserId k?
-//   const store = await Store.findOne({ userId })
-//   if(storeId != store._id){
-//     return res.status(400).json({
-//       success: false,
-//       message: 'StoreId is incorrect!'
-//     })
-//   }
+router.post('/approve', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+  const { orderId } = req.body
 
-//   // iscompleted : true
+  const store = await Store.findOne({ userId })
+  const order = await Order.findById({ _id: orderId })
 
-//   // const order = await Order.find({$and: [{ storeId: storeId }, { isCompleted: false }]})
-//   // return res.status(200).json({
-//   //   success: true,
-//   //   result: order
-//   // })
-  
-// }))
+  if (order.storeId != store._id) {
+    return res.status(400).json({
+      success: false,
+      message: 'StoreId is incorrect!'
+    })
+  }
+
+  order.status = 'APPROVED'
+  await order.save();
+
+  return res.status(200).json({
+    success: true,
+    result: order
+  })
+
+}))
 
 
-// router.post('/reject', asyncHandler(async (req, res, next) => {
-//   const { userId } = req.tokenPayload
-//   const { storeId, orderId } = req.body
+router.post('/reject', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+  const { orderId } = req.body
 
-//   // Check store có phải của UserId k?
-//   const store = await Store.findOne({ userId })
-//   if(storeId != store._id){
-//     return res.status(400).json({
-//       success: false,
-//       message: 'StoreId is incorrect!'
-//     })
-//   }
+  const store = await Store.findOne({ userId })
+  const order = await Order.findById({ _id: orderId })
 
-//   // iscompleted : true
+  if (order.storeId != store._id) {
+    return res.status(400).json({
+      success: false,
+      message: 'StoreId is incorrect!'
+    })
+  }
 
-//   // const order = await Order.find({$and: [{ storeId: storeId }, { isCompleted: false }]})
-//   // return res.status(200).json({
-//   //   success: true,
-//   //   result: order
-//   // })
-  
-// }))
+  order.status = 'REJECT'
+  order.isCompleted = true
+  await order.save();
+
+  return res.status(200).json({
+    success: true,
+    result: order
+  })
+
+}))
 
 module.exports = router
 

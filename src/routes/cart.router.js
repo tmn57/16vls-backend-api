@@ -35,14 +35,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
 
     let objProduct = {
         productId: productId,
-        productName: product.name,
-        productImage: product.images[0],
-        productPrice: product.promotionPrice == 0 ? product.price : product.promotionPrice,
         storeId: product.storeId,
-        variant:{
-            color: color,
-            size: size
-        },
         variantIndex: variantIndex,
         quantity: quantity,
     }
@@ -86,21 +79,36 @@ router.get('/info', asyncHandler(async (req, res, next) => {
     const cart = await Cart.findOne({ userId })
     let listProductOfStore = []
 
-    console.log(listProductOfStore.length)
-
     for (let i = 0; i < cart.products.length; i++) {
+        const product = await Product.findById({ _id: cart.products[i].productId })
+        let obj = {
+            expiredTime: cart.products[i].expiredTime,
+            reliablePrice: cart.products[i].reliablePrice,
+            productId: cart.products[i].productId,
+            variantIndex: cart.products[i].variantIndex,
+            quantity: cart.products[i].quantity,
+            productName: product.name,
+            productImage: product.images[0],
+            productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
+            productVariant: {
+                color: product.variants[cart.products[i].variantIndex].color,
+                size: product.variants[cart.products[i].variantIndex].size
+            }
+        }
         let check = false;
         for (let j = 0; j < listProductOfStore.length; j++) {
             if (listProductOfStore[j].storeId == cart.products[i].storeId) {
-                listProductOfStore[j].products.push(cart.products[i])
+                // listProductOfStore[j].products.push(cart.products[i])
+                listProductOfStore[j].products.push(obj)
                 check = true
                 break;
             }
         }
-        if (!check) {            
+        if (!check) {
             listProductOfStore.push({
                 storeId: cart.products[i].storeId,
-                products: [cart.products[i]]
+                products: [obj]
+                // products: [cart.products[i]]
             })
         }
         console.log(listProductOfStore)

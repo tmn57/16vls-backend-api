@@ -32,13 +32,6 @@ const OrderSchema = new Schema(
     // },
     products: [{
       productId: String,
-      productName: String,
-      productImage: String,
-      productPrice: Number,
-      variant: {
-        color: String,
-        size: String
-      },
       variantIndex: { type: Number, default: 0 },
       quantity: { type: Number, default: 1 }
     }],
@@ -46,7 +39,7 @@ const OrderSchema = new Schema(
     storeId: String,
     totalMoney: { type: Number, default: 0 }, // Sum([total per Product])
     description: String,
-    transportationCost: Number,
+    transportationCost:  { type: Number, default: 0 },
     shippingAddress: String,
     userId: String,
     createdAt: { type: Number, default: +new Date() },
