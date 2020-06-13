@@ -41,7 +41,7 @@ router.post('rtmp-pub-auth', (req, res) => {
 
     if (reqIp === process.env.RTMP_SERVER_IP) {
         const streamKey = req.query.sk || ''
-        const token =  req.query.sr || ''
+        const token = req.query.sr || ''
         if (streamKey !== '' && token !== '') {
             if (streamHandler.isValidStreamToken(streamKey, true, token)) {
                 res.sendStatus(200)
@@ -56,19 +56,20 @@ router.post('rtmp-pub-auth', (req, res) => {
 })
 
 router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
-    const { startTime, title, productIds } = req.body
+    const { startTime, title, products } = req.body
 
-    let prodDbObj = []
-    
-    productIds.forEach(productId => {
-        prodDbObj.push({productId})
+    let prodsDbObj = []
+
+    products.forEach(product => {
+        const { productId, streamPrice } = product
+        prodsDbObj.push({ productId, streamPrice })
     })
 
     let nStream = new StreamModel({
         startTime,
         title,
         storeId: req.storeId,
-        products: prodDbObj
+        products: prodsDbObj
     })
 
     addedStream = await nStream.save()
@@ -84,7 +85,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
     let rtPayload = { userId }
 
     store = await StoreModel.findOne({ ownerId: userId })
-    
+
     if (store !== null) {
         rtPayload["storeId"] = store._id
     }
@@ -94,7 +95,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
     console.log(rtPayload, tok)
 
     res.status(200).json({
-        success:true,
+        success: true,
         token: tok
     })
 }))
