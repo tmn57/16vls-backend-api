@@ -140,6 +140,8 @@ router.post('/updateQuantityProduct', asyncHandler(async (req, res, next) => {
     }
 
     await cart.save()
+    console.log(cart)
+
     return res.status(200).json({
         success: true,
         result: cart
@@ -169,8 +171,9 @@ router.post('/removeProduct', asyncHandler(async (req, res, next) => {
     }
 
     cart.products.splice(index, 1)
-
+    
     await cart.save()
+    console.log(cart)
     return res.status(200).json({
         success: true,
         result: cart

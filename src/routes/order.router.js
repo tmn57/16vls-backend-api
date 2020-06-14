@@ -20,8 +20,8 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     // check còn sp k
     for (let i = 0; i < listProducts.length; i++) {
         for (let j = 0; j < listProducts[i].products.length; j++) {
-            const product = await Product.findById({ _id: listProducts[i].products[j].productId })
-            if (product.variants[listProducts[i].products[j].variantIndex].quantity < listProducts[i].products[j].quantity) {
+            const product1 = await Product.findById({ _id: listProducts[i].products[j].productId })
+            if (product1.variants[listProducts[i].products[j].variantIndex].quantity < listProducts[i].products[j].quantity) {
                 return res.status(400).json({
                     success: false,
                     message: "Product is out of stock"
@@ -35,12 +35,6 @@ router.post('/create', asyncHandler(async (req, res, next) => {
         let total = 0
         let lstProducts = []
         for (let j = 0; j < listProducts[i].products.length; j++) {
-            const product = await Product.findById({ _id: listProducts[i].products[j].productId })
-            total = total + product.price
-
-            product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
-
-            await product.save()
 
             let obj = {
                 productId: listProducts[i].products[j].productId,
@@ -48,18 +42,62 @@ router.post('/create', asyncHandler(async (req, res, next) => {
                 quantity: listProducts[i].products[j].quantity
             }
             lstProducts.push(obj)
+
+            const product = await Product.findById({ _id: listProducts[i].products[j].productId })
+            if (product.promotionPrice == 0) {
+                total = total + product.price * listProducts[i].products[j].quantity
+            }
+            else {
+                total = total + product.promotionPrice * listProducts[i].products[j].quantity
+            }
+
+
+            // product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
+            let objVariant = {
+                color: product.variants[listProducts[i].products[j].variantIndex].color,
+                size: product.variants[listProducts[i].products[j].variantIndex].size,
+                quantity: product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
+            }
+
+            console.log(objVariant)
+
+            product.variants[listProducts[i].products[j].variantIndex] = objVariant
+            await product.save()
         }
 
-        const newOrder = new Order()
-        newOrder.products = [...lstProducts]
-        newOrder.storeId = listProducts[i].storeId
-        newOrder.shippingAddress = shippingAddress
-        newOrder.userId = userId
-        newOrder.createdBy = userId
-        newOrder.totalMoney = total
-        // newOrder.transportationCost = listProducts[i].transportationCost
-        await newOrder.save()
+        const order = await Order.findOne({ $and: [{ userId: userId }, { storeId: listProducts[i].storeId }, { isCompleted: false }, { status: 'PEDDING' }] })
 
+        if (order) {
+            // order.products.concat(lstProducts)
+            for (let k = 0; k < lstProducts.length; k++) {
+                let check = false
+                for (let t = 0; t < order.products.length; t++) {
+                    if (order.products[t].productId == lstProducts[k].productId && order.products[t].variantIndex == lstProducts[k].variantIndex) {
+                        check = true
+                        order.products[t].quantity = order.products[t].quantity + lstProducts[k].quantity
+                        break
+                    }
+                }
+                if (!check) {
+                    order.products.push(lstProducts[k])
+                }
+            }
+
+            order.totalMoney = order.totalMoney + total
+            await order.save()
+        }
+
+        else {
+            const newOrder = new Order()
+            newOrder.products = [...lstProducts]
+            newOrder.storeId = listProducts[i].storeId
+            newOrder.shippingAddress = shippingAddress
+            newOrder.userId = userId
+            newOrder.createdBy = userId
+            newOrder.totalMoney = total
+            // newOrder.transportationCost = listProducts[i].transportationCost
+            await newOrder.save()
+        }
     }
     // remove Cart
     const cart = await Cart.findOne({ userId })
@@ -68,54 +106,10 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     await cart.save()
 
 
-
-    // listProducts = [
-    //     {
-    //         "storeId": "5ed2643f9044f51c90999f31",
-    //         "transportationCost": 123123,
-    //         "products": [
-
-    //             {
-    //                 "expiredTime": 9007199254740991,
-    //                 "reliablePrice": 0,
-    //                 "variantIndex": 1,
-    //                 "quantity": 4,
-    //                 "productId": "5ed2672a9044f51c90999f35",
-    //             },
-
-    //             {
-    //                 "variant": {
-    //                     "color": "red",
-    //                     "size": "M"
-    //                 },
-    //                 "expiredTime": 9007199254740991,
-    //                 "reliablePrice": 0,
-    //                 "variantIndex": 0,
-    //                 "quantity": 2,
-    //                 "productId": "5ed65c9300a1343be40552b3",
-    //             }
-    //         ]
-    //     },
-    //     {
-    //         "storeId": "5ed1ec3d7caf1b0ca93afc09",
-    //         "transportationCost": 123123,
-    //         "products": [
-    //             {
-    //                 "variant": {
-    //                     "color": "hong",
-    //                     "size": "Xl"
-    //                 },
-    //                 "expiredTime": 9007199254740991,
-    //                 "reliablePrice": 0,
-    //                 "variantIndex": 0,
-    //                 "quantity": 1,
-    //                 "productId": "5ed663f5fbef61459865b5fd",
-    //             }
-    //         ]
-    //     }
-    // ]
-
-
+    return res.status(200).json({
+        success: true,
+        message: "Order is successfully!"
+    })
 
 }))
 
