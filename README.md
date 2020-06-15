@@ -22,7 +22,7 @@ mongodb+srv://16vls:16vls@cluster0-c2upe.mongodb.net/16vls?retryWrites=true&w=ma
 **
 
 Link chuyển đổi cryptoJs: 
-http://18.139.1.106:3000/cryptoJS
+http://13.250.161.81:3000/cryptoJS
 
 Nhận token dưới dạng: token  = req.headers['access-token']
 
