@@ -2,6 +2,8 @@ const express = require('express')
 const router = express.Router()
 const createError = require('http-errors')
 const Cart = require('../models/cart')
+const User = require('../models/user')
+const Store = require('../models/store')
 const Order = require('../models/order')
 const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
@@ -144,40 +146,196 @@ router.get('/info', asyncHandler(async (req, res, next) => {
 router.get('/infoOrderPendding', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const orderPendding = await Order.find({ $and: [{ userId: userId }, { isCompleted: false }, { status: 'PEDDING' }] })
+
+    let listOrders = []
+    const user = await User.findById({ _id: userId })
+
+    for (let i = 0; i < orderPendding.length; i++) {
+        const store = await Store.findById({ _id: orderPendding[i].storeId })
+
+        let listProductsOrder = []
+        for (let j = 0; j < orderPendding[i].products.length; j++) {
+            const product = await Product.findById({ _id: orderPendding[i].products[j].productId })
+            let objProduct = {
+                productId: orderPendding[i].products[j].productId,
+                variantIndex: orderPendding[i].products[j].variantIndex,
+                quantity: orderPendding[i].products[j].quantity,
+                productName: product.name,
+                productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
+                productImage: product.images.length > 0 ? product.images[0] : ''
+            }
+            listProductsOrder.push(objProduct)
+        }
+
+        let objOrder = {
+            status: orderPendding[i].status,
+            products: [...listProductsOrder],
+            isCompleted: orderPendding[i].isCompleted,
+            storeId: orderPendding[i].storeId,
+            totalMoney: orderPendding[i].totalMoney,
+            description: orderPendding[i].description,
+            transportationCost: orderPendding[i].transportationCost,
+            shippingAddress: orderPendding[i].shippingAddress,
+            userId: orderPendding[i].userId,
+            userPhone: user.phone,
+            userName: user.name,
+            storeAvatar: store.avatar?store.avatar:'',
+            storeName: store.name
+        }
+        listOrders.push(objOrder)
+    }
     return res.status(200).json({
         success: true,
-        result: orderPendding
+        result: listOrders
     })
 }))
 
 router.get('/infoOrderInTransit', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const orderInTransit = await Order.find({ $and: [{ userId: userId }, { isCompleted: false }, { status: 'APPROVED' }] })
+
+    let listOrders = []
+    const user = await User.findById({ _id: userId })
+
+    for (let i = 0; i < orderInTransit.length; i++) {
+        const store = await Store.findById({ _id: orderInTransit[i].storeId })
+
+        let listProductsOrder = []
+        for (let j = 0; j < orderInTransit[i].products.length; j++) {
+            const product = await Product.findById({ _id: orderInTransit[i].products[j].productId })
+            let objProduct = {
+                productId: orderInTransit[i].products[j].productId,
+                variantIndex: orderInTransit[i].products[j].variantIndex,
+                quantity: orderInTransit[i].products[j].quantity,
+                productName: product.name,
+                productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
+                productImage: product.images.length > 0 ? product.images[0] : ''
+            }
+            listProductsOrder.push(objProduct)
+        }
+
+        let objOrder = {
+            status: orderInTransit[i].status,
+            products: [...listProductsOrder],
+            isCompleted: orderInTransit[i].isCompleted,
+            storeId: orderInTransit[i].storeId,
+            totalMoney: orderInTransit[i].totalMoney,
+            description: orderInTransit[i].description,
+            transportationCost: orderInTransit[i].transportationCost,
+            shippingAddress: orderInTransit[i].shippingAddress,
+            userId: orderInTransit[i].userId,
+            userPhone: user.phone,
+            userName: user.name,
+            storeAvatar: store.avatar?store.avatar:'',
+            storeName: store.name
+        }
+        listOrders.push(objOrder)
+    }
+
     return res.status(200).json({
         success: true,
-        result: orderInTransit
+        result: listOrders
     })
 }))
 
 router.get('/infoOrderComplete', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const orderComplete = await Order.find({ $and: [{ userId: userId }, { isCompleted: true }, { status: 'APPROVED' }] })
+
+    let listOrders = []
+    const user = await User.findById({ _id: userId })
+
+    for (let i = 0; i < orderComplete.length; i++) {
+        const store = await Store.findById({ _id: orderComplete[i].storeId })
+
+        let listProductsOrder = []
+        for (let j = 0; j < orderComplete[i].products.length; j++) {
+            const product = await Product.findById({ _id: orderComplete[i].products[j].productId })
+            let objProduct = {
+                productId: orderComplete[i].products[j].productId,
+                variantIndex: orderComplete[i].products[j].variantIndex,
+                quantity: orderComplete[i].products[j].quantity,
+                productName: product.name,
+                productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
+                productImage: product.images.length > 0 ? product.images[0] : ''
+            }
+            listProductsOrder.push(objProduct)
+        }
+
+        let objOrder = {
+            status: orderComplete[i].status,
+            products: [...listProductsOrder],
+            isCompleted: orderComplete[i].isCompleted,
+            storeId: orderComplete[i].storeId,
+            totalMoney: orderComplete[i].totalMoney,
+            description: orderComplete[i].description,
+            transportationCost: orderComplete[i].transportationCost,
+            shippingAddress: orderComplete[i].shippingAddress,
+            userId: orderComplete[i].userId,
+            userPhone: user.phone,
+            userName: user.name,
+            storeAvatar: store.avatar?store.avatar:'',
+            storeName: store.name
+        }
+        listOrders.push(objOrder)
+    }
+
     return res.status(200).json({
         success: true,
-        result: orderComplete
+        result: listOrders
     })
 }))
 
 router.get('/infoOrderReject', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const orderReject = await Order.find({ $and: [{ userId: userId }, { isCompleted: true }, { status: 'REJECT' }] })
+
+    let listOrders = []
+    const user = await User.findById({ _id: userId })
+
+    for (let i = 0; i < orderReject.length; i++) {
+        const store = await Store.findById({ _id: orderReject[i].storeId })
+
+        let listProductsOrder = []
+        for (let j = 0; j < orderReject[i].products.length; j++) {
+            const product = await Product.findById({ _id: orderReject[i].products[j].productId })
+            let objProduct = {
+                productId: orderReject[i].products[j].productId,
+                variantIndex: orderReject[i].products[j].variantIndex,
+                quantity: orderReject[i].products[j].quantity,
+                productName: product.name,
+                productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
+                productImage: product.images.length > 0 ? product.images[0] : ''
+            }
+            listProductsOrder.push(objProduct)
+        }
+
+        let objOrder = {
+            status: orderReject[i].status,
+            products: [...listProductsOrder],
+            isCompleted: orderReject[i].isCompleted,
+            storeId: orderReject[i].storeId,
+            totalMoney: orderReject[i].totalMoney,
+            description: orderReject[i].description,
+            transportationCost: orderReject[i].transportationCost,
+            shippingAddress: orderReject[i].shippingAddress,
+            userId: orderReject[i].userId,
+            userPhone: user.phone,
+            userName: user.name,
+            storeAvatar: store.avatar?store.avatar:'',
+            storeName: store.name
+        }
+        listOrders.push(objOrder)
+    }
+
     return res.status(200).json({
         success: true,
-        result: orderReject
+        result: listOrders
     })
 }))
 
 router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
+    // cộng lại quantity
     const { userId } = req.tokenPayload
     const { orderId } = req.body
 

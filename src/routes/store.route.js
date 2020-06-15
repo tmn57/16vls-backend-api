@@ -351,6 +351,8 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
   const store = await Store.findOne({ userId })
   const order = await Order.findById({ _id: orderId })
 
+  // cộng lại quantity
+  
   if (order.storeId != store._id) {
     return res.status(400).json({
       success: false,
