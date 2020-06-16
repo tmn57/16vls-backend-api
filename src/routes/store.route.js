@@ -272,7 +272,6 @@ router.post('/updatestatus', isAdministrator, asyncHandler(async (req, res, next
 router.post('/follow', asyncHandler(async (req, res, next) => {
   const { userId } = req.tokenPayload
   const { storeId } = req.body
-  console.log(storeId)
   const user = await User.findById({ _id: userId })
   const store = await Store.findById({ _id: storeId })
 
