@@ -167,10 +167,12 @@ router.get('/infoOrderPendding', asyncHandler(async (req, res, next) => {
                     color: product.variants[orderPendding[i].products[j].variantIndex].color,
                     size: product.variants[orderPendding[i].products[j].variantIndex].size
                 }
-                
+
             }
             listProductsOrder.push(objProduct)
         }
+
+        let d = new Date(orderPendding[i].createdAt)
 
         let objOrder = {
             _id: orderPendding[i]._id,
@@ -185,8 +187,13 @@ router.get('/infoOrderPendding', asyncHandler(async (req, res, next) => {
             userId: orderPendding[i].userId,
             userPhone: user.phone,
             userName: user.name,
-            storeAvatar: store.avatar?store.avatar:'',
-            storeName: store.name
+            storeAvatar: store.avatar ? store.avatar : '',
+            storeName: store.name,
+            createdAt: (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate())
+                + '/' +
+                ((d.getMonth() + 1) < 10 ? ('0' + (d.getMonth() + 1)) : (d.getMonth() + 1))
+                + '/' +
+                d.getFullYear()
         }
         listOrders.push(objOrder)
     }
@@ -224,6 +231,8 @@ router.get('/infoOrderInTransit', asyncHandler(async (req, res, next) => {
             listProductsOrder.push(objProduct)
         }
 
+        let d = new Date(orderInTransit[i].createdAt)
+
         let objOrder = {
             _id: orderInTransit[i]._id,
             status: orderInTransit[i].status,
@@ -237,8 +246,13 @@ router.get('/infoOrderInTransit', asyncHandler(async (req, res, next) => {
             userId: orderInTransit[i].userId,
             userPhone: user.phone,
             userName: user.name,
-            storeAvatar: store.avatar?store.avatar:'',
-            storeName: store.name
+            storeAvatar: store.avatar ? store.avatar : '',
+            storeName: store.name,
+            createdAt: (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate())
+                + '/' +
+                ((d.getMonth() + 1) < 10 ? ('0' + (d.getMonth() + 1)) : (d.getMonth() + 1))
+                + '/' +
+                d.getFullYear()
         }
         listOrders.push(objOrder)
     }
@@ -277,6 +291,8 @@ router.get('/infoOrderComplete', asyncHandler(async (req, res, next) => {
             listProductsOrder.push(objProduct)
         }
 
+        let d = new Date(orderComplete[i].createdAt)
+
         let objOrder = {
             _id: orderComplete[i]._id,
             status: orderComplete[i].status,
@@ -290,8 +306,13 @@ router.get('/infoOrderComplete', asyncHandler(async (req, res, next) => {
             userId: orderComplete[i].userId,
             userPhone: user.phone,
             userName: user.name,
-            storeAvatar: store.avatar?store.avatar:'',
-            storeName: store.name
+            storeAvatar: store.avatar ? store.avatar : '',
+            storeName: store.name,
+            createdAt: (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate())
+                + '/' +
+                ((d.getMonth() + 1) < 10 ? ('0' + (d.getMonth() + 1)) : (d.getMonth() + 1))
+                + '/' +
+                d.getFullYear()
         }
         listOrders.push(objOrder)
     }
@@ -330,6 +351,8 @@ router.get('/infoOrderReject', asyncHandler(async (req, res, next) => {
             listProductsOrder.push(objProduct)
         }
 
+        let d = new Date(orderReject[i].createdAt)
+
         let objOrder = {
             _id: orderReject[i]._id,
             status: orderReject[i].status,
@@ -343,8 +366,13 @@ router.get('/infoOrderReject', asyncHandler(async (req, res, next) => {
             userId: orderReject[i].userId,
             userPhone: user.phone,
             userName: user.name,
-            storeAvatar: store.avatar?store.avatar:'',
-            storeName: store.name
+            storeAvatar: store.avatar ? store.avatar : '',
+            storeName: store.name,
+            createdAt: (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate())
+                + '/' +
+                ((d.getMonth() + 1) < 10 ? ('0' + (d.getMonth() + 1)) : (d.getMonth() + 1))
+                + '/' +
+                d.getFullYear()
         }
         listOrders.push(objOrder)
     }
