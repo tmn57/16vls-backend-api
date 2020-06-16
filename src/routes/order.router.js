@@ -162,12 +162,18 @@ router.get('/infoOrderPendding', asyncHandler(async (req, res, next) => {
                 quantity: orderPendding[i].products[j].quantity,
                 productName: product.name,
                 productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
-                productImage: product.images.length > 0 ? product.images[0] : ''
+                productImage: product.images.length > 0 ? product.images[0] : '',
+                productVariant: {
+                    color: product.variants[orderPendding[i].products[j].variantIndex].color,
+                    size: product.variants[orderPendding[i].products[j].variantIndex].size
+                }
+                
             }
             listProductsOrder.push(objProduct)
         }
 
         let objOrder = {
+            _id: orderPendding[i]._id,
             status: orderPendding[i].status,
             products: [...listProductsOrder],
             isCompleted: orderPendding[i].isCompleted,
@@ -209,12 +215,17 @@ router.get('/infoOrderInTransit', asyncHandler(async (req, res, next) => {
                 quantity: orderInTransit[i].products[j].quantity,
                 productName: product.name,
                 productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
-                productImage: product.images.length > 0 ? product.images[0] : ''
+                productImage: product.images.length > 0 ? product.images[0] : '',
+                productVariant: {
+                    color: product.variants[orderInTransit[i].products[j].variantIndex].color,
+                    size: product.variants[orderInTransit[i].products[j].variantIndex].size
+                }
             }
             listProductsOrder.push(objProduct)
         }
 
         let objOrder = {
+            _id: orderInTransit[i]._id,
             status: orderInTransit[i].status,
             products: [...listProductsOrder],
             isCompleted: orderInTransit[i].isCompleted,
@@ -257,12 +268,17 @@ router.get('/infoOrderComplete', asyncHandler(async (req, res, next) => {
                 quantity: orderComplete[i].products[j].quantity,
                 productName: product.name,
                 productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
-                productImage: product.images.length > 0 ? product.images[0] : ''
+                productImage: product.images.length > 0 ? product.images[0] : '',
+                productVariant: {
+                    color: product.variants[orderComplete[i].products[j].variantIndex].color,
+                    size: product.variants[orderComplete[i].products[j].variantIndex].size
+                }
             }
             listProductsOrder.push(objProduct)
         }
 
         let objOrder = {
+            _id: orderComplete[i]._id,
             status: orderComplete[i].status,
             products: [...listProductsOrder],
             isCompleted: orderComplete[i].isCompleted,
@@ -305,12 +321,17 @@ router.get('/infoOrderReject', asyncHandler(async (req, res, next) => {
                 quantity: orderReject[i].products[j].quantity,
                 productName: product.name,
                 productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
-                productImage: product.images.length > 0 ? product.images[0] : ''
+                productImage: product.images.length > 0 ? product.images[0] : '',
+                productVariant: {
+                    color: product.variants[orderReject[i].products[j].variantIndex].color,
+                    size: product.variants[orderReject[i].products[j].variantIndex].size
+                }
             }
             listProductsOrder.push(objProduct)
         }
 
         let objOrder = {
+            _id: orderReject[i]._id,
             status: orderReject[i].status,
             products: [...listProductsOrder],
             isCompleted: orderReject[i].isCompleted,
