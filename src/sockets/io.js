@@ -36,19 +36,21 @@ const initIoServer = server => {
         socket.on(eventKeys.USER_JOIN_STREAM, streamId => {
             StreamModel.findById(streamId).then(stream => {
                 if (stream === null) {
-                    socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error','streamId is invalid'))
+                    socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error', 'streamId is invalid'))
                 } else {
                     userJoinsStream(socket, streamId)
-                    
+
                     //Get productIds 
                     let prodIds = []
                     stream.products.forEach(prod => {
                         prodIds.push(prod.productId)
                     })
 
-                    ProductModel.find({_id:{'$in':prodIds}}).then(rows => {
-                        rows.forEach((r,idx)=>{
-                            stream['products'][idx] = {...stream['products'][idx], ...r}
+                    ProductModel.find({
+                        '_id': { $in: prodIds }
+                    }).then(rows => {
+                        rows.forEach((r, idx) => {
+                            stream['products'][idx] = { ...stream['products'][idx], ...r }
                         })
                         socket.emit(eventKeys.STREAM_INIT, stream.toObject())
                     }).catch(error => {
@@ -57,22 +59,22 @@ const initIoServer = server => {
                     })
                 }
             }).catch(error => {
-                socket.emit(eventKeys.SERVER_MESSAGE, messageObject('error',`internal server error: ${error}`))
+                socket.emit(eventKeys.SERVER_MESSAGE, messageObject('error', `internal server error: ${error}`))
             })
         })
 
         socket.on(eventKeys.SELLER_START_STREAM, () => {
             const streamId = services.getStreamByUserId(userId)
             if (!streamId) {
-                return socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error','you must join a stream first'))
+                return socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error', 'you must join a stream first'))
             }
             //find the stream of storeId
             StreamModel.findOne({ storeId, endTime: Number.MIN_SAFE_INTEGER }).then(stream => {
                 if (stream === null) {
-                    socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error','streamId is invalid for you, seller!'))
+                    socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error', 'streamId is invalid for you, seller!'))
                 } else {
                     if (streamId !== stream._id.toString()) {
-                        return socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error','seller streaming flow is broken: you must use "join the stream" event before start the stream'))
+                        return socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error', 'seller streaming flow is broken: you must use "join the stream" event before start the stream'))
                     }
                     services.newStreamSession(streamId)
                     stream.endTime = Number.MAX_SAFE_INTEGER
@@ -80,22 +82,22 @@ const initIoServer = server => {
                     emitToStream(streamId, eventKeys.SELLER_START_STREAM, "")
                 }
             }).catch(error => {
-                socket.emit(eventKeys.SERVER_MESSAGE, messageObject('error',`internal server error: ${error}`))
+                socket.emit(eventKeys.SERVER_MESSAGE, messageObject('error', `internal server error: ${error}`))
             })
         })
 
         socket.on(eventKeys.SELLER_END_STREAM, () => {
             const streamId = services.getStreamByUserId(userId)
             if (!streamId) {
-                return socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error','you must join a stream first'))
+                return socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error', 'you must join a stream first'))
             }
             //find the stream of storeId
             StreamModel.findOne({ storeId, endTime: Number.MAX_SAFE_INTEGER }).then(stream => {
                 if (stream === null) {
-                    socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error','streamId is invalid for you, seller!'))
+                    socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error', 'streamId is invalid for you, seller!'))
                 } else {
                     if (streamId !== stream._id.toString()) {
-                        return socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error','seller streaming flow is broken: you must use "join the stream" event before start the stream'))
+                        return socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error', 'seller streaming flow is broken: you must use "join the stream" event before start the stream'))
                     }
                     //Archive the stream
                     stream.messages = storage.streamSessions.get(streamId).messages
@@ -104,7 +106,7 @@ const initIoServer = server => {
                     emitToStream(streamId, eventKeys.SELLER_END_STREAM, "")
                 }
             }).catch(error => {
-                socket.emit(eventKeys.SERVER_MESSAGE, messageObject('error',`internal server error: ${error}`))
+                socket.emit(eventKeys.SERVER_MESSAGE, messageObject('error', `internal server error: ${error}`))
             })
         })
 
@@ -121,7 +123,7 @@ const initIoServer = server => {
                 storages.streamSessions.set(streamId, stream)
                 emitToStream(streamId, eventKeys.STREAM_CHAT_MESSAGE, payload)
             } else {
-                socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error','you have not joined any stream yet'))
+                socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error', 'you have not joined any stream yet'))
             }
         })
 
@@ -140,12 +142,12 @@ const initIoServer = server => {
         socket.on(eventKeys.SELLER_GET_PUBLISH_TOKEN, () => {
             StreamModel.findOne({ storeId, endTime: Number.MAX_SAFE_INTEGER }).then(stream => {
                 if (stream === null) {
-                    return socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error',`the stream is not live OR invalid streamId for you, seller!`))
+                    return socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error', `the stream is not live OR invalid streamId for you, seller!`))
                 }
                 const tok = services.generateStreamToken(stream._id.toString(), true)
                 socket.emit(eventKeys.STREAM_UPDATE_PUBLISH_TOKEN, tok)
             }).catch(error => {
-                socket.emit(eventKeys.SERVER_MESSAGE, messageObject('error',`internal server error: ${error}`))
+                socket.emit(eventKeys.SERVER_MESSAGE, messageObject('error', `internal server error: ${error}`))
             })
         })
 
@@ -168,11 +170,11 @@ const userJoinsStream = (socket, streamId) => {
         oldStreamId && socket.leave(oldStreamId)
         services.setStreamWithUserId(userId, streamId)
         socket.join(streamId)
-        emitToStream(streamId, eventKeys.STREAM_MESSAGE, messageObject('message',`${userId} joined the stream`))
+        emitToStream(streamId, eventKeys.STREAM_MESSAGE, messageObject('message', `${userId} joined the stream`))
     }
     catch (error) {
         console.log(error)
-        emitToStream(streamId, eventKeys.SERVER_MESSAGE, messageObject('error',`error: ${error}`))
+        emitToStream(streamId, eventKeys.SERVER_MESSAGE, messageObject('error', `error: ${error}`))
     }
 }
 
