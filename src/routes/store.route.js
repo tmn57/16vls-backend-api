@@ -272,7 +272,6 @@ router.post('/updatestatus', isAdministrator, asyncHandler(async (req, res, next
 router.post('/follow', asyncHandler(async (req, res, next) => {
   const { userId } = req.tokenPayload
   const { storeId } = req.body
-  console.log(storeId)
   const user = await User.findById({ _id: userId })
   const store = await Store.findById({ _id: storeId })
 
@@ -385,6 +384,7 @@ router.post('/approve', asyncHandler(async (req, res, next) => {
   }
 
   order.status = 'APPROVED'
+  order.updatedBy = userId
   await order.save();
 
   return res.status(200).json({
@@ -413,6 +413,7 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
 
   order.status = 'REJECT'
   order.isCompleted = true
+  order.updatedBy = userId
   await order.save();
 
   return res.status(200).json({

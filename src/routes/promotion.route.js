@@ -16,7 +16,6 @@ router.post('/create', isAdministrator, asyncHandler(async (req, res, next) => {
 
   const sd = Date.parse(startDate);
   const ed = Date.parse(endDate);
-  console.log(sd, ed)
 
   const codeExisted = await Promotion.findOne({ code: code.trim() })
   if (codeExisted) {
@@ -56,7 +55,6 @@ router.post('/update', isAdministrator, asyncHandler(async (req, res, next) => {
 
   const sd = Date.parse(startDate);
   const ed = Date.parse(endDate);
-  console.log(sd, ed)
 
 
   const promotion = await Promotion.findById({ _id: promotionId })
