@@ -370,7 +370,9 @@ router.get('/infoOrderReject', asyncHandler(async (req, res, next) => {
                 + '/' +
                 ((d.getMonth() + 1) < 10 ? ('0' + (d.getMonth() + 1)) : (d.getMonth() + 1))
                 + '/' +
-                d.getFullYear()
+                d.getFullYear(),
+
+            isUserReject: orderReject[i].createdBy == orderReject[i].updatedBy
         }
         listOrders.push(objOrder)
     }
@@ -399,11 +401,11 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
     order.isCompleted = true
     order.updatedBy = userId
     await order.save();
-  
+
     return res.status(200).json({
-      success: true,
-      message: 'Cancel Order successfully!',
-      result: order
+        success: true,
+        message: 'Cancel Order successfully!',
+        result: order
     })
 
     // const result = await Order.deleteOne({ _id: orderId });
