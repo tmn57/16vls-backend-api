@@ -46,16 +46,18 @@ const initIoServer = server => {
                         prodIds.push(prod.productId)
                     })
 
+                    let streamObject = stream.toObject()
+
                     ProductModel.find({
                         '_id': { $in: prodIds }
                     }).then(rows => {
                         rows.forEach((r, idx) => {
-                            stream['products'][idx] = { ...stream['products'][idx], ...r }
+                            streamObject['products'][idx] = { ...streamObject['products'][idx], ...r }
                         })
-                        socket.emit(eventKeys.STREAM_INIT, stream.toObject())
+                        socket.emit(eventKeys.STREAM_INIT, streamObject)
                     }).catch(error => {
                         console.log('get product db stream init error: ', error)
-                        socket.emit(eventKeys.STREAM_INIT, stream.toObject())
+                        socket.emit(eventKeys.STREAM_INIT, streamObject)
                     })
                 }
             }).catch(error => {
