@@ -173,6 +173,7 @@ const userJoinsStream = (socket, streamId) => {
         oldStreamId && socket.leave(oldStreamId)
         services.setStreamWithUserId(userId, streamId)
         socket.join(streamId)
+        //socket.emit(eventKeys.STREAM_MESSAGE, socket)
         emitToStream(streamId, eventKeys.STREAM_MESSAGE, messageObject('message', `${userId} joined the stream`))
     }
     catch (error) {
@@ -181,9 +182,9 @@ const userJoinsStream = (socket, streamId) => {
     }
 }
 
-const emitToStream = (streamId, eventKeys, payload) => {
-    if (io !== null && storages.streamSessions.has(streamId)) {
-        io.to(streamId).emit(eventKeys, payload)
+const emitToStream = (streamId, eventKey, payload) => {
+    if (io !== null) {
+        io.to(streamId).emit(eventKey, payload)
         return true
     }
     return false
