@@ -385,6 +385,7 @@ router.post('/approve', asyncHandler(async (req, res, next) => {
   }
 
   order.status = 'APPROVED'
+  order.updatedBy = userId
   await order.save();
 
   return res.status(200).json({
@@ -413,6 +414,7 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
 
   order.status = 'REJECT'
   order.isCompleted = true
+  order.updatedBy = userId
   await order.save();
 
   return res.status(200).json({

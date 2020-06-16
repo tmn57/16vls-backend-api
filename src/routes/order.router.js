@@ -61,8 +61,6 @@ router.post('/create', asyncHandler(async (req, res, next) => {
                 quantity: product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
             }
 
-            console.log(objVariant)
-
             product.variants[listProducts[i].products[j].variantIndex] = objVariant
             await product.save()
         }
@@ -396,19 +394,31 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
             message: 'Order not found!'
         })
     }
-    const result = await Order.deleteOne({ _id: orderId });
-    if (result.n == 1) {
-        return res.status(200).json({
-            success: true,
-            message: 'Cancel Order successfully!',
-        })
-    }
-    else {
-        return res.status(400).json({
-            success: false,
-            message: 'Cancel Order failed!',
-        })
-    }
+
+    order.status = 'REJECT'
+    order.isCompleted = true
+    order.updatedBy = userId
+    await order.save();
+  
+    return res.status(200).json({
+      success: true,
+      message: 'Cancel Order successfully!',
+      result: order
+    })
+
+    // const result = await Order.deleteOne({ _id: orderId });
+    // if (result.n == 1) {
+    //     return res.status(200).json({
+    //         success: true,
+    //         message: 'Cancel Order successfully!',
+    //     })
+    // }
+    // else {
+    //     return res.status(400).json({
+    //         success: false,
+    //         message: 'Cancel Order failed!',
+    //     })
+    // }
 
 }))
 
