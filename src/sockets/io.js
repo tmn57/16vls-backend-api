@@ -38,8 +38,8 @@ const initIoServer = server => {
                 if (stream === null) {
                     socket.emit(eventKeys.STREAM_MESSAGE, messageObject('error', 'streamId is invalid'))
                 } else {
+                    console.log(`user ${userId} is joining stream ${streamId}`)
                     userJoinsStream(socket, streamId)
-
                     //Get productIds 
                     let prodIds = []
                     stream.products.forEach(prod => {
@@ -52,7 +52,8 @@ const initIoServer = server => {
                         '_id': { $in: prodIds }
                     }).then(rows => {
                         rows.forEach((r, idx) => {
-                            streamObject['products'][idx] = { ...streamObject['products'][idx], ...r }
+                            const rObj = r.toObject()
+                            streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
                         })
                         socket.emit(eventKeys.STREAM_INIT, streamObject)
                     }).catch(error => {
