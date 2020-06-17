@@ -4,6 +4,7 @@ const CategorySystemSchema = new Schema(
   {
     name: String,
     description: String,
+    typeSize: {type: String, default: 'ALL'}, // NUMBER, STRING, ALL
     createdAt: { type: Number, default: +new Date() },
     createdBy: String,
     updatedAt: { type: Number, default: +new Date() },

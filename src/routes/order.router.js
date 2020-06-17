@@ -53,16 +53,20 @@ router.post('/create', asyncHandler(async (req, res, next) => {
                 total = total + product.promotionPrice * listProducts[i].products[j].quantity
             }
 
+            product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
 
-            // product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
-            let objVariant = {
-                color: product.variants[listProducts[i].products[j].variantIndex].color,
-                size: product.variants[listProducts[i].products[j].variantIndex].size,
-                quantity: product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
-            }
-
-            product.variants[listProducts[i].products[j].variantIndex] = objVariant
-            await product.save()
+            // let objVariant = {
+            //     color: product.variants[listProducts[i].products[j].variantIndex].color,
+            //     size: product.variants[listProducts[i].products[j].variantIndex].size,
+            //     quantity: product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
+            // }
+            // product.variants[listProducts[i].products[j].variantIndex] = objVariant
+            let tmpVariants = product.variants
+            product.variants = tmpVariants
+            // product.variants = [...product.variants]
+            // console.log(product.variants, tmpVariants)
+            
+            await product.save(); 
         }
 
         const order = await Order.findOne({ $and: [{ userId: userId }, { storeId: listProducts[i].storeId }, { isCompleted: false }, { status: 'PEDDING' }] })
@@ -371,7 +375,6 @@ router.get('/infoOrderReject', asyncHandler(async (req, res, next) => {
                 ((d.getMonth() + 1) < 10 ? ('0' + (d.getMonth() + 1)) : (d.getMonth() + 1))
                 + '/' +
                 d.getFullYear(),
-
             isUserReject: orderReject[i].createdBy == orderReject[i].updatedBy
         }
         listOrders.push(objOrder)
@@ -395,6 +398,12 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
             success: false,
             message: 'Order not found!'
         })
+    }
+
+    for(let i = 0; i < order.products.length; i++){
+        const product = await Product.findById({_id: order.products[i].productId})
+        product.variants[order.products[i].variantIndex].quantity = product.variants[order.products[i].variantIndex].quantity + order.products[i].quantity
+        await product.save()
     }
 
     order.status = 'REJECT'

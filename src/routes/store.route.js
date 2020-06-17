@@ -409,12 +409,18 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
       success: false,
       message: 'StoreId is incorrect!'
     })
-  }
+  }  
 
   order.status = 'REJECT'
   order.isCompleted = true
   order.updatedBy = userId
   await order.save();
+
+  for(let i = 0; i < order.products.length; i++){
+    const product = await Product.findById({_id: order.products[i].productId})
+    product.variants[order.products[i].variantIndex].quantity = product.variants[order.products[i].variantIndex].quantity + order.products[i].quantity
+    await product.save()
+}
 
   return res.status(200).json({
     success: true,
