@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const createError = require('http-errors')
 const Cart = require('../models/cart')
+const Store = require('../models/store')
 const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
 
@@ -105,8 +106,14 @@ router.get('/info', asyncHandler(async (req, res, next) => {
             }
         }
         if (!check) {
+            const store = await Store.findById({_id: cart.products[i].storeId})
             listProductOfStore.push({
                 storeId: cart.products[i].storeId,
+                storeName: store.name,
+                storeAddress: store.address,
+                storeAvatar: store.avatar ? store.avatar : '',
+                storePhone: store.phone,
+                storeEmail: store.email,
                 products: [obj]
                 // products: [cart.products[i]]
             })
