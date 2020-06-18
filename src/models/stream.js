@@ -1,6 +1,6 @@
 const { Schema, model } = require('mongoose')
 
-const StreamSchema = new Schema(
+const StreamSchema = new Schema(//_id,newname
   {
     startTime: { type: Number, default: 0 }, //0 means not scheduled
     endTime: { type: Number, default: Number.MIN_SAFE_INTEGER },

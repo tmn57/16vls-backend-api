@@ -23,5 +23,6 @@ module.exports = {
     SELLER_SET_CURRENT_PRODUCT_INDEX: 'seller sets current product index',
     STREAM_UPDATE_CURRENT_PRODUCT_INDEX: 'stream updates current product index',
     SELLER_GET_PUBLISH_TOKEN: 'seller gets publish token',
-    STREAM_UPDATE_PUBLISH_TOKEN: 'stream updates publish token'
+    STREAM_UPDATE_PUBLISH_TOKEN: 'stream updates publish token',
+    SELLER_PUBLISH_PLAYER_STATUS: 'sellers publish player status' //"event_code"
 }

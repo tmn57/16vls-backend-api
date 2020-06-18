@@ -154,6 +154,12 @@ const initIoServer = server => {
             })
         })
 
+        socket.on(eventKeys.SELLER_PUBLISH_PLAYER_STATUS, statusCode => {
+            if (storeId) {
+                console.log(`seller ${userId} / store ${storeId} / pusher status code ${statusCode}`)
+            }
+        })
+
         socket.on('disconnect', reason => {
             console.log(`socketio: client disconnected with reason ${reason}`)
             const streamId = services.getStreamByUserId(userId)
