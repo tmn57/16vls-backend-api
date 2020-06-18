@@ -15,6 +15,8 @@ module.exports = {
     STREAM_MESSAGE: 'stream message',
     STREAM_UPDATE_CURRENT_PRODUCT_INDEX: 'stream updates current product index', //{productIndex,inStreamAt}
     STREAM_STATUS_UPDATE: 'stream status updated', //{statusCode: 0/1/2/3, [videoUri], [message]} ---- 0: incoming stream, 1 is live, 2: was live, 3: error
+    SELLER_UPDATE_STREAMPRICE: 'seller updates streamPrice',// {productIndex, streamPrice},
+    STREAM_UPDATE_STREAMPRICE: 'stream updates streamPrice',// {productIndex, streamPrice}
 
     //String payload
     USER_JOIN_STREAM: 'user joins stream',
@@ -25,5 +27,5 @@ module.exports = {
     SELLER_SET_CURRENT_PRODUCT_INDEX: 'seller sets current product index', //Product index
     SELLER_GET_PUBLISH_TOKEN: 'seller gets publish token',
     STREAM_UPDATE_PUBLISH_TOKEN: 'stream updates publish token',
-    SELLER_PUBLISH_PLAYER_STATUS: 'sellers publish player status' //"event_code"
+    SELLER_PUBLISH_PLAYER_STATUS: 'sellers publish player status' //"event_code",
 }
