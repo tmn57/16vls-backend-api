@@ -8,11 +8,13 @@
 module.exports = {
     //JSON payload
     STREAM_INIT: 'stream init',
-    STREAM_PRODUCT_QUANTITIES: 'stream updates quantities',
+    STREAM_PRODUCT_QUANTITY: 'stream updates quantity', //{productIndex, variantIndex, quantity}
     STREAM_CHAT_MESSAGE: 'stream chat message',
     USER_ADD_PRODUCT_TO_CART: 'user adds product', //{productIndex,isReliable,variantIndex,quantity}
     SERVER_MESSAGE: 'server message', //{type:"error"/"message", message}
     STREAM_MESSAGE: 'stream message',
+    STREAM_UPDATE_CURRENT_PRODUCT_INDEX: 'stream updates current product index', //{productIndex,inStreamAt}
+    STREAM_STATUS_UPDATE: 'stream status updated', //{statusCode: 0/1/2/3, [videoUri], [message]} ---- 0: incoming stream, 1 is live, 2: was live, 3: error
 
     //String payload
     USER_JOIN_STREAM: 'user joins stream',
@@ -20,8 +22,7 @@ module.exports = {
     SELLER_START_STREAM: 'seller starts stream',
     SELLER_END_STREAM: 'seller ends stream',
     STREAM_PUBLISH_TOKEN: 'stream publish token',
-    SELLER_SET_CURRENT_PRODUCT_INDEX: 'seller sets current product index',
-    STREAM_UPDATE_CURRENT_PRODUCT_INDEX: 'stream updates current product index',
+    SELLER_SET_CURRENT_PRODUCT_INDEX: 'seller sets current product index', //Product index
     SELLER_GET_PUBLISH_TOKEN: 'seller gets publish token',
     STREAM_UPDATE_PUBLISH_TOKEN: 'stream updates publish token',
     SELLER_PUBLISH_PLAYER_STATUS: 'sellers publish player status' //"event_code"

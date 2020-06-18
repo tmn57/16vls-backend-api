@@ -55,10 +55,14 @@ const initIoServer = server => {
                             const rObj = r.toObject()
                             streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
                         })
-                        socket.emit(eventKeys.STREAM_INIT, streamObject)
+                        socket.emit(eventKeys.STREAM_INIT, streamObject, () => {
+                            socket.emit(eventKeys.STREAM_STATUS_UPDATE, {statusCode: 1, videoUri: "videoUri", message: "message"})
+                        })
                     }).catch(error => {
                         console.log('get product db stream init error: ', error)
-                        socket.emit(eventKeys.STREAM_INIT, streamObject)
+                        socket.emit(eventKeys.STREAM_INIT, streamObject, () => {
+                            socket.emit(eventKeys.STREAM_STATUS_UPDATE, {statusCode: 1, videoUri: "videoUri", message: "message"})
+                        })
                     })
                 }
             }).catch(error => {
