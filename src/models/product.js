@@ -32,7 +32,7 @@ const ProductSchema = new Schema(
     description: String,
     images: [String],
     tags: [String], //tag.key
-    streamed: [{ streamId: String, time: Number }],
+    inStreams: [String], //streamId 
     categorySystemId: String,
     category: String,
     statusCode: String,

@@ -17,12 +17,10 @@ module.exports = {
     STREAM_UPDATE_STREAMPRICE: 'stream updates streamPrice',// {productIndex, streamPrice}
     SELLER_UPDATE_STREAMPRICE: 'seller updates streamPrice',// {productIndex, streamPrice},
     USER_ADD_PRODUCT_TO_CART: 'user adds product', //{productIndex,isReliable,variantIndex,quantity}
+    SELLER_GET_PUBLISH_TOKEN: 'seller gets publish token', // have callback -> token: String (if token "error" means error while retrieving the publish token
 
     //String payload
-    STREAM_PUBLISH_TOKEN: 'stream publish token',
-    STREAM_UPDATE_PUBLISH_TOKEN: 'stream updates publish token',
     SELLER_END_STREAM: 'seller ends stream',
-    SELLER_GET_PUBLISH_TOKEN: 'seller gets publish token',
     SELLER_PUBLISH_PLAYER_STATUS: 'sellers publish player status', //"event_code",
     SELLER_SET_CURRENT_PRODUCT_INDEX: 'seller sets current product index', //Product index
     SELLER_START_STREAM: 'seller starts stream',
