@@ -7,6 +7,7 @@ const router = express.Router()
 const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
 const StreamModel = require('../models/stream')
 const StoreModel = require('../models/store')
+const { raiseError } = require('../utils/common')
 
 //Stream Server publish authentication
 //Required queries: sk = stream key; st = stream token; sr = role (default:play)
@@ -80,6 +81,34 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
         success: true,
         newStream: addedStream
     })
+}))
+
+router.post('/update', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
+    const { streamId, startTime, title, products } = req.body
+
+    console.log("body payload", req.body)
+
+    let stream = await StreamModel.findOne({ _id: streamId, storeId: req.storeId })
+
+    if (stream) {
+        if (stream.endTime === Number.MIN_SAFE_INTEGER) {
+            let prodsDbObj = []
+
+            products.forEach(product => {
+                const { productId, streamPrice } = product
+                prodsDbObj.push({ productId, streamPrice })
+            })
+
+            stream.startTime = startTime
+            stream.title = title
+            stream.products = prodsDbObj
+
+        } else {
+            next.raiseError(400, `update information for started stream is not allowed`)
+        }
+    } else {
+        next(raiseError(400, `cannot find stream with id ${streamId} and store id ${req.storeId}`))
+    }
 }))
 
 router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
