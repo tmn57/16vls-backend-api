@@ -1,5 +1,4 @@
 const socketStorage = require('../sockets/storage')
-const stream = require('../models/stream')
 //input: product db object
 //output: streamId if have stream is live for product / return "" if none
 const checkProductLiveStream = productDbObject => {
