@@ -337,7 +337,7 @@ router.get('/orderOfStore', asyncHandler(async (req, res, next) => {
       listProductsOrder.push(objProduct)
     }
 
-    let d = new Date(order[i].createdAt)    
+    let d = new Date(order[i].createdAt)
     let objOrder = {
       _id: order[i]._id,
       status: order[i].status,
@@ -368,6 +368,7 @@ router.get('/orderOfStore', asyncHandler(async (req, res, next) => {
   })
 
 }))
+
 
 router.post('/approve', asyncHandler(async (req, res, next) => {
   const { userId } = req.tokenPayload
@@ -409,22 +410,151 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
       success: false,
       message: 'StoreId is incorrect!'
     })
-  }  
+  }
 
   order.status = 'REJECT'
   order.isCompleted = true
   order.updatedBy = userId
   await order.save();
 
-  for(let i = 0; i < order.products.length; i++){
-    const product = await Product.findById({_id: order.products[i].productId})
+  for (let i = 0; i < order.products.length; i++) {
+    const product = await Product.findById({ _id: order.products[i].productId })
     product.variants[order.products[i].variantIndex].quantity = product.variants[order.products[i].variantIndex].quantity + order.products[i].quantity
     await product.save()
-}
+  }
 
   return res.status(200).json({
     success: true,
     result: order
+  })
+
+}))
+
+
+
+router.get('/orderApproveOfStore', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+
+  const store = await Store.findOne({ userId })
+
+  const order = await Order.find({ $and: [{ storeId: store._id }, { status: 'APPROVED' }] })
+
+  let listOrders = []
+
+  for (let i = 0; i < order.length; i++) {
+    const user = await User.findById({ _id: order[i].userId })
+
+    let listProductsOrder = []
+    for (let j = 0; j < order[i].products.length; j++) {
+      const product = await Product.findById({ _id: order[i].products[j].productId })
+      let objProduct = {
+        productId: order[i].products[j].productId,
+        variantIndex: order[i].products[j].variantIndex,
+        quantity: order[i].products[j].quantity,
+        productName: product.name,
+        productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
+        productImage: product.images.length > 0 ? product.images[0] : '',
+        productVariant: {
+          color: product.variants[order[i].products[j].variantIndex].color,
+          size: product.variants[order[i].products[j].variantIndex].size
+        }
+
+      }
+      listProductsOrder.push(objProduct)
+    }
+
+    let d = new Date(order[i].createdAt)
+    let objOrder = {
+      _id: order[i]._id,
+      status: order[i].status,
+      products: [...listProductsOrder],
+      isCompleted: order[i].isCompleted,
+      storeId: order[i].storeId,
+      totalMoney: order[i].totalMoney,
+      description: order[i].description,
+      transportationCost: order[i].transportationCost,
+      shippingAddress: order[i].shippingAddress,
+      userId: order[i].userId,
+      userPhone: user.phone,
+      userName: user.name,
+      storeAvatar: store.avatar ? store.avatar : '',
+      storeName: store.name,
+      createdAt: (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate())
+        + '/' +
+        ((d.getMonth() + 1) < 10 ? ('0' + (d.getMonth() + 1)) : (d.getMonth() + 1))
+        + '/' +
+        d.getFullYear()
+    }
+    listOrders.push(objOrder)
+  }
+
+  return res.status(200).json({
+    success: true,
+    result: listOrders
+  })
+
+}))
+
+
+router.get('/orderRejectOfStore', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+
+  const store = await Store.findOne({ userId })
+
+  const order = await Order.find({ $and: [{ storeId: store._id }, { status: 'REJECT' }, { updatedBy: userId }] })
+
+  let listOrders = []
+
+  for (let i = 0; i < order.length; i++) {
+    const user = await User.findById({ _id: order[i].userId })
+
+    let listProductsOrder = []
+    for (let j = 0; j < order[i].products.length; j++) {
+      const product = await Product.findById({ _id: order[i].products[j].productId })
+      let objProduct = {
+        productId: order[i].products[j].productId,
+        variantIndex: order[i].products[j].variantIndex,
+        quantity: order[i].products[j].quantity,
+        productName: product.name,
+        productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
+        productImage: product.images.length > 0 ? product.images[0] : '',
+        productVariant: {
+          color: product.variants[order[i].products[j].variantIndex].color,
+          size: product.variants[order[i].products[j].variantIndex].size
+        }
+
+      }
+      listProductsOrder.push(objProduct)
+    }
+
+    let d = new Date(order[i].createdAt)
+    let objOrder = {
+      _id: order[i]._id,
+      status: order[i].status,
+      products: [...listProductsOrder],
+      isCompleted: order[i].isCompleted,
+      storeId: order[i].storeId,
+      totalMoney: order[i].totalMoney,
+      description: order[i].description,
+      transportationCost: order[i].transportationCost,
+      shippingAddress: order[i].shippingAddress,
+      userId: order[i].userId,
+      userPhone: user.phone,
+      userName: user.name,
+      storeAvatar: store.avatar ? store.avatar : '',
+      storeName: store.name,
+      createdAt: (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate())
+        + '/' +
+        ((d.getMonth() + 1) < 10 ? ('0' + (d.getMonth() + 1)) : (d.getMonth() + 1))
+        + '/' +
+        d.getFullYear()
+    }
+    listOrders.push(objOrder)
+  }
+
+  return res.status(200).json({
+    success: true,
+    result: listOrders
   })
 
 }))

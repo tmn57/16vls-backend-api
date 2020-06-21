@@ -285,13 +285,16 @@ router.get('/allByCategoryStore', asyncHandler(async (req, res, next) => {
 }))
 
 
-// router.post('/search', asyncHandler(async (req, res, next) => {
-//     const { productName} = req.body
-// }))
+router.post('/search', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+  const { productName } = req.body
+  console.log(productName)
+
+}))
 
 router.get('/getProductsOfOwner', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
   const storeId = req.storeId
-  const data = await Product.find({storeId})
+  const data = await Product.find({ storeId })
   res.status(200).json({
     success: true,
     data
