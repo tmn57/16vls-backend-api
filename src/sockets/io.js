@@ -156,7 +156,7 @@ const initIoServer = server => {
             console.log(p)
             StreamModel.findOne({ storeId, endTime: Number.MAX_SAFE_INTEGER }).then(stream => {
                 if (stream === null) {
-                    return socket.emit(eventKeys.STREAM_MESSAGE, toMessageObject('error', `the stream is not live OR invalid streamId for you, seller!`))
+                    cb({sucess: false, message:`the stream is not live OR invalid streamId for you, seller!`})
                 }
                 const tok = services.generateStreamToken(stream._id.toString(), true)
                 console.log(cb)
