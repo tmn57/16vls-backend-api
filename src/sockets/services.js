@@ -1,4 +1,4 @@
-const storage = require('./storage')
+const {userSessions, streamSessions, streamTokens} = require('./storage')
 const StreamModel = require('../models/stream')
 const ProductModel = require('../models/product')
 const stream = require('../models/stream')
@@ -6,16 +6,16 @@ const stream = require('../models/stream')
 const generateStreamToken = (streamKey, isHost) => {
     //TODO: generate a simple token
     const token = '123'
-    storage.streamTokens.set(streamKey, { token, isHost, createdAt: Date.now() })
+    streamTokens.set(streamKey, { token, isHost, createdAt: Date.now() })
     return token
 }
 
 const isValidStreamToken = (streamKey, isHost, token) => {
-    if (storage.streamTokens.has(streamKey)) {
+    if (streamTokens.has(streamKey)) {
         let result = false
         const timeout = (process.env.RTMP_AUTH_TIMEOUT_SECS || 300) * 1000
 
-        const obj = storage.streamTokens.get(streamKey)
+        const obj = streamTokens.get(streamKey)
         const tok = obj['token']
         const ih = obj['isHost']
         const ca = obj['ca']
@@ -24,7 +24,7 @@ const isValidStreamToken = (streamKey, isHost, token) => {
             result = true
         }
 
-        storage.streamTokens.delete(streamKey)
+        streamTokens.delete(streamKey)
         return result
     }
     return false
@@ -32,7 +32,7 @@ const isValidStreamToken = (streamKey, isHost, token) => {
 
 const getStreamInfoList = () => {
     let result = []
-    storage.streamSessions.forEach((v, k) => {
+    streamSessions.forEach((v, k) => {
         tmp = { ...v }
         tmp["streamId"] = k
         tmp["numOfParticipants"] = tmp.participants.length
@@ -60,39 +60,53 @@ const getUsersInfo = async userIds => {
 }
 
 const getStreamIdByUserId = userId => {
-    if (storage.userSessions.has(userId)) {
-        return storage.userSessions.get(userId).streamId || null
+    if (userSessions.has(userId)) {
+        return userSessions.get(userId).streamId || null
     }
     return null
 }
 
 const setStreamWithUserId = (userId, streamId) => {
-    if (storage.userSessions.has(userId)) {
-        let uss = storage.userSessions.get(userId)
+    if (userSessions.has(userId)) {
+        let uss = userSessions.get(userId)
         uss['streamId'] = streamId
-        storage.userSessions.set(userId, uss)
+        userSessions.set(userId, uss)
     } else {
-        storage.userSessions.set(userId, { streamId })
+        userSessions.set(userId, { streamId })
     }
 }
 
 const removeStreamWithUserId = userId => {
-    if (storage.userSessions.has(userId)) {
-        let uss = storage.userSessions.get(userId)
+    if (userSessions.has(userId)) {
+        let uss = userSessions.get(userId)
         uss['streamId'] = null
-        storage.userSessions.set(userId, uss)
+        userSessions.set(userId, uss)
     }
 }
 
 const newStreamSession = streamDbObj => {
-    const { _id } = streamDbObj
-    storage.streamSessions.set(_id, {
+    const { _id, storeId, products } = streamDbObj
+    let productSS = []
+    products.forEach(prod=>{
+        productSS.push({
+            productId: prod.productId,
+            inStreamAt: prod.inStreamAt
+        })
+    })
+    streamSessions.set(_id.toString(), {
+        currentViews:0,
         messages: [],
-        currentProductIndex: 0
+        currentProductIndex: 0,
+        likedUsers: [],
+        storeId,
+        products: productSS 
     })
 }
 
 module.exports = {
+    streamSessions,
+    userSessions,
+    streamTokens,
     generateStreamToken,
     isValidStreamToken,
     getStreamInfoList,
@@ -100,6 +114,6 @@ module.exports = {
     getStreamIdByUserId,
     setStreamWithUserId,
     removeStreamWithUserId,
-    newStreamSession
+    newStreamSession,
 }
 
