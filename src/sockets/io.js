@@ -159,6 +159,7 @@ const initIoServer = server => {
                     return socket.emit(eventKeys.STREAM_MESSAGE, toMessageObject('error', `the stream is not live OR invalid streamId for you, seller!`))
                 }
                 const tok = services.generateStreamToken(stream._id.toString(), true)
+                console.log(cb)
                 cb({ success: true, rtmpToken: tok })
             }).catch(error => {
                 cb({ success: false, message: `error: internal server error: ${error}` })
@@ -184,7 +185,7 @@ const initIoServer = server => {
                             let cart = await CartModel.findOne({ userId })
                             let { products } = cart
                             let foundIdx = -1
-                            
+
                             products.forEach((prod, idx) => {
                                 if (prod.productId === productId){
                                     let isProdCartReliable = prod.reliablePrice > -1 ? true : false
@@ -195,7 +196,10 @@ const initIoServer = server => {
                             })
 
                             if (foundIdx === -1) {
-
+                                products.push({
+                                    productId,
+                                    storeId
+                                })
                             } else {
 
                             }
