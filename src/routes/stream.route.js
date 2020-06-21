@@ -42,7 +42,7 @@ router.get('rtmp-pub-auth', (req, res) => {
 
     if (reqIp === process.env.RTMP_SERVER_IP) {
         const streamKey = req.query.sk || ''
-        const token = req.query.sr || ''
+        const token = req.query.st || ''
         if (streamKey !== '' && token !== '') {
             if (streamHandler.isValidStreamToken(streamKey, true, token)) {
                 res.sendStatus(200)

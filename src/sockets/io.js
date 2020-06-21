@@ -33,7 +33,7 @@ const initIoServer = server => {
         console.log(`user ${userId} connected`)
         socket.emit(eventKeys.SERVER_MESSAGE, toMessageObject('message', `hello ${userId}`))
 
-        socket.on(eventKeys.USER_JOIN_STREAM, streamId => {
+        socket.on(eventKeys.USER_JOIN_STREAM, (streamId, cb) => {
             StreamModel.findById(streamId).then(stream => {
                 if (stream === null) {
                     socket.emit(eventKeys.STREAM_MESSAGE, toMessageObject('error', 'streamId is invalid'))
@@ -55,16 +55,12 @@ const initIoServer = server => {
                             const rObj = r.toObject()
                             streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
                         })
-                        socket.emit(eventKeys.STREAM_INIT, streamObject, () => {
-                            const streamStatusObj = toStreamStatusObject(streamObject)
-                            socket.emit(eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
-                        })
+                        cb({ success: true, data: streamObject })
+                        const streamStatusObj = toStreamStatusObject(streamObject)
+                        socket.emit(eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
                     }).catch(error => {
                         console.log('get product db stream init error: ', error)
-                        socket.emit(eventKeys.STREAM_INIT, streamObject, () => {
-                            const streamStatusObj = toStreamStatusObject(streamObject)
-                            socket.emit(eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
-                        })
+                        cb({ success: false, message: error })
                     })
                 }
             }).catch(error => {
@@ -85,7 +81,7 @@ const initIoServer = server => {
                     if (streamId !== stream._id.toString()) {
                         return socket.emit(eventKeys.STREAM_MESSAGE, toMessageObject('error', 'seller streaming flow is broken: you must use "join the stream" event before start the stream'))
                     }
-                    services.newStreamSession(streamId)
+                    services.newStreamSession(stream)
                     stream.endTime = Number.MAX_SAFE_INTEGER
                     stream.save()
                     const streamStatusObj = toStreamStatusObject(stream)
@@ -150,21 +146,33 @@ const initIoServer = server => {
             }
         })
 
-        socket.on(eventKeys.SELLER_GET_PUBLISH_TOKEN, () => {
+        socket.on(eventKeys.SELLER_GET_PUBLISH_TOKEN, (p, cb) => {
+            console.log(p)
             StreamModel.findOne({ storeId, endTime: Number.MAX_SAFE_INTEGER }).then(stream => {
                 if (stream === null) {
                     return socket.emit(eventKeys.STREAM_MESSAGE, toMessageObject('error', `the stream is not live OR invalid streamId for you, seller!`))
                 }
                 const tok = services.generateStreamToken(stream._id.toString(), true)
-                socket.emit(eventKeys.STREAM_UPDATE_PUBLISH_TOKEN, tok)
+                cb({success: true, rtmpToken: tok})
             }).catch(error => {
-                socket.emit(eventKeys.SERVER_MESSAGE, toMessageObject('error', `internal server error: ${error}`))
+                cb({success: false, message:'error: cannot get rtmp'})
             })
         })
 
         socket.on(eventKeys.SELLER_PUBLISH_PLAYER_STATUS, statusCode => {
             if (storeId) {
                 console.log(`seller ${userId} / store ${storeId} / pusher status code ${statusCode}`)
+            }
+        })
+
+        socket.on(eventKeys.USER_ADD_PRODUCT_TO_CART, (payload, cb) => {
+            const { productIndex, isReliable, variantIndex, quantity } = payload
+            const streamId = services.getStreamIdByUserId(userId)
+            if (streamId) {
+                storages.streamSessions.get(streamId)
+
+            } else {
+                cb({success: false, message: 'error: streamId is not valid for prod'})
             }
         })
 
@@ -202,16 +210,6 @@ const emitToStream = (streamId, eventKey, payload) => {
         return true
     }
     return false
-}
-
-
-const emitUpdateProductQuantities = (streamId, productId, variantArray) => {
-    let variantQuantities = []
-    variantArray.forEach(v => {
-        variantQuantities.push(v.quantity)
-    })
-    const obj = { productId, variantQuantities }
-    return emitToStream(streamId, eventKeys.STREAM_PRODUCT_QUANTITIES, obj)
 }
 
 const toMessageObject = (type, message) => {

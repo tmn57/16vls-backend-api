@@ -1,6 +1,7 @@
 const storage = require('./storage')
 const StreamModel = require('../models/stream')
 const ProductModel = require('../models/product')
+const stream = require('../models/stream')
 
 const generateStreamToken = (streamKey, isHost) => {
     //TODO: generate a simple token
@@ -58,7 +59,7 @@ const getUsersInfo = async userIds => {
     }
 }
 
-const getStreamByUserId = userId => {
+const getStreamIdByUserId = userId => {
     if (storage.userSessions.has(userId)) {
         return storage.userSessions.get(userId).streamId || null
     }
@@ -83,8 +84,9 @@ const removeStreamWithUserId = userId => {
     }
 }
 
-const newStreamSession = streamId => {
-    storage.streamSessions.set(streamId, {
+const newStreamSession = streamDbObj => {
+    const { _id } = streamDbObj
+    storage.streamSessions.set(_id, {
         messages: [],
         currentProductIndex: 0
     })
@@ -95,7 +97,7 @@ module.exports = {
     isValidStreamToken,
     getStreamInfoList,
     getUsersInfo,
-    getStreamByUserId,
+    getStreamIdByUserId,
     setStreamWithUserId,
     removeStreamWithUserId,
     newStreamSession
