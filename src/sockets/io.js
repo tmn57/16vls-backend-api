@@ -153,17 +153,18 @@ const initIoServer = server => {
         })
 
         socket.on(eventKeys.SELLER_GET_PUBLISH_TOKEN, (p, cb) => {
-            console.log(p)
-            StreamModel.findOne({ storeId, endTime: Number.MAX_SAFE_INTEGER }).then(stream => {
-                if (stream === null) {
-                    cb({sucess: false, message:`the stream is not live OR invalid streamId for you, seller!`})
-                }
-                const tok = services.generateStreamToken(stream._id.toString(), true)
-                console.log(cb)
-                cb({ success: true, rtmpToken: tok })
-            }).catch(error => {
-                cb({ success: false, message: `error: internal server error: ${error}` })
-            })
+            // console.log(p)
+            // StreamModel.findOne({ storeId, endTime: Number.MAX_SAFE_INTEGER }).then(stream => {
+            //     if (stream === null) {
+            //         cb({sucess: false, message:`the stream is not live OR invalid streamId for you, seller!`})
+            //     }
+            //     const tok = services.generateStreamToken(stream._id.toString(), true)
+            //     console.log(cb)
+            //     cb({ success: true, rtmpToken: tok })
+            // }).catch(error => {
+            //     cb({ success: false, message: `error: internal server error: ${error}` })
+            // })
+            cb({success: true, rtmpToken: "osuighewiughweiug"})
         })
 
         socket.on(eventKeys.SELLER_PUBLISH_PLAYER_STATUS, statusCode => {
