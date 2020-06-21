@@ -118,7 +118,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
     store = await StoreModel.findOne({ ownerId: userId })
 
     if (store !== null) {
-        rtPayload["storeId"] = store._id
+        rtPayload["storeId"] = store._id.toString()
     }
 
     const tok = jwt.sign(rtPayload, SOCKETIO_JWT_SECRET, { expiresIn: '6h' })
@@ -141,5 +141,20 @@ router.post('/list', asyncHandler(async (req, res) => {
         data: list
     })
 }))
+
+router.get('/rtmp-check-allow-join', (req,res) => {
+    //TODO: if stream is live ? NOT allow joining : allow joining
+
+    //if allow join records
+    res.sendStatus(200)
+    //else
+    //res.sendStatus(400)
+})
+
+router.get('/rtmp-record-join-done', (req,res) => {
+    const { name } = req.body
+    //name = streamId + '_' + timestamp
+    //TODO: update stream to ARCHIVED
+})
 
 module.exports = router

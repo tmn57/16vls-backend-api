@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node src/app",
-    "test": "mocha --exit"
+    "test": "mocha --exit",
+    "debug": "node --inspect src/app"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

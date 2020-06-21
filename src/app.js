@@ -74,6 +74,7 @@ apiServer.on('listening', () => onListening(apiServer))
 //Init socketio server
 const socketServer = http.Server(app)
 socketServer.listen(socketioPort)
+require('./sockets/storage')
 socketIoServer.initIoServer(socketServer)
 socketServer.on('error', error => onError('socketServer', error))
 socketServer.on('listening', () => onListening(socketServer))

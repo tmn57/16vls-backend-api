@@ -1,11 +1,11 @@
 //userSessions <K,V>: K userId, V: {streamId}
-let userSessions = new Map()
+var userSessions = new Map()
 
 //streamSessions <K,V>: K: streamId, V: {messages, currentProductIndex: 0, products:[{productId, streamPrice}]}
-let streamSessions = new Map()
+var streamSessions = new Map()
 
 //streamTokens <K,V>: K: streamId (streamKey in nginx), V: {token,createdAt}
-let streamTokens = new Map()
+var streamTokens = new Map()
 
 module.exports = {
     userSessions,
