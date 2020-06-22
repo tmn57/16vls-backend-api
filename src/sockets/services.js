@@ -84,8 +84,8 @@ const removeStreamWithUserId = userId => {
 const newStreamSession = streamDbObj => {
     const { _id, storeId, products } = streamDbObj
     let productSS = []
-    products.forEach(prod=>{
-        const { productId, inStreamAts, streamPrice} =prod
+    products.forEach(prod => {
+        const { productId, inStreamAts, streamPrice} = prod
         productSS.push({
             productId,
             inStreamAts,
@@ -100,6 +100,7 @@ const newStreamSession = streamDbObj => {
         storeId,
         products: productSS 
     })
+    console.log('added stream to mem: ', streamSessions.get(_id.toString()))
 }
 
 module.exports = {

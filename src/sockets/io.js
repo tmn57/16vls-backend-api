@@ -147,7 +147,15 @@ const initIoServer = server => {
             if (streamSessions.has(streamId)) {
                 let strm = streamSessions.get(streamId)
                 if (strm.storeId === storeId) {
+                    if(!strm.products[productIndex]) {
+                        cb({ success: false, message: 'error:  product index is invalid' })
+                        return;
+                    }
+                    //TODO: convert to 'relative' time
+                    const inStreamAt = Date.now()
+                    
                     strm['currentProductIndex'] = productIndex
+                    strm.products[productIndex].inStreamAts.push(inStreamAt)
                     streamSessions.set(streamId, strm)
                     cb({ success: true })
                     emitToStream(streamId, eventKeys.STREAM_UPDATE_CURRENT_PRODUCT_INDEX, {productIndex, inStreamAt})
