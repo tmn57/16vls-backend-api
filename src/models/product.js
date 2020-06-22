@@ -47,4 +47,7 @@ const ProductSchema = new Schema(
   }
 )
 
+// ProductSchema.index({name: 'text', 'profile.something': 'text'});
+ProductSchema.index({name: 'text'})
+
 module.exports = model('Product', ProductSchema)
