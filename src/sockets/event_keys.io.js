@@ -55,7 +55,7 @@ module.exports = {
     //Test OK
 
     SELLER_END_STREAM: 'seller ends stream',
-    //NOT test yet
+    //Test OK
 
     SELLER_GET_PUBLISH_TOKEN: 'seller gets publish token',
     //Test OK --- Mockup
