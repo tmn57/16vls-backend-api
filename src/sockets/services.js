@@ -93,6 +93,7 @@ const newStreamSession = streamDbObj => {
         })
     })
     streamSessions.set(_id.toString(), {
+        videoStreamStatus: 0,
         currentViews:0,
         messages: [],
         currentProductIndex: 0,

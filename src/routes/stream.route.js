@@ -8,6 +8,7 @@ const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
 const StreamModel = require('../models/stream')
 const StoreModel = require('../models/store')
 const { raiseError } = require('../utils/common')
+const { streamSessions } = require('../sockets/services')
 
 //Stream Server publish authentication
 //Required queries: sk = stream key; st = stream token; sr = role (default:play)
@@ -45,15 +46,11 @@ router.get('rtmp-pub-auth', (req, res) => {
         const token = req.query.st || ''
         if (streamKey !== '' && token !== '') {
             if (streamHandler.isValidStreamToken(streamKey, true, token)) {
-                res.sendStatus(200)
-            } else {
-                res.sendStatus(401)
+                return res.sendStatus(200)
             }
         }
-    } else {
-        res.sendStatus(400)
     }
-
+    return res.sendStatus(400)
 })
 
 router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
@@ -142,19 +139,57 @@ router.post('/list', asyncHandler(async (req, res) => {
     })
 }))
 
-router.get('/rtmp-check-allow-join', (req,res) => {
-    //TODO: if stream is live ? NOT allow joining : allow joining
+//request structure: /rtmp-check-allow-join?sk=streamId
+router.get('/rtmp-check-allow-join', async (req, res) => {
+    if (!process.env.RTMP_SERVER_IP) {
+        return res.status(500).json({ message: 'rtmp server ip does not found in env config' })
+    }
 
-    //if allow join records
-    res.sendStatus(200)
-    //else
-    //res.sendStatus(400)
+    const reqIp = req.connection.remoteAddress
+
+    if (reqIp === process.env.RTMP_SERVER_IP) {
+        const streamKey = req.query.sk || ''
+        if (streamKey !== '') {
+            if (streamSessions.has(streamKey)) {
+                if (streamSessions.get(streamKey).videoStreamStatus === 4) {
+                    return res.sendStatus(200)
+                }
+                const stream = await StreamModel.findById(streamKey)
+                if (stream) {
+                    if (stream.endTime > 0 && stream.endTime < Number.MAX_SAFE_INTEGER) {
+                        return res.sendStatus(200)
+                    }
+                }
+            }
+        }
+    }
+
+    return res.sendStatus(400)
 })
 
-router.get('/rtmp-record-join-done', (req,res) => {
-    const { name } = req.body
-    //name = streamId + '_' + timestamp
-    //TODO: update stream to ARCHIVED
+//request structure: /rtmp-record-join-done?fn=streamId_timestamp.ext_media_file
+router.get('/rtmp-record-join-done', async (req, res) => {
+    const filename = req.query.fn || ''
+    if (filename === '') {
+        return res.sendStatus(400)
+    }
+    const streamId = filename.split('_')[0]
+    console.log(`record of stream ${streamId} done with name ${name}`)
+
+    try {
+        let stream = await StreamModel.findById(streamId)
+        if (stream) {
+            stream.recordedFileName = fn
+            await stream.save()
+            return res.sendStatus(200)
+        }
+    } catch (error) {
+        console.log(`internal server error on get rtmp-record-join-done ${error}`)
+        return res.sendStatus(500)
+    }
+    //recordedFileName
+
+    return res.sendStatus(400)
 })
 
 module.exports = router

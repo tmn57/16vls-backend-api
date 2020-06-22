@@ -18,7 +18,8 @@ const StreamSchema = new Schema(//_id,newname
       userId: String,
       message: { type: String, default: 'text message' },
       inStreamAt: { type: Number, default: 0 }
-    }]
+    }],
+    recordedFileName: {type: String, default:'default.flv'}
   },
   {
     timestamps: true,
