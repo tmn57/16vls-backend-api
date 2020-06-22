@@ -147,7 +147,6 @@ const initIoServer = server => {
             const streamId = services.getStreamIdByUserId(userId)
             if (streamSessions.has(streamId)) {
                 let strm = streamSessions.get(streamId)
-                console.log(strm.storeId, storeId, strm.storeId === storeId)
                 if (strm.storeId === storeId) {
                     strm['currentProductIndex'] = productIndex
                     streamSessions.set(streamId, strm)
@@ -179,6 +178,24 @@ const initIoServer = server => {
         socket.on(eventKeys.SELLER_PUBLISH_PLAYER_STATUS, statusCode => {
             if (storeId) {
                 console.log(`seller ${userId} / store ${storeId} / pusher status code ${statusCode}`)
+            }
+        })
+
+        socket.on(eventKeys.SELLER_UPDATE_STREAMPRICE, (payload, cb) => {
+            const {productIndex, streamPrice} = payload
+            const streamId = services.getStreamIdByUserId(userId)
+            if (streamSessions.has(streamId)) {
+                let strm = streamSessions.get(streamId)
+                if (strm.storeId === storeId) {
+                    strm['streamPrice'] = streamPrice
+                    streamSessions.set(streamId, strm)
+                    cb({ success: true })
+                    emitToStream(streamId, eventKeys.STREAM_UPDATE_STREAMPRICE, {productIndex, streamPrice})
+                } else {
+                    cb({ success: false, message: 'error:  stream id is not your own' })
+                }
+            } else {
+                cb({ success: false, message: 'error:  stream id is not valid' })
             }
         })
 
