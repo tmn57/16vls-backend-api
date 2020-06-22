@@ -11,7 +11,7 @@ const StreamSchema = new Schema(//_id,newname
     storeId: String, //owner of store is host
     products: [{
       productId: String,
-      inStreamAt: [Number],
+      inStreamAts: [],
       streamPrice: Number
     }],
     messages: [{

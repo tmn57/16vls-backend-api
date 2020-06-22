@@ -100,10 +100,6 @@ const initIoServer = server => {
                 cb({ success: false, message: 'error: you must join a stream first' })
                 return;
             }
-
-            //TODO:
-
-
             //find the stream of storeId
             StreamModel.findOne({ storeId, endTime: Number.MAX_SAFE_INTEGER }).then(stream => {
                 if (stream === null) {
@@ -113,15 +109,18 @@ const initIoServer = server => {
                         cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
                     }
                     //Archive the stream
-                    stream.messages = streamSessions.get(streamId).messages
+                    const { messages, products } = streamSessions.get(streamId)
+                    stream.messages = messages
                     stream.endTime = Date.now()
+                    stream.products = products
                     stream.save()
                     const streamStatusObj = toStreamStatusObject(stream)
                     emitToStream(streamId, eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
                     cb({ success: true })
+                    return
                 }
             }).catch(error => {
-                socket.emit(eventKeys.SERVER_MESSAGE, toMessageObject('error', `internal server error: ${error}`))
+                cb({success:false, message: `internal server error: ${error}`})
             })
         })
 
@@ -151,7 +150,7 @@ const initIoServer = server => {
                     strm['currentProductIndex'] = productIndex
                     streamSessions.set(streamId, strm)
                     cb({ success: true })
-                    emitToStream(streamId, eventKeys.STREAM_UPDATE_CURRENT_PRODUCT_INDEX, productIndex)
+                    emitToStream(streamId, eventKeys.STREAM_UPDATE_CURRENT_PRODUCT_INDEX, {productIndex, inStreamAt})
                 } else {
                     cb({ success: false, message: 'error:  stream id is not your own' })
                 }
@@ -397,6 +396,11 @@ const updateLikedUsers = (streamId, userId, isUnlike) => {
         }
         return false
     }
+}
+
+// This function converts "absolute" point of timestamp (milliseconds) to "relative" time in video (for seeking)
+const convertRealTimeToVideoTime = (streamId, inStreamAt) =>{
+
 }
 
 module.exports = {

@@ -1,7 +1,4 @@
 const {userSessions, streamSessions, streamTokens} = require('./storage')
-const StreamModel = require('../models/stream')
-const ProductModel = require('../models/product')
-const stream = require('../models/stream')
 
 const generateStreamToken = (streamKey, isHost) => {
     //TODO: generate a simple token
@@ -88,9 +85,11 @@ const newStreamSession = streamDbObj => {
     const { _id, storeId, products } = streamDbObj
     let productSS = []
     products.forEach(prod=>{
+        const { productId, inStreamAts, streamPrice} =prod
         productSS.push({
-            productId: prod.productId,
-            inStreamAt: prod.inStreamAt
+            productId,
+            inStreamAts,
+            streamPrice
         })
     })
     streamSessions.set(_id.toString(), {

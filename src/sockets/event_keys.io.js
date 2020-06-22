@@ -32,11 +32,11 @@ module.exports = {
 
     STREAM_UPDATE_STREAMPRICE: 'stream updates streamPrice', 
     // {productIndex, streamPrice}
-    //NOT test yet
+    //test OK
 
     SELLER_UPDATE_STREAMPRICE: 'seller updates streamPrice', 
     // {productIndex, streamPrice}
-    //NOT test yet
+    //test OK
 
     USER_ADD_PRODUCT_TO_CART: 'user adds product', 
     //{productIndex,isReliable,variantIndex,quantity}
