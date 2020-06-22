@@ -8,7 +8,18 @@ const UserSchema = new Schema(
     name: String,
     password: String,
     email: { type: String, default: 'user@domain.com' },
-    address: String,
+    address: {
+      street: { type: String, default: '' },
+      ward: { type: String, default: '' },
+      district: { type: String, default: '' },
+      city: { type: String, default: '' }
+    },
+    shippingAddress: {
+      street: { type: String, default: '' },
+      ward: { type: String, default: '' },
+      district: { type: String, default: '' },
+      city: { type: String, default: '' }
+    },
     avatar: String,
     isEnabled: { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },
@@ -17,7 +28,7 @@ const UserSchema = new Schema(
       type: String,
       default: randtoken.generate(80)
     },
-    isAdmin: {type: Boolean, default: false},
+    isAdmin: { type: Boolean, default: false },
     statusCode: String,
     storeFollowed: [String],//listStoreId
     createdAt: { type: Number, default: +new Date() },

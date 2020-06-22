@@ -6,6 +6,7 @@ const CryptoJS = require('crypto-js')
 const { PASSWORD_KEY } = require('../config')
 const randtoken = require('rand-token')
 const Store = require('../models/store')
+const asyncHandler = require('express-async-handler')
 
 router.post('/update', async (req, res, next) => {
   try {
@@ -108,5 +109,81 @@ router.get('/info', async (req, res) => {
     })
   }
 })
+
+
+router.post('/updateAddress', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+
+  const { street, ward, district, city } = req.body
+  if (Object.keys(req.body).length < 1) {
+    return res.status(400).json({
+      success: false,
+      message: 'Bothing to update'
+    })
+  }
+
+  const user = await User.findById({ _id: userId })
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: 'User not found in database!'
+    })
+  }
+
+  let obj = {
+    street: street,
+    ward: ward,
+    district: district,
+    city: city
+  }
+
+  user.address = obj
+  user.updatedBy = userId
+  await user.save()
+
+  return res.status(200).json({
+    success: true,
+    result: user
+  })
+
+}))
+
+
+router.post('/updateShippingAddress', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+
+  const { street, ward, district, city } = req.body
+  if (Object.keys(req.body).length < 1) {
+    return res.status(400).json({
+      success: false,
+      message: 'Bothing to update'
+    })
+  }
+
+  const user = await User.findById({ _id: userId })
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: 'User not found in database!'
+    })
+  }
+
+  let obj = {
+    street: street,
+    ward: ward,
+    district: district,
+    city: city
+  }
+
+  user.shippingAddress = obj
+  user.updatedBy = userId
+  await user.save()
+
+  return res.status(200).json({
+    success: true,
+    result: user
+  })
+
+}))
 
 module.exports = router
