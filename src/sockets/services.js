@@ -1,8 +1,10 @@
-const {userSessions, streamSessions, streamTokens} = require('./storage')
+const { userSessions, streamSessions, streamTokens } = require('./storage')
+const { StreamVideoStatus } = require('./constants')
 
+var count = 0 
 const generateStreamToken = (streamKey, isHost) => {
     //TODO: generate a simple token
-    const token = '123'
+    const token = '123' + count++
     streamTokens.set(streamKey, { token, isHost, createdAt: Date.now() })
     return token
 }
@@ -85,7 +87,7 @@ const newStreamSession = streamDbObj => {
     const { _id, storeId, products } = streamDbObj
     let productSS = []
     products.forEach(prod => {
-        const { productId, inStreamAts, streamPrice} = prod
+        const { productId, inStreamAts, streamPrice } = prod
         productSS.push({
             productId,
             inStreamAts,
@@ -93,15 +95,22 @@ const newStreamSession = streamDbObj => {
         })
     })
     streamSessions.set(_id.toString(), {
-        videoStreamStatus: 0,
-        currentViews:0,
+        videoStreamStatusHistory: [{ statusCode: StreamVideoStatus.WAIT, time: Date.now() }],
+        currentViews: 0,
         messages: [],
         currentProductIndex: 0,
         likedUsers: [],
         storeId,
-        products: productSS 
+        products: productSS
     })
     console.log('added stream to mem: ', streamSessions.get(_id.toString()))
+}
+
+const addStreamVideoStatusHistory = (streamId, statusCode) => {
+    let strm = streamSessions.get(streamId)
+    if (strm) {
+        strm.videoStreamStatusHistory.push({statusCode, time:Date.now()})
+    }
 }
 
 module.exports = {
@@ -116,5 +125,6 @@ module.exports = {
     setStreamWithUserId,
     removeStreamWithUserId,
     newStreamSession,
+    addStreamVideoStatusHistory
 }
 

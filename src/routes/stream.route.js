@@ -2,6 +2,7 @@ const express = require('express')
 const asyncHandler = require('express-async-handler')
 const jwt = require('jsonwebtoken')
 const { SOCKETIO_JWT_SECRET } = require('../config')
+const { StreamVideoStatus } = require('../sockets/constants')
 const streamHandler = require('../sockets/services')
 const router = express.Router()
 const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
@@ -147,23 +148,25 @@ router.get('/rtmp-check-allow-join', async (req, res) => {
 
     const reqIp = req.connection.remoteAddress
 
-    if (reqIp === process.env.RTMP_SERVER_IP) {
+    //if (reqIp === process.env.RTMP_SERVER_IP) {
+    if (true) {
         const streamKey = req.query.sk || ''
         if (streamKey !== '') {
             if (streamSessions.has(streamKey)) {
-                if (streamSessions.get(streamKey).videoStreamStatus === 4) {
+                const strm = streamSessions.get(streamKey)
+                const lastVideoStreamStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
+                if (lastVideoStreamStatusCode === StreamVideoStatus.END) {
                     return res.sendStatus(200)
                 }
-                const stream = await StreamModel.findById(streamKey)
-                if (stream) {
-                    if (stream.endTime > 0 && stream.endTime < Number.MAX_SAFE_INTEGER) {
-                        return res.sendStatus(200)
-                    }
+            }
+            const stream = await StreamModel.findById(streamKey).catch(error => console.log(`check allow join rtmp error in db: ${error}`))
+            if (stream) {
+                if (stream.endTime > 0 && stream.endTime < Number.MAX_SAFE_INTEGER) {
+                    return res.sendStatus(200)
                 }
             }
         }
     }
-
     return res.sendStatus(400)
 })
 
@@ -175,7 +178,6 @@ router.get('/rtmp-record-join-done', async (req, res) => {
     }
     const streamId = filename.split('_')[0]
     console.log(`record of stream ${streamId} done with name ${name}`)
-
     try {
         let stream = await StreamModel.findById(streamId)
         if (stream) {

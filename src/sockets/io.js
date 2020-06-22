@@ -2,13 +2,14 @@
 //TODO: quantities of a variant of a product updated from product schema
 const socketioJwt = require('socketio-jwt')
 const { SOCKETIO_JWT_SECRET, STREAM_ENDTIME_MINIMUM_TIMESTAMP } = require('../config')
+const { StreamVideoStatus } = require('./constants')
 
 const StreamModel = require('../models/stream')
 const CartModel = require('../models/cart')
 const ProductModel = require('../models/product')
 
 const eventKeys = require('./event_keys.io')
-const { streamSessions } = require('./services')
+const { streamSessions, addStreamVideoStatusHistory } = require('./services')
 const services = require('./services')
 
 let io = null
@@ -78,9 +79,11 @@ const initIoServer = server => {
             StreamModel.findOne({ storeId, endTime: Number.MIN_SAFE_INTEGER }).then(stream => {
                 if (stream === null) {
                     cb({ success: false, message: 'error: streamId is invalid for you, seller!' })
+                    return;
                 } else {
                     if (streamId !== stream._id.toString()) {
                         cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
+                        return;
                     }
                     services.newStreamSession(stream)
                     stream.endTime = Number.MAX_SAFE_INTEGER
@@ -100,28 +103,40 @@ const initIoServer = server => {
                 cb({ success: false, message: 'error: you must join a stream first' })
                 return;
             }
-            //find the stream of storeId
-            StreamModel.findOne({ storeId, endTime: Number.MAX_SAFE_INTEGER }).then(stream => {
-                if (stream === null) {
-                    cb({ success: false, message: 'error: streamId is invalid for you, seller!' })
+
+            if (streamSessions.has(streamId)) {
+                let strm = streamSessions.get(streamId)
+                if (strm.storeId === storeId) {
+                    services.addStreamVideoStatusHistory(streamId, StreamVideoStatus.END)
+                    streamSessions.set(streamId, strm)
+                    //find the stream of storeId
+                    StreamModel.findById(streamId).then(stream => {
+                        if (stream === null) {
+                            cb({ success: false, message: 'error: cannot find stream in db by stream in session' })
+                        } else {
+                            if (stream.endTime !== Number.MAX_SAFE_INTEGER) {
+                                cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
+                                return;
+                            }
+                            //Archive the stream
+                            const { messages, products } = strm
+                            stream.messages = messages
+                            stream.endTime = Date.now()
+                            stream.products = products
+                            stream.save()
+                            const streamStatusObj = toStreamStatusObject(stream)
+                            emitToStream(streamId, eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
+                            cb({ success: true })
+                            return
+                        }
+                    }).catch(error => {
+                        cb({ success: false, message: `internal server error: ${error}` })
+                    })
                 } else {
-                    if (streamId !== stream._id.toString()) {
-                        cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
-                    }
-                    //Archive the stream
-                    const { messages, products } = streamSessions.get(streamId)
-                    stream.messages = messages
-                    stream.endTime = Date.now()
-                    stream.products = products
-                    stream.save()
-                    const streamStatusObj = toStreamStatusObject(stream)
-                    emitToStream(streamId, eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
-                    cb({ success: true })
-                    return
+                    cb({ success: false, message: 'error: streamId is invalid for you, seller!' })
+                    return;
                 }
-            }).catch(error => {
-                cb({success:false, message: `internal server error: ${error}`})
-            })
+            }
         })
 
         socket.on(eventKeys.USER_ADD_MESSAGE, (msg, cb) => {
@@ -147,18 +162,17 @@ const initIoServer = server => {
             if (streamSessions.has(streamId)) {
                 let strm = streamSessions.get(streamId)
                 if (strm.storeId === storeId) {
-                    if(!strm.products[productIndex]) {
+                    if (!strm.products[productIndex]) {
                         cb({ success: false, message: 'error:  product index is invalid' })
                         return;
                     }
                     //TODO: convert to 'relative' time
                     const inStreamAt = Date.now()
-                    
                     strm['currentProductIndex'] = productIndex
                     strm.products[productIndex].inStreamAts.push(inStreamAt)
                     streamSessions.set(streamId, strm)
                     cb({ success: true })
-                    emitToStream(streamId, eventKeys.STREAM_UPDATE_CURRENT_PRODUCT_INDEX, {productIndex, inStreamAt})
+                    emitToStream(streamId, eventKeys.STREAM_UPDATE_CURRENT_PRODUCT_INDEX, { productIndex, inStreamAt })
                 } else {
                     cb({ success: false, message: 'error:  stream id is not your own' })
                 }
@@ -168,26 +182,44 @@ const initIoServer = server => {
         })
 
         socket.on(eventKeys.SELLER_GET_PUBLISH_TOKEN, (p, cb) => {
-            StreamModel.findOne({ storeId, endTime: Number.MAX_SAFE_INTEGER }).then(stream => {
-                if (stream === null) {
-                    cb({sucess: false, message:`the stream is not live OR invalid streamId for you, seller!`})
+            const streamId = services.getStreamIdByUserId(userId)
+            const stream = streamSessions.get(streamId)
+            if (stream && (stream.storeId === storeId)) {
+                const lastVideoStatusCode = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length - 1].statusCode
+                if (lastVideoStatusCode === StreamVideoStatus.WAIT || lastVideoStatusCode === StreamVideoStatus.INTERRUPT) {
+                    const tok = services.generateStreamToken(streamId.toString(), true)
+                    cb({ success: true, rtmpToken: tok })
+                    return
                 }
-                const tok = services.generateStreamToken(stream._id.toString(), true)
-                cb({ success: true, rtmpToken: tok })
-                return
-            }).catch(error => {
-                cb({ success: false, message: `error: internal server error: ${error}` })
-            })
+                console.log(`get publish token error : seller ${userId} is request a publish token for being live stream`)
+            }
+            cb({ success: false, message: 'invalid publish token request' })
+            return
         })
 
         socket.on(eventKeys.SELLER_PUBLISH_PLAYER_STATUS, statusCode => {
-            if (storeId) {
-                console.log(`seller ${userId} / store ${storeId} / pusher status code ${statusCode}`)
+            const streamId = services.getStreamIdByUserId(userId)
+            let stream = streamSessions.get(streamId)
+            if (stream && (stream.storeId === storeId)) {
+                console.log(`seller ${userId} / store ${storeId} / pusher status code ${statusCode} of type: ${typeof (statusCode)}`)
+                const lastVideoStatusCode = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length - 1].statusCode
+                if (statusCode === 2001) {
+                    if (lastVideoStatusCode === StreamVideoStatus.WAIT || lastVideoStatusCode === StreamVideoStatus.INTERRUPT) {
+                        addStreamVideoStatusHistory(streamId, StreamVideoStatus.START)
+                        return
+                    }
+                }
+                if (statusCode === 2004 || statusCode === 2100 || statusCode === 2101 || statusCode === 2005) {
+                    if (lastVideoStatusCode === StreamVideoStatus.START) {
+                        addStreamVideoStatusHistory(streamId, StreamVideoStatus.INTERRUPT)
+                        return
+                    }
+                }
             }
         })
 
         socket.on(eventKeys.SELLER_UPDATE_STREAMPRICE, (payload, cb) => {
-            const {productIndex, streamPrice} = payload
+            const { productIndex, streamPrice } = payload
             const streamId = services.getStreamIdByUserId(userId)
             if (streamSessions.has(streamId)) {
                 let strm = streamSessions.get(streamId)
@@ -195,7 +227,7 @@ const initIoServer = server => {
                     strm['streamPrice'] = streamPrice
                     streamSessions.set(streamId, strm)
                     cb({ success: true })
-                    emitToStream(streamId, eventKeys.STREAM_UPDATE_STREAMPRICE, {productIndex, streamPrice})
+                    emitToStream(streamId, eventKeys.STREAM_UPDATE_STREAMPRICE, { productIndex, streamPrice })
                 } else {
                     cb({ success: false, message: 'error:  stream id is not your own' })
                 }
@@ -217,7 +249,7 @@ const initIoServer = server => {
                         if (productDbObj && productDbObj.variants[variantIndex]) {
                             let cart = await CartModel.findOne({ userId })
                             if (cart == null) {
-                                cb({success: false, message:'error: this problem may because of cart object in db of yours is null'})
+                                cb({ success: false, message: 'error: this problem may because of cart object in db of yours is null' })
                                 return;
                             }
                             if (isReliable) {
@@ -282,7 +314,7 @@ const initIoServer = server => {
                 } else {
                     cb({ success: false, message: 'error: streamId is not valid for prod' })
                 }
-            } catch(error) {
+            } catch (error) {
                 cb({ success: false, message: `internal server error: ${error}` })
             }
         })
@@ -306,6 +338,16 @@ const initIoServer = server => {
                 socket.leave(streamId)
                 services.removeStreamWithUserId(userId)
                 updateStreamViewCount(streamId, false)
+
+                let stream = streamSessions.get(streamId)
+                if (stream.storeId === storeId) {
+                    const lastVideoStatusCode = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length-1].statusCode
+                    if (lastVideoStatusCode === StreamVideoStatus.START) {
+                        addStreamVideoStatusHistory(streamId, StreamVideoStatus.INTERRUPT)
+                        return
+                    }
+                }
+
             }
         })
 
@@ -405,7 +447,7 @@ const updateLikedUsers = (streamId, userId, isUnlike) => {
 }
 
 // This function converts "absolute" point of timestamp (milliseconds) to "relative" time in video (for seeking)
-const convertRealTimeToVideoTime = (streamId, inStreamAt) =>{
+const convertRealTimeToVideoTime = (streamId, inStreamAt) => {
 
 }
 
