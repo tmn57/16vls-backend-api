@@ -386,6 +386,7 @@ router.post('/approve', asyncHandler(async (req, res, next) => {
 
   order.status = 'APPROVED'
   order.updatedBy = userId
+  user.updatedAt = +new Date()
   await order.save();
 
   return res.status(200).json({
@@ -415,6 +416,7 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
   order.status = 'REJECT'
   order.isCompleted = true
   order.updatedBy = userId
+  user.updatedAt = +new Date()
   await order.save();
 
   for (let i = 0; i < order.products.length; i++) {
