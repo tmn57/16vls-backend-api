@@ -249,7 +249,7 @@ const initIoServer = server => {
                         let productDbObj = await ProductModel.findById(productId)
                         if (productDbObj && productDbObj.variants[variantIndex]) {
                             let cart = await CartModel.findOne({ userId })
-                            if (cart == null) {
+                            if (cart === null) {
                                 cb({ success: false, message: 'error: this problem may because of cart object in db of yours is null' })
                                 return;
                             }
