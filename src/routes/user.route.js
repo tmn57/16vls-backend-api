@@ -8,43 +8,39 @@ const randtoken = require('rand-token')
 const Store = require('../models/store')
 const asyncHandler = require('express-async-handler')
 
-router.post('/update', async (req, res, next) => {
-  try {
-    if (Object.keys(req.body).length < 1) {
-      return res.status(400).json({
-        success: false,
-        message: 'nothing to update'
-      })
-    }
-    const { name, email, address, avatar } = req.body
-    const { userId } = req.tokenPayload
-    const user = await User.findById(userId, {
-      refreshToken: false
-    })
-    if (user) {
-      if (name) user.name = name
-      if (email) user.email = email
-      if (address) user.address = address
-      if (avatar) user.avatar = avatar
-      user.updatedAt = +new Date()
-      await user.save()
-      return res.status(201).json({
-        success: true,
-        user
-      })
-    } else {
-      return res.status(401).json({
-        success: false,
-        message: 'user not found in database!'
-      })
-    }
-  } catch (err) {
-    return res.status(500).json({
+router.post('/update', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+  if (Object.keys(req.body).length < 1) {
+    return res.status(400).json({
       success: false,
-      message: err.toString()
+      message: 'Nothing to update'
     })
   }
-})
+  const { name, email, address, avatar, shippingAddress } = req.body
+  const user = await User.findById(userId, {
+    refreshToken: false
+  })
+
+  if (user) {
+    if (name) user.name = name
+    if (email) user.email = email
+    if (address) user.address = address
+    if (shippingAddress) user.shippingAddress = shippingAddress
+    if (avatar) user.avatar = avatar
+    user.updatedAt = +new Date()
+    user.updatedBy = userId
+    await user.save()
+    return res.status(201).json({
+      success: true,
+      result: user
+    })
+  } else {
+    return res.status(401).json({
+      success: false,
+      message: 'User not found in database!'
+    })
+  }
+}))
 
 router.post('/changePass', async (req, res, next) => {
   try {
@@ -177,6 +173,7 @@ router.post('/updateShippingAddress', asyncHandler(async (req, res, next) => {
 
   user.shippingAddress = obj
   user.updatedBy = userId
+  user.updatedAt = +new Date()
   await user.save()
 
   return res.status(200).json({
