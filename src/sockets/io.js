@@ -82,6 +82,7 @@ const initIoServer = server => {
                     return;
                 } else {
                     if (streamId !== stream._id.toString()) {
+                        console.log(`error: seller ${userId} want to start stream ${streamId} but got ${stream._id.toString()}`)
                         cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
                         return;
                     }
@@ -191,7 +192,7 @@ const initIoServer = server => {
                     cb({ success: true, rtmpToken: tok })
                     return
                 }
-                console.log(`get publish token error : seller ${userId} is request a publish token for being live stream`)
+                console.log(`get publish token error : seller ${userId} is request a publish token for being live stream`, stream.videoStreamStatusHistory)
             }
             cb({ success: false, message: 'invalid publish token request' })
             return
@@ -209,7 +210,7 @@ const initIoServer = server => {
                         return
                     }
                 }
-                if (statusCode === 2004 || statusCode === 2100 || statusCode === 2101 || statusCode === 2005) {
+                if (statusCode === 2002 || statusCode === 2004 || statusCode === 2100 || statusCode === 2101 || statusCode === 2005) {
                     if (lastVideoStatusCode === StreamVideoStatus.START) {
                         addStreamVideoStatusHistory(streamId, StreamVideoStatus.INTERRUPT)
                         return
@@ -341,7 +342,7 @@ const initIoServer = server => {
 
                 let stream = streamSessions.get(streamId)
                 if (stream.storeId === storeId) {
-                    const lastVideoStatusCode = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length-1].statusCode
+                    const lastVideoStatusCode = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length - 1].statusCode
                     if (lastVideoStatusCode === StreamVideoStatus.START) {
                         addStreamVideoStatusHistory(streamId, StreamVideoStatus.INTERRUPT)
                         return
@@ -447,8 +448,17 @@ const updateLikedUsers = (streamId, userId, isUnlike) => {
 }
 
 // This function converts "absolute" point of timestamp (milliseconds) to "relative" time in video (for seeking)
-const convertRealTimeToVideoTime = (streamId, inStreamAt) => {
-
+const convertRealTimeToVideoTime = (streamId, time) => {
+    const stream = streamSessions.get(streamId)
+    if (stream) {
+        const history = stream.videoStreamStatusHistory
+        if (history[1].statusCode !== StreamVideoStatus.START) {
+            return -1
+        }
+        const startTime = history[1].time
+        let nextInterruptTime = history[2]
+        
+    }
 }
 
 module.exports = {
