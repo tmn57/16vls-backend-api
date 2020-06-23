@@ -35,7 +35,7 @@ const { streamSessions } = require('../sockets/services')
 //     }
 // })
 
-router.get('/rtmp-pub-auth', (req, res) => {
+router.post('/rtmp-pub-auth', (req, res) => {
     console.log(`rtmp-pub-auth request from ${req.connection.remoteAddress} / got env ip ${process.env.RTMP_SERVER_IP}`)
     if (!process.env.RTMP_SERVER_IP) {
         return res.status(500).json({ message: 'rtmp server ip does not found in env config' })
@@ -145,7 +145,7 @@ router.post('/list', asyncHandler(async (req, res) => {
 }))
 
 //request structure: /rtmp-check-allow-join?sk=streamId
-router.get('/rtmp-check-allow-join', async (req, res) => {
+router.post('/rtmp-check-allow-join', async (req, res) => {
     if (!process.env.RTMP_SERVER_IP) {
         return res.status(500).json({ message: 'rtmp server ip does not found in env config' })
     }
@@ -175,7 +175,7 @@ router.get('/rtmp-check-allow-join', async (req, res) => {
 })
 
 //request structure: /rtmp-record-join-done?fn=streamId_timestamp.ext_media_file
-router.get('/rtmp-record-join-done', async (req, res) => {
+router.post('/rtmp-record-join-done', async (req, res) => {
     const filename = req.query.fn || ''
     if (filename === '') {
         return res.sendStatus(400)
