@@ -329,7 +329,7 @@ const initIoServer = server => {
             isUnlike && (iUL = true)
             const isSuccess = updateLikedUsers(services.getStreamIdByUserId(userId), userId, iUL)
             if (isSuccess) {
-                cb({ success: true })
+                cb({ success: true, isUnlike: iUL })
                 return;
             }
             cb({ success: false, message: 'cannot do like/unlike action' })
