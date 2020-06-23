@@ -275,6 +275,7 @@ const initIoServer = server => {
                                     productDbObj.save().then(() => {
                                         emitToStream(streamId, eventKeys.STREAM_PRODUCT_QUANTITY, { productIndex, variantIndex, quantity: _qty })
                                         cb({ success: true })
+                                        return;
                                     })
                                 })
                             } else {
@@ -306,17 +307,20 @@ const initIoServer = server => {
                                         quantity: foundQuantity + quantity
                                     }
                                 }
-                                cart.save().then(() => cb({ success: true }))
+                                cart.save().then(() => {cb({ success: true }); return;})
                             }
                         } else {
                             cb({ success: false, message: `cannot find variant index in product ${productId}` })
+                            return;
                         }
                     }
                 } else {
                     cb({ success: false, message: 'error: streamId is not valid for prod' })
+                    return;
                 }
             } catch (error) {
                 cb({ success: false, message: `internal server error: ${error}` })
+                return;
             }
         })
 
@@ -359,7 +363,14 @@ const userJoinsStream = (socket, streamId) => {
     try {
         const userId = socket.decoded_token.userId
         const oldStreamId = services.getStreamIdByUserId(userId)
-        oldStreamId && socket.leave(oldStreamId)
+        if (oldStreamId) {
+            socket.leave(oldStreamId)
+            const oldStrm = streamSessions.get(oldStrm)
+            if(oldStrm){
+                oldStrm.currentViews--
+                streamSessions.set(oldStreamId, oldStrm)
+            } 
+        }
         services.setStreamWithUserId(userId, streamId)
         socket.join(streamId)
         emitToStream(streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `${userId} joined the stream`))
