@@ -43,7 +43,7 @@ router.get('/rtmp-pub-auth', (req, res) => {
 
     const reqIp = req.connection.remoteAddress
 
-    if (reqIp === process.env.RTMP_SERVER_IP) {
+    if (reqIp === '::ffff:' + process.env.RTMP_SERVER_IP) {
         const streamKey = req.query.sk || ''
         const token = req.query.st || ''
 
