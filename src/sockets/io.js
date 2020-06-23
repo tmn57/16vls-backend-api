@@ -164,7 +164,7 @@ const initIoServer = server => {
                     inStreamAt: convertRealTimeToVideoTime(streamId, currentVideoTime),
                     message: msg
                 }
-                
+
                 stream.messages.push(payload)
                 streamSessions.set(streamId, stream)
                 emitToStream(streamId, eventKeys.STREAM_CHAT_MESSAGE, payload)
@@ -387,7 +387,7 @@ const userJoinsStream = (socket, streamId) => {
         const oldStreamId = services.getStreamIdByUserId(userId)
         if (oldStreamId) {
             socket.leave(oldStreamId)
-            const oldStrm = streamSessions.get(oldStrm)
+            const oldStrm = streamSessions.get(oldStreamId)
             if (oldStrm) {
                 oldStrm.currentViews--
                 streamSessions.set(oldStreamId, oldStrm)
