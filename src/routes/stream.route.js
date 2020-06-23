@@ -117,7 +117,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
     const { userId } = req.tokenPayload
     let rtPayload = { userId }
 
-    store = await StoreModel.findOne({ ownerId: userId })
+    store = await StoreModel.findOne({ userId })
 
     if (store !== null) {
         rtPayload["storeId"] = store._id.toString()

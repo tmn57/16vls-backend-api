@@ -30,7 +30,7 @@ const storeOwnerRequired = async (req, res, next) => {
 
   const userId = req.tokenPayload.userId
 
-  await storeModel.findOne({ ownerId: userId }).then(store => {
+  await storeModel.findOne({ userId }).then(store => {
     req.storeId = store._id
     next()
   }).catch(error => {
