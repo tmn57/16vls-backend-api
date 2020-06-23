@@ -437,7 +437,7 @@ const toStreamStatusObject = (streamObject) => {
     }
     if (endTime > STREAM_ENDTIME_MINIMUM_TIMESTAMP && endTime < Number.MAX_SAFE_INTEGER) {
         statusCode = 2
-        videoUri = 'VOD uri'
+        videoUri = `http://${rtmpIp}/vod/${recordedFileName}.flv`
     }
     if (endTime === Number.MIN_SAFE_INTEGER && startTime !== 0) {
         statusCode = 0
