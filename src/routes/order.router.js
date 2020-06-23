@@ -409,6 +409,7 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
     order.status = 'REJECT'
     order.isCompleted = true
     order.updatedBy = userId
+    user.updatedAt = +new Date()
     await order.save();
 
     return res.status(200).json({
