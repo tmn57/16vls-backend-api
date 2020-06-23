@@ -35,7 +35,7 @@ const { streamSessions } = require('../sockets/services')
 //     }
 // })
 
-router.get('rtmp-pub-auth', (req, res) => {
+router.get('/rtmp-pub-auth', (req, res) => {
     if (!process.env.RTMP_SERVER_IP) {
         return res.status(500).json({ message: 'rtmp server ip does not found in env config' })
     }
