@@ -144,11 +144,27 @@ const initIoServer = server => {
             const streamId = services.getStreamIdByUserId(userId)
             if (streamSessions.has(streamId)) {
                 let stream = streamSessions.get(streamId)
+
+                //not allow comment in not-live-yet stream
+                if (stream.videoStreamStatusHistory.length === 1) {
+                    cb({ success: false, message: 'stream does not allow comment while video is not starting yet' })
+                    return;
+                }
+
+                //calc current time in video:
+                const videoStartTime = stream.videoStreamStatusHistory[1]
+                const lastStatusObject = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length - 1]
+                let currentVideoTime = Date.now()
+                if (lastStatusObject.statusCode === StreamVideoStatus.INTERRUPT) {
+                    currentVideoTime = lastStatusObject.time - Math.floor(Math.random() * 789 + 234)
+                }
+
                 let payload = {
                     userId,
-                    inStreamAt: Date.now(),
+                    inStreamAt: convertRealTimeToVideoTime(streamId, currentVideoTime),
                     message: msg
                 }
+                
                 stream.messages.push(payload)
                 streamSessions.set(streamId, stream)
                 emitToStream(streamId, eventKeys.STREAM_CHAT_MESSAGE, payload)
@@ -163,12 +179,18 @@ const initIoServer = server => {
             if (streamSessions.has(streamId)) {
                 let strm = streamSessions.get(streamId)
                 if (strm.storeId === storeId) {
+                    const lastVideoStatusCode = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length - 1].statusCode
+                    if (lastVideoStatusCode !== StreamVideoStatus.START) {
+                        cb({ success: false, message: 'error:  product index change while stream video is not pushing is not allowed' })
+                        return;
+                    }
+
                     if (!strm.products[productIndex]) {
                         cb({ success: false, message: 'error:  product index is invalid' })
                         return;
                     }
                     //TODO: convert to 'relative' time
-                    const inStreamAt = Date.now()
+                    const inStreamAt = convertRealTimeToVideoTime(Date.now())
                     strm['currentProductIndex'] = productIndex
                     strm.products[productIndex].inStreamAts.push(inStreamAt)
                     streamSessions.set(streamId, strm)
@@ -307,7 +329,7 @@ const initIoServer = server => {
                                         quantity: foundQuantity + quantity
                                     }
                                 }
-                                cart.save().then(() => {cb({ success: true }); return;})
+                                cart.save().then(() => { cb({ success: true }); return; })
                             }
                         } else {
                             cb({ success: false, message: `cannot find variant index in product ${productId}` })
@@ -366,10 +388,10 @@ const userJoinsStream = (socket, streamId) => {
         if (oldStreamId) {
             socket.leave(oldStreamId)
             const oldStrm = streamSessions.get(oldStrm)
-            if(oldStrm){
+            if (oldStrm) {
                 oldStrm.currentViews--
                 streamSessions.set(oldStreamId, oldStrm)
-            } 
+            }
         }
         services.setStreamWithUserId(userId, streamId)
         socket.join(streamId)
@@ -459,17 +481,44 @@ const updateLikedUsers = (streamId, userId, isUnlike) => {
 }
 
 // This function converts "absolute" point of timestamp (milliseconds) to "relative" time in video (for seeking)
+//returns -1 if is not a valid 
 const convertRealTimeToVideoTime = (streamId, time) => {
     const stream = streamSessions.get(streamId)
     if (stream) {
         const history = stream.videoStreamStatusHistory
-        if (history[1].statusCode !== StreamVideoStatus.START) {
+        if (history.length <= 1) return -1
+        if (history[1].statusCode !== StreamVideoStatus.START) return -1
+
+        const startTime = history[1].time
+        if (!history[2]) return time - startTime
+
+        if (history[2].statusCode === StreamVideoStatus.END) {
+            //if endTime > startTime then it is valid time
+            if (history[2].time > time) return time - startTime
             return -1
         }
-        const startTime = history[1].time
-        let nextInterruptTime = history[2]
-        
+
+        let delay = 0
+        let eventIndex = 2
+        let resumeTime = 0
+        let interruptTime = 0
+        while (history[eventIndex].time <= time) {
+            const h = history[eventIndex]
+            if (h.statusCode === StreamVideoStatus.INTERRUPT) {
+                interruptTime = h.time
+                resumeTime = 0
+            }
+
+            if (h.statusCode === StreamVideoStatus.START) {
+                resumeTime = h.time
+                interruptTime !== 0 && (delay += resumeTime - interruptTime)
+                interruptTime = 0
+            }
+            eventIndex++;
+        }
+        return time - startTime - delay
     }
+    return -1
 }
 
 module.exports = {
