@@ -430,7 +430,7 @@ const toStreamStatusObject = (streamObject) => {
     let statusCode = 3
     let videoUri = ''
     let message = ''
-    const { startTime, endTime, _id: streamId } = streamObject
+    const { startTime, endTime, _id: streamId, recordedFileName } = streamObject
     if (endTime === Number.MAX_SAFE_INTEGER) {
         statusCode = 1
         videoUri = `http://${rtmpIp}/hls/${streamId.toString()}/index.m3u8`
