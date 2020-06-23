@@ -75,6 +75,8 @@ const initIoServer = server => {
                 cb({ success: false, message: 'error: you must join a stream first' })
                 return;
             }
+
+            console.log(`user ${userId} with store ${storeId} is start stream ${streamId}`)
             //find the stream of storeId
             StreamModel.findOne({ storeId, endTime: Number.MIN_SAFE_INTEGER }).then(stream => {
                 if (stream === null) {
