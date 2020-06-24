@@ -135,8 +135,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
 
 router.post('/list', asyncHandler(async (req, res) => {
     //TODO: check req.body for checking type of stream ('live', 'incoming', 'archived')
-
-    let list = await StreamModel.find()
+    let list = await StreamModel.find({})
 
     res.status(200).json({
         success: true,
