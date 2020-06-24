@@ -17,7 +17,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
         })
     }
 
-    const product = await Product.findById({ _id: productId })
+    const product = await Product.findById(productId)
 
     if (!product) {
         return res.status(400).json({
@@ -81,7 +81,7 @@ router.get('/info', asyncHandler(async (req, res, next) => {
     let listProductOfStore = []
 
     for (let i = 0; i < cart.products.length; i++) {
-        const product = await Product.findById({ _id: cart.products[i].productId })
+        const product = await Product.findById(cart.products[i].productId)
         let obj = {
             expiredTime: cart.products[i].expiredTime,
             reliablePrice: cart.products[i].reliablePrice,
@@ -106,7 +106,7 @@ router.get('/info', asyncHandler(async (req, res, next) => {
             }
         }
         if (!check) {
-            const store = await Store.findById({_id: cart.products[i].storeId})
+            const store = await Store.findById(cart.products[i].storeId)
             listProductOfStore.push({
                 storeId: cart.products[i].storeId,
                 storeName: store.name,

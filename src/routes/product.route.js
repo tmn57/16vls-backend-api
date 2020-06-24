@@ -49,7 +49,7 @@ router.get('/', async (req, res, next) => {
   try {
     // const { userId, type } = req.tokenPayload
     // const products = isAdmin(type)
-    //   ? await Product.findById({ _id })
+    //   ? await Product.findById(_id )
     //   : await Product.findOne({ _id, createdBy: userId })
 
     const _id = req.query.id
@@ -59,7 +59,7 @@ router.get('/', async (req, res, next) => {
         message: 'Required field: id'
       })
     }
-    const products = await Product.findById({ _id })
+    const products = await Product.findById(_id)
 
     if (products) {
       return res.status(200).json({
@@ -246,7 +246,7 @@ router.get('/allByStore', asyncHandler(async (req, res, next) => {
     })
   }
 
-  const currentStore = await Store.findById({ _id: storeId })
+  const currentStore = await Store.findById(storeId)
   const categories = currentStore.categories
   const result = [];
 
@@ -286,7 +286,7 @@ router.get('/allByCategoryStore', asyncHandler(async (req, res, next) => {
 
 
 router.post('/search', asyncHandler(async (req, res, next) => {
-  const { productName} = req.body
+  const { productName } = req.body
   const products = await Product.find({ $text: { $search: productName } }).exec()
   // .skip(20)
   // .limit(10)
