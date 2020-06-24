@@ -31,7 +31,10 @@ const storeOwnerRequired = async (req, res, next) => {
   const userId = req.tokenPayload.userId
 
   await storeModel.findOne({ userId }).then(store => {
-    req.storeId = store._id
+    if (!store) {
+      return next(raiseError(401, 'this route only for seller'))
+    }
+    req.storeId = store._id.toString()
     next()
   }).catch(error => {
     return next(raiseError(500, error))
