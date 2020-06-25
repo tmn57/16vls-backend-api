@@ -257,6 +257,7 @@ const initIoServer = server => {
                     streamSessions.set(streamId, strm)
                     cb({ success: true })
                     emitToStream(streamId, eventKeys.STREAM_UPDATE_STREAMPRICE, { productIndex, streamPrice })
+                    console.log(`seller ${userId} updated stream price ${streamPrice} for product index ${productIndex} in stream ${streamId}`)
                 } else {
                     cb({ success: false, message: 'error:  stream id is not your own' })
                 }

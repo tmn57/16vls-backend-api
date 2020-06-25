@@ -190,11 +190,11 @@ router.post('/rtmp-record-join-done', async (req, res) => {
         }
     } catch (error) {
         console.log(`internal server error on get rtmp-record-join-done ${error}`)
-        return res.sendStatus(500)
+        return res.status(500).send(`internal server error on get rtmp-record-join-done ${error}`)
     }
     //recordedFileName
 
-    return res.sendStatus(400)
+    return res.status(400).send(`invalid request`)
 })
 
 module.exports = router
