@@ -145,17 +145,16 @@ const initIoServer = server => {
         socket.on(eventKeys.USER_ADD_MESSAGE, (msg, cb) => {
             const streamId = services.getStreamIdByUserId(userId)
             if (streamSessions.has(streamId)) {
-                let stream = streamSessions.get(streamId)
+                let strm = streamSessions.get(streamId)
 
                 //not allow comment in not-live-yet stream
-                if (stream.videoStreamStatusHistory.length === 1) {
+                if (strm.videoStreamStatusHistory.length === 1) {
                     cb({ success: false, message: 'stream does not allow comment while video is not starting yet' })
                     return;
                 }
 
                 //calc current time in video:
-                const videoStartTime = stream.videoStreamStatusHistory[1]
-                const lastStatusObject = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length - 1]
+                const lastStatusObject = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1]
                 let currentVideoTime = Date.now()
                 if (lastStatusObject.statusCode === StreamVideoStatus.INTERRUPT) {
                     currentVideoTime = lastStatusObject.time - Math.floor(Math.random() * 789 + 234)
@@ -167,8 +166,8 @@ const initIoServer = server => {
                     message: msg
                 }
 
-                stream.messages.push(payload)
-                streamSessions.set(streamId, stream)
+                strm.messages.push(payload)
+                streamSessions.set(streamId, strm)
                 emitToStream(streamId, eventKeys.STREAM_CHAT_MESSAGE, payload)
                 cb({ success: true })
             } else {
@@ -181,13 +180,14 @@ const initIoServer = server => {
             if (streamSessions.has(streamId)) {
                 let strm = streamSessions.get(streamId)
                 if (strm.storeId === storeId) {
-                    const lastVideoStatusCode = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length - 1].statusCode
+                    const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
                     if (lastVideoStatusCode !== StreamVideoStatus.START) {
                         cb({ success: false, message: 'error:  product index change while stream video is not pushing is not allowed' })
                         return;
                     }
 
                     if (!strm.products[productIndex]) {
+                        console.log(`strm invalid product idx ${productIndex} type of ${productIndex}`, strm)
                         cb({ success: false, message: 'error:  product index is invalid' })
                         return;
                     }
@@ -208,15 +208,15 @@ const initIoServer = server => {
 
         socket.on(eventKeys.SELLER_GET_PUBLISH_TOKEN, (p, cb) => {
             const streamId = services.getStreamIdByUserId(userId)
-            const stream = streamSessions.get(streamId)
-            if (stream && (stream.storeId === storeId)) {
-                const lastVideoStatusCode = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length - 1].statusCode
+            const strm = streamSessions.get(streamId)
+            if (strm && (strm.storeId === storeId)) {
+                const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
                 if (lastVideoStatusCode === StreamVideoStatus.WAIT || lastVideoStatusCode === StreamVideoStatus.INTERRUPT) {
                     const tok = services.generateStreamToken(streamId.toString(), true)
                     cb({ success: true, rtmpToken: tok })
                     return
                 }
-                console.log(`get publish token error : seller ${userId} is request a publish token for being live stream`, stream.videoStreamStatusHistory)
+                console.log(`get publish token error : seller ${userId} is request a publish token for being live stream`, strm.videoStreamStatusHistory)
             }
             cb({ success: false, message: 'invalid publish token request' })
             return
@@ -224,10 +224,10 @@ const initIoServer = server => {
 
         socket.on(eventKeys.SELLER_PUBLISH_PLAYER_STATUS, statusCode => {
             const streamId = services.getStreamIdByUserId(userId)
-            let stream = streamSessions.get(streamId)
-            if (stream && (stream.storeId === storeId)) {
+            let strm = streamSessions.get(streamId)
+            if (strm && (strm.storeId === storeId)) {
                 console.log(`seller ${userId} / store ${storeId} / pusher status code ${statusCode} of type: ${typeof (statusCode)}`)
-                const lastVideoStatusCode = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length - 1].statusCode
+                const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
                 if (statusCode === 2001) {
                     if (lastVideoStatusCode === StreamVideoStatus.WAIT || lastVideoStatusCode === StreamVideoStatus.INTERRUPT) {
                         addStreamVideoStatusHistory(streamId, StreamVideoStatus.START)
@@ -264,9 +264,9 @@ const initIoServer = server => {
         socket.on(eventKeys.USER_ADD_PRODUCT_TO_CART, async (payload, cb) => {
             const { productIndex, isReliable, variantIndex, quantity } = payload
             const streamId = services.getStreamIdByUserId(userId)
+            let strm = streamSessions.get(streamId)
             try {
-                if (streamId) {
-                    let strm = streamSessions.get(streamId)
+                if (streamId && strm) {
                     console.log(eventKeys.USER_ADD_PRODUCT_TO_CART, strm)
                     if (strm.products[productIndex]) {
                         const productId = strm.products[productIndex].productId
@@ -308,15 +308,17 @@ const initIoServer = server => {
                                 let foundIdx = -1
                                 let foundQuantity = 0
 
-                                products.forEach((cartProd, idx) => {
-                                    if (cartProd.productId === productId) {
+                                for (let i = 0; i< products.length; i++) {
+                                    cartProd = products[i]
+                                    if (cartProd.productId == productId) {
                                         let isProdCartReliable = cartProd.reliablePrice > -1 ? true : false
                                         if (!isProdCartReliable) {
                                             foundQuantity = cartProd.quantity
-                                            foundIdx = idx
+                                            foundIdx = i
+                                            break;
                                         }
                                     }
-                                })
+                                }
 
                                 if (foundIdx === -1) {
                                     cart.products.push({
@@ -368,9 +370,9 @@ const initIoServer = server => {
                 services.removeStreamWithUserId(userId)
                 updateStreamViewCount(streamId, false)
 
-                let stream = streamSessions.get(streamId)
-                if (stream.storeId === storeId) {
-                    const lastVideoStatusCode = stream.videoStreamStatusHistory[stream.videoStreamStatusHistory.length - 1].statusCode
+                let strm = streamSessions.get(streamId)
+                if (strm.storeId === storeId) {
+                    const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
                     if (lastVideoStatusCode === StreamVideoStatus.START) {
                         addStreamVideoStatusHistory(streamId, StreamVideoStatus.INTERRUPT)
                         return
