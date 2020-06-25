@@ -32,6 +32,10 @@ const initIoServer = server => {
         const storeId = socket.decoded_token.storeId || null
 
         console.log(`user ${userId} connected`)
+
+        const oldStreamId =services.getStreamIdByUserId(userId)
+        oldStreamId && socket.leave(oldStreamId)
+
         socket.emit(eventKeys.SERVER_MESSAGE, toMessageObject('message', `hello ${userId}`))
 
         socket.on(eventKeys.USER_JOIN_STREAM, (streamId, cb) => {
@@ -394,14 +398,6 @@ const initIoServer = server => {
 const userJoinsStream = (socket, streamId) => {
     try {
         const userId = socket.decoded_token.userId
-        const oldStreamId = services.getStreamIdByUserId(userId)
-        if (oldStreamId) {
-            socket.leave(oldStreamId)
-            const oldStrm = streamSessions.get(oldStreamId)
-            if (oldStrm) {
-                streamSessions.set(oldStreamId, oldStrm)
-            }
-        }
         services.setStreamWithUserId(userId, streamId)
         socket.join(streamId)
         emitToStream(streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `${userId} joined the stream`))
