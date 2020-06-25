@@ -17,7 +17,7 @@ let io = null
 const initIoServer = server => {
     io = require('socket.io')(server, {
         pingInterval: process.env.SOCKETIO_CALLBACK_SECS * 1000,
-        pingTimeout: process.env.SOCKETIO_CALLBACK_SECS * 50 * 1000,
+        pingTimeout: process.env.SOCKETIO_CALLBACK_SECS * 5 * 1000,
     })
 
     /** "One round trip" authorization **/
