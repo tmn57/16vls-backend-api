@@ -33,7 +33,7 @@ const initIoServer = server => {
 
         console.log(`user ${userId} connected`)
 
-        const oldStreamId =services.getStreamIdByUserId(userId)
+        const oldStreamId = services.getStreamIdByUserId(userId)
         oldStreamId && socket.leave(oldStreamId)
 
         socket.emit(eventKeys.SERVER_MESSAGE, toMessageObject('message', `hello ${userId}`))
@@ -452,17 +452,22 @@ const toStreamStatusObject = (streamObject) => {
 const updateStreamViewCount = (userId, streamId, isInc) => {
     if (streamSessions.has(streamId)) {
         let strm = streamSessions.get(streamId)
+        let { participants } = strm
+
         //isInc ? strm.currentViews++ : strm.currentViews--
-        console.log(`stream ${streamId} change with ${userId}`, strm.participants)
+        console.log(`stream ${streamId} change with ${userId}`, participants)
+
         if (isInc) {
-            strm.participants.push(userId)
-            strm.participants = [...new Set(participants)]
+            participants.push(userId)
+            participants = [...new Set(participants)]
         } else {
-            const removeIndx = strm.participants.indexOf(userId)
-            removeIndx > -1 && strm.participants.splice(removeIndx, 1)
+            const removeIndx = participants.indexOf(userId)
+            removeIndx > -1 && participants.splice(removeIndx, 1)
         }
+
+        strm.participants = participants
         streamSessions.set(streamId, strm)
-        emitToStream(streamId, eventKeys.STREAM_COUNT_VIEWS, strm.participants.length)
+        emitToStream(streamId, eventKeys.STREAM_COUNT_VIEWS, participants.length)
     }
 }
 
