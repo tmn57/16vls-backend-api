@@ -290,7 +290,6 @@ const initIoServer = server => {
                                     cb({ success: false, message: `error: qty of request (${quantity}) is more than stock(${_qty})` })
                                     return;
                                 }
-                                productDbObj.variants[variantIndex].quantity = _qty
                                 cart.products.push({
                                     //TODO: make proper expired time
                                     expiredTime: Date.now() + 86400 * 1000,
@@ -301,7 +300,8 @@ const initIoServer = server => {
                                     storeId: productDbObj.storeId
                                 })
                                 await cart.save().then(async () => {
-                                    console.log(`update new quantity of product ${productDbObj._id.toString()} quantity: ${_qty}`)
+                                    console.log(`update new quantity of product ${productDbObj} quantity: ${_qty}`)
+                                    productDbObj.variants[variantIndex].quantity = _qty
                                     await productDbObj.save().then(() => {
                                         emitToStream(streamId, eventKeys.STREAM_PRODUCT_QUANTITY, { productIndex, variantIndex, quantity: _qty })
                                         cb({ success: true })
