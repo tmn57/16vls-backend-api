@@ -300,13 +300,13 @@ const initIoServer = server => {
                                     quantity,
                                     storeId: productDbObj.storeId
                                 })
-                                await cart.save().then(() => {
+                                await cart.save().then(async () => {
                                     console.log(`update new quantity of product ${productDbObj._id.toString()} quantity: ${_qty}`)
                                     await productDbObj.save().then(() => {
                                         emitToStream(streamId, eventKeys.STREAM_PRODUCT_QUANTITY, { productIndex, variantIndex, quantity: _qty })
                                         cb({ success: true })
-                                        return;
                                     })
+                                    return;
                                 })
                             } else {
                                 const { products } = cart
