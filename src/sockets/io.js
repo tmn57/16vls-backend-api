@@ -454,6 +454,7 @@ const updateStreamViewCount = (userId, streamId, isInc) => {
     if (streamSessions.has(streamId)) {
         let strm = streamSessions.get(streamId)
         //isInc ? strm.currentViews++ : strm.currentViews--
+        console.log(`stream ${streamId} change with ${userId}`, strm.participants)
         if (isInc) {
             participants.push(userId)
             participants = [...new Set(participants)]
