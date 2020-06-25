@@ -456,11 +456,11 @@ const updateStreamViewCount = (userId, streamId, isInc) => {
         //isInc ? strm.currentViews++ : strm.currentViews--
         console.log(`stream ${streamId} change with ${userId}`, strm.participants)
         if (isInc) {
-            participants.push(userId)
-            participants = [...new Set(participants)]
+            strm.participants.push(userId)
+            strm.participants = [...new Set(participants)]
         } else {
-            const removeIndx = participants.indexOf(userId)
-            removeIndx > -1 && participants.splice(removeIndx, 1)
+            const removeIndx = strm.participants.indexOf(userId)
+            removeIndx > -1 && strm.participants.splice(removeIndx, 1)
         }
         streamSessions.set(streamId, strm)
         emitToStream(streamId, eventKeys.STREAM_COUNT_VIEWS, strm.participants.length)
