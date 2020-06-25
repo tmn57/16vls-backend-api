@@ -64,7 +64,6 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             let tmpVariants = product.variants
             product.variants = tmpVariants
             // product.variants = [...product.variants]
-            // console.log(product.variants, tmpVariants)
 
             await product.save();
         }
@@ -148,7 +147,6 @@ router.get('/info', asyncHandler(async (req, res, next) => {
 router.get('/infoOrderPendding', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const orderPendding = await Order.find({ $and: [{ userId: userId }, { isCompleted: false }, { status: 'PEDDING' }] })
-
     let listOrders = []
     const user = await User.findById(userId)
 
@@ -328,7 +326,6 @@ router.get('/infoOrderComplete', asyncHandler(async (req, res, next) => {
 router.get('/infoOrderReject', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const orderReject = await Order.find({ $and: [{ userId: userId }, { isCompleted: true }, { status: 'REJECT' }] })
-
     let listOrders = []
     const user = await User.findById(userId)
 
@@ -409,7 +406,7 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
     order.status = 'REJECT'
     order.isCompleted = true
     order.updatedBy = userId
-    user.updatedAt = +new Date()
+    order.updatedAt = +new Date()
     await order.save();
 
     return res.status(200).json({
