@@ -22,7 +22,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     // check còn sp k
     for (let i = 0; i < listProducts.length; i++) {
         for (let j = 0; j < listProducts[i].products.length; j++) {
-            const product1 = await Product.findById({ _id: listProducts[i].products[j].productId })
+            const product1 = await Product.findById(listProducts[i].products[j].productId)
             if (product1.variants[listProducts[i].products[j].variantIndex].quantity < listProducts[i].products[j].quantity) {
                 return res.status(400).json({
                     success: false,
@@ -45,7 +45,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             }
             lstProducts.push(obj)
 
-            const product = await Product.findById({ _id: listProducts[i].products[j].productId })
+            const product = await Product.findById(listProducts[i].products[j].productId)
             if (product.promotionPrice == 0) {
                 total = total + product.price * listProducts[i].products[j].quantity
             }
@@ -65,8 +65,8 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             product.variants = tmpVariants
             // product.variants = [...product.variants]
             // console.log(product.variants, tmpVariants)
-            
-            await product.save(); 
+
+            await product.save();
         }
 
         const order = await Order.findOne({ $and: [{ userId: userId }, { storeId: listProducts[i].storeId }, { isCompleted: false }, { status: 'PEDDING' }] })
@@ -150,14 +150,14 @@ router.get('/infoOrderPendding', asyncHandler(async (req, res, next) => {
     const orderPendding = await Order.find({ $and: [{ userId: userId }, { isCompleted: false }, { status: 'PEDDING' }] })
 
     let listOrders = []
-    const user = await User.findById({ _id: userId })
+    const user = await User.findById(userId)
 
     for (let i = 0; i < orderPendding.length; i++) {
-        const store = await Store.findById({ _id: orderPendding[i].storeId })
+        const store = await Store.findById(orderPendding[i].storeId)
 
         let listProductsOrder = []
         for (let j = 0; j < orderPendding[i].products.length; j++) {
-            const product = await Product.findById({ _id: orderPendding[i].products[j].productId })
+            const product = await Product.findById(orderPendding[i].products[j].productId)
             let objProduct = {
                 productId: orderPendding[i].products[j].productId,
                 variantIndex: orderPendding[i].products[j].variantIndex,
@@ -210,14 +210,14 @@ router.get('/infoOrderInTransit', asyncHandler(async (req, res, next) => {
     const orderInTransit = await Order.find({ $and: [{ userId: userId }, { isCompleted: false }, { status: 'APPROVED' }] })
 
     let listOrders = []
-    const user = await User.findById({ _id: userId })
+    const user = await User.findById(userId)
 
     for (let i = 0; i < orderInTransit.length; i++) {
-        const store = await Store.findById({ _id: orderInTransit[i].storeId })
+        const store = await Store.findById(orderInTransit[i].storeId)
 
         let listProductsOrder = []
         for (let j = 0; j < orderInTransit[i].products.length; j++) {
-            const product = await Product.findById({ _id: orderInTransit[i].products[j].productId })
+            const product = await Product.findById(orderInTransit[i].products[j].productId)
             let objProduct = {
                 productId: orderInTransit[i].products[j].productId,
                 variantIndex: orderInTransit[i].products[j].variantIndex,
@@ -270,14 +270,14 @@ router.get('/infoOrderComplete', asyncHandler(async (req, res, next) => {
     const orderComplete = await Order.find({ $and: [{ userId: userId }, { isCompleted: true }, { status: 'APPROVED' }] })
 
     let listOrders = []
-    const user = await User.findById({ _id: userId })
+    const user = await User.findById(userId)
 
     for (let i = 0; i < orderComplete.length; i++) {
-        const store = await Store.findById({ _id: orderComplete[i].storeId })
+        const store = await Store.findById(orderComplete[i].storeId)
 
         let listProductsOrder = []
         for (let j = 0; j < orderComplete[i].products.length; j++) {
-            const product = await Product.findById({ _id: orderComplete[i].products[j].productId })
+            const product = await Product.findById(orderComplete[i].products[j].productId)
             let objProduct = {
                 productId: orderComplete[i].products[j].productId,
                 variantIndex: orderComplete[i].products[j].variantIndex,
@@ -330,14 +330,14 @@ router.get('/infoOrderReject', asyncHandler(async (req, res, next) => {
     const orderReject = await Order.find({ $and: [{ userId: userId }, { isCompleted: true }, { status: 'REJECT' }] })
 
     let listOrders = []
-    const user = await User.findById({ _id: userId })
+    const user = await User.findById(userId)
 
     for (let i = 0; i < orderReject.length; i++) {
-        const store = await Store.findById({ _id: orderReject[i].storeId })
+        const store = await Store.findById(orderReject[i].storeId)
 
         let listProductsOrder = []
         for (let j = 0; j < orderReject[i].products.length; j++) {
-            const product = await Product.findById({ _id: orderReject[i].products[j].productId })
+            const product = await Product.findById(orderReject[i].products[j].productId)
             let objProduct = {
                 productId: orderReject[i].products[j].productId,
                 variantIndex: orderReject[i].products[j].variantIndex,
@@ -400,8 +400,8 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
         })
     }
 
-    for(let i = 0; i < order.products.length; i++){
-        const product = await Product.findById({_id: order.products[i].productId})
+    for (let i = 0; i < order.products.length; i++) {
+        const product = await Product.findById(order.products[i].productId)
         product.variants[order.products[i].variantIndex].quantity = product.variants[order.products[i].variantIndex].quantity + order.products[i].quantity
         await product.save()
     }

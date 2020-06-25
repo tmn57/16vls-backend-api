@@ -55,7 +55,7 @@ router.post('/create', async (req, res, next) => {
 //   try {
 //     const { userId, type } = req.tokenPayload
 //     const _id = req.query.id
-//     const storeFound = await Store.findById({ _id })
+//     const storeFound = await Store.findById( _id)
 //     if (storeFound) {
 //       return res.status(200).json({
 //         success: true,
@@ -79,7 +79,7 @@ router.post('/create', async (req, res, next) => {
 router.get('/', asyncHandler(async (req, res, next) => {
   const { userId } = req.tokenPayload
   const _id = req.query.id
-  const store = await Store.findById({ _id })
+  const store = await Store.findById(_id)
 
   if (!store) {
     return res.status(400).json({
@@ -251,7 +251,7 @@ router.post('/categories/update', async (req, res, next) => {
 
 router.post('/updatestatus', isAdministrator, asyncHandler(async (req, res, next) => {
   const { _id } = req.body;
-  const storeFound = await Store.findById({ _id })
+  const storeFound = await Store.findById(_id)
   if (!storeFound) {
     return res.status(400).json({
       success: false,
@@ -272,8 +272,8 @@ router.post('/updatestatus', isAdministrator, asyncHandler(async (req, res, next
 router.post('/follow', asyncHandler(async (req, res, next) => {
   const { userId } = req.tokenPayload
   const { storeId } = req.body
-  const user = await User.findById({ _id: userId })
-  const store = await Store.findById({ _id: storeId })
+  const user = await User.findById(userId)
+  const store = await Store.findById(storeId)
 
   let removeFollow = false;
   for (let i = 0; i < user.storeFollowed.length; i++) {
@@ -316,11 +316,11 @@ router.get('/orderOfStore', asyncHandler(async (req, res, next) => {
   let listOrders = []
 
   for (let i = 0; i < order.length; i++) {
-    const user = await User.findById({ _id: order[i].userId })
+    const user = await User.findById(order[i].userId)
 
     let listProductsOrder = []
     for (let j = 0; j < order[i].products.length; j++) {
-      const product = await Product.findById({ _id: order[i].products[j].productId })
+      const product = await Product.findById(order[i].products[j].productId)
       let objProduct = {
         productId: order[i].products[j].productId,
         variantIndex: order[i].products[j].variantIndex,
@@ -375,7 +375,7 @@ router.post('/approve', asyncHandler(async (req, res, next) => {
   const { orderId } = req.body
 
   const store = await Store.findOne({ userId })
-  const order = await Order.findById({ _id: orderId })
+  const order = await Order.findById(orderId)
 
   if (order.storeId != store._id) {
     return res.status(400).json({
@@ -402,7 +402,7 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
   const { orderId } = req.body
 
   const store = await Store.findOne({ userId })
-  const order = await Order.findById({ _id: orderId })
+  const order = await Order.findById(orderId)
 
   // cộng lại quantity
 
@@ -420,7 +420,7 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
   await order.save();
 
   for (let i = 0; i < order.products.length; i++) {
-    const product = await Product.findById({ _id: order.products[i].productId })
+    const product = await Product.findById(order.products[i].productId)
     product.variants[order.products[i].variantIndex].quantity = product.variants[order.products[i].variantIndex].quantity + order.products[i].quantity
     await product.save()
   }
@@ -444,11 +444,11 @@ router.get('/orderApproveOfStore', asyncHandler(async (req, res, next) => {
   let listOrders = []
 
   for (let i = 0; i < order.length; i++) {
-    const user = await User.findById({ _id: order[i].userId })
+    const user = await User.findById(order[i].userId)
 
     let listProductsOrder = []
     for (let j = 0; j < order[i].products.length; j++) {
-      const product = await Product.findById({ _id: order[i].products[j].productId })
+      const product = await Product.findById(order[i].products[j].productId)
       let objProduct = {
         productId: order[i].products[j].productId,
         variantIndex: order[i].products[j].variantIndex,
@@ -508,11 +508,11 @@ router.get('/orderRejectOfStore', asyncHandler(async (req, res, next) => {
   let listOrders = []
 
   for (let i = 0; i < order.length; i++) {
-    const user = await User.findById({ _id: order[i].userId })
+    const user = await User.findById(order[i].userId)
 
     let listProductsOrder = []
     for (let j = 0; j < order[i].products.length; j++) {
-      const product = await Product.findById({ _id: order[i].products[j].productId })
+      const product = await Product.findById(order[i].products[j].productId)
       let objProduct = {
         productId: order[i].products[j].productId,
         variantIndex: order[i].products[j].variantIndex,

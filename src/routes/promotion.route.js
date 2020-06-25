@@ -57,7 +57,7 @@ router.post('/update', isAdministrator, asyncHandler(async (req, res, next) => {
   const ed = Date.parse(endDate);
 
 
-  const promotion = await Promotion.findById({ _id: promotionId })
+  const promotion = await Promotion.findById(promotionId)
   if (!promotion) {
     return res.status(400).json({
       success: false,
@@ -101,7 +101,7 @@ router.post('/register', asyncHandler(async (req, res, next) => {
     })
   }
 
-  const promotion = await Promotion.findById({ _id: promotionId })
+  const promotion = await Promotion.findById(promotionId)
   const now = +new Date();
 
   if (!promotion || (promotion.endDate < now)) {
@@ -139,7 +139,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
       message: 'Required field: id'
     })
   }
-  const promotion = await Promotion.findById({ _id })
+  const promotion = await Promotion.findById(_id)
   const now = +new Date();
   if (promotion.endDate < now) {
     return res.status(200).json({
