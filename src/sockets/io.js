@@ -295,7 +295,7 @@ const initIoServer = server => {
                                     variantIndex,
                                     quantity
                                 })
-                                cart.save().then(() => {
+                                await cart.save().then(() => {
                                     productDbObj.save().then(() => {
                                         emitToStream(streamId, eventKeys.STREAM_PRODUCT_QUANTITY, { productIndex, variantIndex, quantity: _qty })
                                         cb({ success: true })
@@ -333,7 +333,7 @@ const initIoServer = server => {
                                         quantity: foundQuantity + quantity
                                     }
                                 }
-                                cart.save().then((cartdb) => { 
+                                await cart.save().then((cartdb) => { 
                                     console.log('saved cart', cart, cartdb)
                                     cb({ success: true }); 
                                     return; 
