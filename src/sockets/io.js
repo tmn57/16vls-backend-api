@@ -308,7 +308,7 @@ const initIoServer = server => {
                                 let foundIdx = -1
                                 let foundQuantity = 0
 
-                                for (let i = 0; i< products.length; i++) {
+                                for (let i = 0; i < products.length; i++) {
                                     cartProd = products[i]
                                     if (cartProd.productId == productId) {
                                         let isProdCartReliable = cartProd.reliablePrice > -1 ? true : false
@@ -333,10 +333,10 @@ const initIoServer = server => {
                                         quantity: foundQuantity + quantity
                                     }
                                 }
-                                await cart.save().then((cartdb) => { 
+                                await cart.save().then((cartdb) => {
                                     console.log('saved cart', cart, cartdb)
-                                    cb({ success: true }); 
-                                    return; 
+                                    cb({ success: true });
+                                    return;
                                 })
                             }
                         } else {
@@ -371,8 +371,8 @@ const initIoServer = server => {
             const streamId = services.getStreamIdByUserId(userId)
             if (streamSessions.has(streamId)) {
                 socket.leave(streamId)
-                services.removeStreamWithUserId(userId)       
-                updateStreamViewCount(streamId, false)
+                services.removeStreamWithUserId(userId)
+                updateStreamViewCount(userId, streamId, false)
                 let strm = streamSessions.get(streamId)
                 if (strm.storeId === storeId) {
                     const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
@@ -402,7 +402,7 @@ const userJoinsStream = (socket, streamId) => {
         services.setStreamWithUserId(userId, streamId)
         socket.join(streamId)
         emitToStream(streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `${userId} joined the stream`))
-        updateStreamViewCount(streamId, true)
+        updateStreamViewCount(userId, streamId, true)
     }
     catch (error) {
         console.log(error)
@@ -450,12 +450,19 @@ const toStreamStatusObject = (streamObject) => {
     return { statusCode, videoUri, message }
 }
 
-const updateStreamViewCount = (streamId, isInc) => {
+const updateStreamViewCount = (userId, streamId, isInc) => {
     if (streamSessions.has(streamId)) {
         let strm = streamSessions.get(streamId)
-        isInc ? strm.currentViews++ : strm.currentViews--
+        //isInc ? strm.currentViews++ : strm.currentViews--
+        if (isInc) {
+            participants.push(userId)
+            participants = [...new Set(participants)]
+        } else {
+            const removeIndx = participants.indexOf(userId)
+            removeIndx > -1 && participants.splice(removeIndx, 1)
+        }
         streamSessions.set(streamId, strm)
-        emitToStream(streamId, eventKeys.STREAM_COUNT_VIEWS, strm.currentViews)
+        emitToStream(streamId, eventKeys.STREAM_COUNT_VIEWS, strm.participants.length)
     }
 }
 

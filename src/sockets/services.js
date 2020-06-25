@@ -96,12 +96,13 @@ const newStreamSession = streamDbObj => {
     })
     streamSessions.set(_id.toString(), {
         videoStreamStatusHistory: [{ statusCode: StreamVideoStatus.WAIT, time: Date.now() }],
-        currentViews: 0,
+        //currentViews: 0,
         messages: [],
         currentProductIndex: 0,
         likedUsers: [],
         storeId,
-        products: productSS
+        products: productSS,
+        participants: []
     })
     console.log('added stream to mem: ', streamSessions.get(_id.toString()))
 }
