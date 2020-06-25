@@ -293,7 +293,8 @@ const initIoServer = server => {
                                     reliablePrice: strm.products[productIndex].streamPrice,
                                     productId,
                                     variantIndex,
-                                    quantity
+                                    quantity,
+                                    storeId: productDbObj.storeId
                                 })
                                 await cart.save().then(() => {
                                     productDbObj.save().then(() => {
@@ -324,13 +325,15 @@ const initIoServer = server => {
                                     cart.products.push({
                                         productId,
                                         variantIndex,
-                                        quantity
+                                        quantity,
+                                        storeId: productDbObj.storeId
                                     })
                                 } else {
                                     cart.products[foundIdx] = {
                                         productId,
                                         variantIndex,
-                                        quantity: foundQuantity + quantity
+                                        quantity: foundQuantity + quantity,
+                                        storeId: productDbObj.storeId
                                     }
                                 }
                                 await cart.save().then((cartdb) => {
