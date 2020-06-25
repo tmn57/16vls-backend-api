@@ -180,7 +180,7 @@ router.post('/rtmp-record-join-done', async (req, res) => {
         return res.sendStatus(400)
     }
     const streamId = filename.split('_')[0]
-    console.log(`record of stream ${streamId} done with name ${name}`)
+    console.log(`record of stream ${streamId} done with name ${filename}`)
     try {
         let stream = await StreamModel.findById(streamId)
         if (stream) {
