@@ -396,7 +396,6 @@ const userJoinsStream = (socket, streamId) => {
             socket.leave(oldStreamId)
             const oldStrm = streamSessions.get(oldStreamId)
             if (oldStrm) {
-                oldStrm.currentViews--
                 streamSessions.set(oldStreamId, oldStrm)
             }
         }
