@@ -333,7 +333,9 @@ const initIoServer = server => {
                                         quantity: foundQuantity + quantity
                                     }
                                 }
-                                cart.save().then(() => { cb({ success: true }); return; })
+                                cart.save().then(() => { console.log('saved cart', cart)
+                                    cb({ success: true }); 
+                                    return; })
                             }
                         } else {
                             cb({ success: false, message: `cannot find variant index in product ${productId}` })
@@ -367,9 +369,8 @@ const initIoServer = server => {
             const streamId = services.getStreamIdByUserId(userId)
             if (streamSessions.has(streamId)) {
                 socket.leave(streamId)
-                services.removeStreamWithUserId(userId)
+                services.removeStreamWithUserId(userId)       
                 updateStreamViewCount(streamId, false)
-
                 let strm = streamSessions.get(streamId)
                 if (strm.storeId === storeId) {
                     const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
