@@ -1,5 +1,6 @@
 const fb = require('../utils/firebase')
 const UserModel = require('../models/user')
+const NotificationModel = require('../models/notification')
 
 /**
  * @param {*} title: String: title of Notification
@@ -14,6 +15,15 @@ const sendToSingle = async (title, body, userId, time, metadata) => {
         const { firebaseDeviceToken } = user
         const now = Date.now()
         const notificationObject = fb.toMessageObject(title, body, metadata ? metadata : {})
+
+        let newNotification = new NotificationModel({
+            userId,
+            title,
+            body,
+            status: 1
+        })
+        metadata && (newNotification.data = metadata)
+        newNotification = await newNotification.save()
 
         if (time === -1 || time >= now) {
             fb.sendSingle(firebaseDeviceToken, notificationObject)
@@ -43,14 +53,26 @@ const sendToMany = async (title, body, userIds, time, metadata) => {
     const notificationObject = fb.toMessageObject(title, body, metadata ? metadata : {})
 
     let fbDeviceTokens = []
+    let newNotifications = []
     users.forEach(u => {
         if (u.firebaseDeviceToken && u.firebaseDeviceToken !== "") {
             fbDeviceTokens.push(u.firebaseDeviceToken)
+            let newNotification = new NotificationModel({
+                userId: u._id.toString(),
+                title,
+                body,
+                status: 1
+            })
+            metadata && (newNotification.data = metadata)
+            newNotifications.push(newNotification)
         }
     })
 
     if (fbDeviceTokens.length) {
         console.log(`Notification Service: sending notification for tokens ${fbDeviceTokens}`)
+        NotificationModel.collection.insertMany(newNotifications, (err, docs) =>{
+            console.log(`insert many notifications ${err && `with error ${err}`}`, docs)
+        })
         const now = Date.now()
         if (time === -1 || time >= now) {
             fb.sendMulticast(fbDeviceTokens, notificationObject)
