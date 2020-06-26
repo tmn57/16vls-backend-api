@@ -1,6 +1,6 @@
 var admin = require("firebase-admin");
 
-var serviceAccount = require("~/firebase-admin/sak/vls-notifications-firebase-adminsdk.json");
+var serviceAccount = require("/usr/share/firebase-admin/sak/vls-notifications-firebase-adminsdk.json");
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -42,7 +42,7 @@ const sendMulticast = (registrationTokens, messageObject) => {
         });
 }
 
-const messageObject = (title, body, dataObject) => {
+const toMessageObject = (title, body, dataObject) => {
     let msgObj = {
         notification: {
             title,
@@ -55,5 +55,7 @@ const messageObject = (title, body, dataObject) => {
 }
 
 module.exports = {
-    getMessaging: admin.messaging
+    toMessageObject,
+    sendMulticast,
+    sendSingle
 }
