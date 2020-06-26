@@ -1,5 +1,5 @@
 var admin = require("firebase-admin");
-
+const NotificationModel = require('../models/notification')
 var serviceAccount = require("/usr/share/firebase-admin/sak/vls-notifications-firebase-adminsdk.json");
 
 admin.initializeApp({
@@ -9,17 +9,17 @@ admin.initializeApp({
 
 
 //output: isSuccessfullySent
-const sendSingle = (registrationToken, messageObject) => {
+const sendSingle = async (registrationToken, messageObject) => {
     let msgObj = messageObject
     msgObj['token'] = registrationToken
-    admin.messaging().send(message)
+    await admin.messaging().send(message)
         .then((response) => {
             // Response is a message ID string.
-            console.log('Successfully sent message:', response);
+            console.log('FCM Service: Successfully sent message:', response);
             return true;
         })
         .catch((error) => {
-            console.log('Error sending message:', error);
+            console.log('FCM Service: Error sending message:', error);
             return false
         });
 }
