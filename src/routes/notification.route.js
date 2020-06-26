@@ -27,6 +27,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
     const { limit } = req.body
     const { userId } = req.tokenPayload
     const notifs = await NotificationModel.find({ userId }, { limit: limit || 20 })
+    console.log(`user ${userId} request notifications ${notifs}`)
     res.status(200).json({
         success: true,
         data: notifs
@@ -49,6 +50,8 @@ router.post('/seen', isAuthenticated, asyncHandler(async (req, res, next) => {
         })
     });
 }))
+
+
 
 router.get('/test', asyncHandler(async (req, res) => {
     const users = await UserModel.find()
