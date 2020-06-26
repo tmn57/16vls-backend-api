@@ -54,7 +54,7 @@ router.get('/test', asyncHandler(async (req, res) => {
     const users = await UserModel.find()
     let uids = []
     users.forEach(u => { uids.push(u._id.toString()) })
-    console.log(`sending test token for ${dtks}`)
+    console.log(`sending test token for ${uids}`)
 
     NotificationService.sendToMany('this is test', 'welcome to 16vls app', uids, -1)
     res.send(200).send('sent')
