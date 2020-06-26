@@ -14,7 +14,7 @@ const sendToSingle = async (title, body, userId, time, metadata) => {
     if (user && user.firebaseDeviceToken && user.firebaseDeviceToken !== "") {
         const { firebaseDeviceToken } = user
         const now = Date.now()
-        const notificationObject = fb.toMessageObject(title, body, metadata ? metadata : null)
+        const notificationObject = fb.toMessageObject(title, body, metadata ? metadata : {})
 
         let newNotification = new NotificationModel({
             userId,
@@ -25,20 +25,12 @@ const sendToSingle = async (title, body, userId, time, metadata) => {
         newNotification = await newNotification.save()
 
         if (time === -1 || time >= now) {
-            const isSent = await fb.sendSingle(firebaseDeviceToken, notificationObject)
-            if (isSent) {
-                newNotification.status = 1
-                await newNotification.save()
-            }
-        }
-        setTimeout(() => {
             fb.sendSingle(firebaseDeviceToken, notificationObject)
-            const isSent = await fb.sendSingle(firebaseDeviceToken, notificationObject)
-            if (isSent) {
-                newNotification.status = 1
-                await newNotification.save()
-            }
-        }, now - time)
+        } else {
+            setTimeout(() => {
+                fb.sendSingle(firebaseDeviceToken, notificationObject)
+            }, now - time)
+        }
     } else {
         console.log(`send nof to single fail: user ${userId} or firebase token not found`)
     }
@@ -54,10 +46,10 @@ const sendToSingle = async (title, body, userId, time, metadata) => {
  */
 const sendToMany = async (title, body, userIds, time, metadata) => {
     if (!Array.isArray(userIds)) return
-    if (userIds.length = 1) return sendToSingle(title, body, userIds[0], time, metadata)
+    if (userIds.length === 1) return sendToSingle(title, body, userIds[0], time, metadata)
 
-    const users = await UserModel.find({ userId: { $in: userIds } })
-    const notificationObject = fb.toMessageObject(title, body, metadata ? metadata : null)
+    const users = await UserModel.find({ _id: { $in: userIds } })
+    const notificationObject = fb.toMessageObject(title, body, metadata ? metadata : {})
 
     let fbDeviceTokens = []
     let newNotifications = []
@@ -77,14 +69,15 @@ const sendToMany = async (title, body, userIds, time, metadata) => {
 
     if (fbDeviceTokens.length) {
         await NotificationModel.collection.insertMany(newNotifications)
-
+        console.log(`Notification Service: sending notification for tokens ${fbDeviceTokens}`)
         const now = Date.now()
         if (time === -1 || time >= now) {
             fb.sendMulticast(fbDeviceTokens, notificationObject)
+        } else {
+            setTimeout(() => {
+                fb.sendSingle(firebaseDeviceToken, notificationObject)
+            }, now - time)
         }
-        setTimeout(() => {
-            fb.sendMulticast(fbDeviceTokens, notificationObject)
-        }, now - time)
     }
 }
 
