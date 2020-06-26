@@ -34,7 +34,8 @@ const UserSchema = new Schema(
     createdAt: { type: Number, default: +new Date() },
     createdBy: String,
     updatedAt: { type: Number, default: +new Date() },
-    updatedBy: String
+    updatedBy: String,
+    firebaseDeviceToken: {type: String, default:""}
   },
   {
     versionKey: false // remove field "__v"
