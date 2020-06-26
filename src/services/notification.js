@@ -20,6 +20,7 @@ const sendToSingle = async (title, body, userId, time, metadata) => {
             userId,
             title,
             body,
+            status: 1
         })
         metadata && (newNotification.data = metadata)
         newNotification = await newNotification.save()
@@ -68,8 +69,10 @@ const sendToMany = async (title, body, userIds, time, metadata) => {
     })
 
     if (fbDeviceTokens.length) {
-        await NotificationModel.collection.insertMany(newNotifications)
         console.log(`Notification Service: sending notification for tokens ${fbDeviceTokens}`)
+        NotificationModel.collection.insertMany(newNotifications, (err, docs) =>{
+            console.log(`insert many notifications ${err && `with error ${err}`}`, docs)
+        })
         const now = Date.now()
         if (time === -1 || time >= now) {
             fb.sendMulticast(fbDeviceTokens, notificationObject)
