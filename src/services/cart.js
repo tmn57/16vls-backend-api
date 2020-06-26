@@ -2,7 +2,7 @@ const Cart = require('../models/cart')
 const Product = require('../models/product')
 
 //output: cart
-const addProductToCart = (productId, quantity, color, size, userId, reliablePrice) => {
+const addProductToCart = async (productId, quantity, color, size, userId, reliablePrice) => {
     const product = await Product.findById(productId)
 
     let variantIndex = -1;
