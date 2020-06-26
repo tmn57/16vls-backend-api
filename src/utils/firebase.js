@@ -25,11 +25,7 @@ const sendSingle = async (registrationToken, messageObject) => {
 }
 
 const sendMulticast = async (registrationTokens, messageObject) => {
-<<<<<<< HEAD
-    if (Array.isArray(registrationTokens)) return []
-=======
     if (!Array.isArray(registrationTokens)) return []
->>>>>>> 36d57086f23aed75492943e5b7c7fd8c005b0ef7
     let msgObj = messageObject
     msgObj['tokens'] = registrationTokens
     await admin.messaging().sendMulticast(msgObj)
