@@ -5,7 +5,7 @@ const NotificationSchema = new Schema({
     title: String,
     body: String,
     data: Object,
-    status: Number, //0: isNotSent, 1: isSent, 2: isSeen
+    status: {type: Number, default: 0}, //0: isNotSent, 1: isSent, 2: isSeen
 })
 
 module.exports = model('Notification', NotificationSchema)
