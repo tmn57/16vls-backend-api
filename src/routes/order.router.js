@@ -73,6 +73,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             // product.variants = tmpVariants
             // product.variants = [...product.variants]
 
+            await product.variants.save();
             await product.save();
         }
 
