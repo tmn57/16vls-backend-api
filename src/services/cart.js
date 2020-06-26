@@ -1,7 +1,6 @@
 const Cart = require('../models/cart')
 const Product = require('../models/product')
 
-//input: product db object
 //output: cart
 const addProductToCart = (productId, quantity, color, size, userId, reliablePrice) => {
     const product = await Product.findById(productId)
