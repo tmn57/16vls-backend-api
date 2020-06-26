@@ -24,11 +24,11 @@ const sendSingle = (registrationToken, messageObject) => {
         });
 }
 
-const sendMulticast = (registrationTokens, messageObject) => {
-    if (Array.isArray(registrationTokens)) return []
+const sendMulticast = async (registrationTokens, messageObject) => {
+    if (!Array.isArray(registrationTokens)) return []
     let msgObj = messageObject
     msgObj['tokens'] = registrationTokens
-    admin.messaging().sendMulticast(msgObj)
+    await admin.messaging().sendMulticast(msgObj)
         .then((response) => {
             if (response.failureCount > 0) {
                 const failedTokens = [];
@@ -37,6 +37,7 @@ const sendMulticast = (registrationTokens, messageObject) => {
                         failedTokens.push(registrationTokens[idx]);
                     }
                 });
+                console.log(`FCM service: push request's failed tokens: ${failedTokens}`)
                 return failedTokens
             }
         });
