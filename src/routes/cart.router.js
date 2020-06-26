@@ -5,6 +5,7 @@ const Cart = require('../models/cart')
 const Store = require('../models/store')
 const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
+const { checkProductLiveStream, onChangeQuantityProductVariant } = require('../services/product')
 
 router.post('/create', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
@@ -82,6 +83,11 @@ router.get('/info', asyncHandler(async (req, res, next) => {
 
     for (let i = 0; i < cart.products.length; i++) {
         const product = await Product.findById(cart.products[i].productId)
+        let checkProductStream = checkProductLiveStream(product)
+        let price = product.price
+        if (checkProductStream != null) {
+            price = checkProductStream.streamPrice
+        }
         let obj = {
             expiredTime: cart.products[i].expiredTime,
             reliablePrice: cart.products[i].reliablePrice,
@@ -90,7 +96,8 @@ router.get('/info', asyncHandler(async (req, res, next) => {
             quantity: cart.products[i].quantity,
             productName: product.name,
             productImage: product.images[0],
-            productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
+            productPrice: price,
+            // productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
             productVariant: {
                 color: product.variants[cart.products[i].variantIndex].color,
                 size: product.variants[cart.products[i].variantIndex].size
@@ -176,7 +183,7 @@ router.post('/removeProduct', asyncHandler(async (req, res, next) => {
     }
 
     cart.products.splice(index, 1)
-    
+
     await cart.save()
     return res.status(200).json({
         success: true,
