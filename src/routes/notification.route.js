@@ -7,7 +7,7 @@ const NotificationService = require('../services/notification')
 const router = express.Router()
 const { isAuthenticated } = require('../middlewares/auth')
 
-router.post('/device-token', isAuthenticated,  asyncHandler(async (req, res, next) => {
+router.post('/device-token', isAuthenticated, asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const { token } = req.body
     const user = await UserModel.findById(userId)
@@ -34,25 +34,26 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
 }))
 
 router.post('/seen', isAuthenticated, asyncHandler(async (req, res, next) => {
-    const { notificationId } = req.body
+    const { notificationIds } = req.body
     const { userId } = req.tokenPayload
-    const notif = await NotificationModel.findOne({ _id: notificationId, userId })
-    if (notif) {
-        notif.status = 2
-        await notif.save()
+
+    if(!Array.isArray(notificationIds)) {
+        return next(raiseError(400,`array of notification ids is required`))
+    }
+
+    await NotificationModel.updateMany({ _id: { $in: notificationIds } }, { $set: { status: 2 } }, (err, writeResult) => {
+        console.log(`user ${userId} set 'seen' notifications ${writeResult}`)
         res.status(200).json({
             success: true,
-            data: notif
+            data: writeResult
         })
-    } else {
-        next(raiseError(400, `not found notification`))
-    }
+    });
 }))
 
-router.get('/test', asyncHandler(async(req,res)=>{
+router.get('/test', asyncHandler(async (req, res) => {
     const users = await UserModel.find()
     let uids = []
-    users.forEach(u=> {uids.push(u._id.toString())})
+    users.forEach(u => { uids.push(u._id.toString()) })
     console.log(`sending test token for ${dtks}`)
 
     NotificationService.sendToMany('this is test', 'welcome to 16vls app', uids, -1)
