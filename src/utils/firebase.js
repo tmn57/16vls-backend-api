@@ -1,5 +1,4 @@
 var admin = require("firebase-admin");
-const NotificationModel = require('../models/notification')
 var serviceAccount = require('../assets/adminsdk.json');
 
 admin.initializeApp({
