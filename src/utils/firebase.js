@@ -1,6 +1,6 @@
 var admin = require("firebase-admin");
 const NotificationModel = require('../models/notification')
-var serviceAccount = require("/usr/share/firebase-admin/sak/vls-notifications-firebase-adminsdk.json");
+var serviceAccount = require('../assets/adminsdk.json');
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
