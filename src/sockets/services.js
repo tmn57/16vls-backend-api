@@ -1,7 +1,7 @@
-const { userSessions, streamSessions, streamTokens } = require('./storage')
+const { userSessions, streamSessions, streamTokens, productSessions } = require('./storage')
 const { StreamVideoStatus } = require('./constants')
 
-var count = 0 
+var count = 0
 const generateStreamToken = (streamKey, isHost) => {
     //TODO: generate a simple token
     const token = '123' + count++
@@ -86,6 +86,7 @@ const removeStreamWithUserId = userId => {
 const newStreamSession = streamDbObj => {
     const { _id, storeId, products } = streamDbObj
     let productSS = []
+    let productIds = []
     products.forEach(prod => {
         const { productId, inStreamAts, streamPrice } = prod
         productSS.push({
@@ -93,8 +94,9 @@ const newStreamSession = streamDbObj => {
             inStreamAts,
             streamPrice
         })
+        productIds.push(productId)
     })
-    streamSessions.set(_id.toString(), {
+    const newStreamSS = {
         streamId: _id.toString(),
         videoStreamStatusHistory: [{ statusCode: StreamVideoStatus.WAIT, time: Date.now() }],
         //currentViews: 0,
@@ -104,21 +106,48 @@ const newStreamSession = streamDbObj => {
         storeId,
         products: productSS,
         participants: []
-    })
+        
+    }
+    streamSessions.set(_id.toString(), newStreamSS)
+    addToProductSessions(productIds, _id.toString())
     console.log('added stream to mem: ', streamSessions.get(_id.toString()))
+    return newStreamSS
 }
 
 const addStreamVideoStatusHistory = (streamId, statusCode) => {
     let strm = streamSessions.get(streamId)
     if (strm) {
-        strm.videoStreamStatusHistory.push({statusCode, time:Date.now()})
+        strm.videoStreamStatusHistory.push({ statusCode, time: Date.now() })
     }
+}
+
+const addToProductSessions = (productIds, streamId) => {
+    console.log(`productSessions: Adding products `, productIds, ` with ${streamId} to prosduct sessions`)
+    if (Array.isArray(productIds)) {
+        productIds.forEach(id => {
+            productSessions.set(id, streamId)
+        })
+        return true
+    }
+    return false
+}
+
+const removeFromProductSessions = productIds => {
+    console.log(`productSessions: Removing products `, productIds, ` with ${streamId} to prosduct sessions`)
+    if (Array.isArray(productIds)) {
+        productIds.forEach(id => {
+            productSessions.delete(id)
+        })
+        return true
+    }
+    return false
 }
 
 module.exports = {
     streamSessions,
     userSessions,
     streamTokens,
+    productSessions,
     generateStreamToken,
     isValidStreamToken,
     getStreamInfoList,
@@ -127,6 +156,8 @@ module.exports = {
     setStreamWithUserId,
     removeStreamWithUserId,
     newStreamSession,
-    addStreamVideoStatusHistory
+    addStreamVideoStatusHistory,
+    addToProductSessions,
+    removeFromProductSessions,
 }
 

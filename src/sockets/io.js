@@ -79,33 +79,38 @@ const initIoServer = server => {
             }
             console.log(`user ${userId} with store ${storeId} is start stream ${streamId}`)
             //find the stream of storeId
-            StreamModel.findOne({ storeId, endTime: Number.MIN_SAFE_INTEGER }).then(stream => {
-                if (stream === null) {
-                    return cb({ success: false, message: 'error: streamId is invalid for you, seller!' })
-                } else {
-                    if (streamId !== stream._id.toString()) {
-                        console.log(`error: seller ${userId} want to start stream ${streamId} but got ${stream._id.toString()}`)
-                        return cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
+            try {
+                StreamModel.findOne({ storeId, endTime: Number.MIN_SAFE_INTEGER }).then(async stream => {
+                    if (stream === null) {
+                        return cb({ success: false, message: 'error: streamId is invalid for you, seller!' })
+                    } else {
+                        if (streamId !== stream._id.toString()) {
+                            console.log(`error: seller ${userId} want to start stream ${streamId} but got ${stream._id.toString()}`)
+                            return cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
+                        }
+                        stream.endTime = Number.MAX_SAFE_INTEGER
+                        stream.markModified('endTime')
+                        stream.save()
+                        //add stream to streamSessions
+                        socketServices.newStreamSession(stream)
+                        const streamStatusObj = toStreamStatusObject(stream)
+                        emitToStream(streamId, eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
+                        cb({ success: true })
                     }
-                    socketServices.newStreamSession(stream)
-                    stream.endTime = Number.MAX_SAFE_INTEGER
-                    stream.save()
-                    const streamStatusObj = toStreamStatusObject(stream)
-                    emitToStream(streamId, eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
-                    cb({ success: true })
-                }
-            }).catch(error => {
+                })
+            } catch (error) {
                 cb({ success: false, message: `error: internal server error: ${error}` })
-            })
+            }
         })
 
         socket.on(eventKeys.SELLER_END_STREAM, (p, cb) => {
             const strm = getValidLiveStream(userId, cb, storeId)
             if (strm) {
+                const { streamId, messages, products } = strm
                 socketServices.addStreamVideoStatusHistory(strm.streamId, StreamVideoStatus.END)
                 streamSessions.set(strm.streamId, strm)
                 //find the stream of storeId
-                StreamModel.findById(strm.streamId).then(stream => {
+                StreamModel.findById(strm.streamId).then(async stream => {
                     if (stream === null) {
                         cb({ success: false, message: 'error: cannot find stream in db by stream in session' })
                     } else {
@@ -113,15 +118,21 @@ const initIoServer = server => {
                             return cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
                         }
                         //Archive the stream
-                        const { messages, products } = strm
                         stream.messages = messages
                         stream.endTime = Date.now()
                         stream.products = products
-                        stream.save()
+                        await stream.save()
                         const streamStatusObj = toStreamStatusObject(stream)
-                        emitToStream(strm.streamId, eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
-                        cb({ success: true })
-                        return
+                        emitToStream(streamId, eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
+
+                        let productIds = []
+                        products.forEach(p => {
+                            productIds.push(p.productId)
+                        })
+
+                        socketServices.removeFromProductSessions(productIds)
+                        streamSessions.delete(streamId)
+                        return cb({ success: true })
                     }
                 }).catch(error => {
                     cb({ success: false, message: `internal server error: ${error}` })
@@ -223,11 +234,12 @@ const initIoServer = server => {
             const { productIndex, isReliable, variantIndex, quantity } = payload
             const strm = getValidLiveStream(userId, cb)
             if (strm) {
-                const productId = typeof(strm.products[productIndex].productId) === 'undefined' ? null : strm.products[productIndex].productId
+                const productId = typeof (strm.products[productIndex].productId) === 'undefined' ? null : strm.products[productIndex].productId
                 if (productId) {
-                    const cart = await addProductToCart(productId, quantity, variantIndex, userId, isReliable)
-                    if (cart) {
-                        return cb({ success: true, message: `added to cart!`, cart })
+                    const result = await addProductToCart(productId, quantity, variantIndex, userId, isReliable)
+                    if (result.cart) {
+                        if (isReliable) emitToStream(strm.streamId, eventKeys.STREAM_PRODUCT_QUANTITY, { productIndex, variantIndex, quantity: result.newProductQuantity })
+                        return cb({ success: true, message: `added to cart!` })
                     }
                 }
             }
@@ -413,7 +425,7 @@ const convertRealTimeToVideoTime = (streamId, time) => {
 
 const getValidLiveStream = (userId, cb, storeId) => {
     const streamId = socketServices.getStreamIdByUserId(userId)
-    const callback = (typeof(cb) === 'function') ? cb : console.log
+    const callback = (typeof (cb) === 'function') ? cb : console.log
     if (!streamId) {
         callback({ success: false, message: `error: not found stream of you` })
         return null
@@ -430,6 +442,8 @@ const getValidLiveStream = (userId, cb, storeId) => {
     }
     return strm
 }
+
+
 
 module.exports = {
     initIoServer,

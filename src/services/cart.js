@@ -1,8 +1,6 @@
 const Cart = require('../models/cart')
 const Product = require('../models/product')
 const { checkProductLiveStream } = require('./product')
-const { emitToStream } = require('../sockets/io')
-const eventKeys = require('../sockets/event_keys.io')
 
 const addProductToCart = async (productId, quantity, variantIndex, userId, isReliable) => {
     const product = await Product.findById(productId)
@@ -15,7 +13,7 @@ const addProductToCart = async (productId, quantity, variantIndex, userId, isRel
     const liveProduct = checkProductLiveStream(product)
     let reliablePrice = -1
 
-    if (liveProduct !== null && isReliable) {
+    if (liveProduct === null && isReliable) {
         console.log(`warning: user ${userId} is buying 'NOT LIVE'-product ${productId} in reliable`)
         return null
     }
@@ -31,7 +29,7 @@ const addProductToCart = async (productId, quantity, variantIndex, userId, isRel
 
     //#IF in valid reliable buy 
     if (liveProduct !== null && isReliable) {
-        const { streamId, streamPrice, productIndex } = liveProduct
+        const { streamId, streamPrice } = liveProduct
         reliablePrice = streamPrice
         const currentProductVariantQty = product.variants[variantIndex].quantity
         if (quantity > currentProductVariantQty) {
@@ -40,13 +38,14 @@ const addProductToCart = async (productId, quantity, variantIndex, userId, isRel
         }
         const newQty = currentProductVariantQty - quantity
         product.variants[variantIndex].quantity = newQty
+        product.markModified(`variants`)
         await product.save()
-        emitToStream(streamId, eventKeys.STREAM_PRODUCT_QUANTITY, { productIndex, variantIndex, quantity: uProduct.variants[variantIndex].quantity })
+        console.log(`updated quantity from ${currentProductVariantQty} to ${newQty} variant ${variantIndex} of product ${productId}`)
         objProduct['reliablePrice'] = reliablePrice
         objProduct['expiredTime'] = Date.now() + 2 * 24 * 3600 * 1000 //2 days in millisecs
         cart.products.push(objProduct);
         await cart.save()
-        return cart
+        return { cart, newProductQuantity: newQty }
     }
 
     //#ELSE: normal add product to cart
@@ -63,7 +62,7 @@ const addProductToCart = async (productId, quantity, variantIndex, userId, isRel
     }
 
     await cart.save()
-    return cart
+    return { cart }
 }
 
 module.exports = {
