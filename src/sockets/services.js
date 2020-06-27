@@ -95,6 +95,7 @@ const newStreamSession = streamDbObj => {
         })
     })
     streamSessions.set(_id.toString(), {
+        streamId: _id.toString(),
         videoStreamStatusHistory: [{ statusCode: StreamVideoStatus.WAIT, time: Date.now() }],
         //currentViews: 0,
         messages: [],

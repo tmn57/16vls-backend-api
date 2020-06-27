@@ -9,8 +9,14 @@ const checkProductLiveStream = productDbObject => {
         const productId = _id.toString()
         const streamId = inStreams[inStreams.length - 1]
         if (streamSessions.has(streamId)) {
-            const { streamPrice } = streamSessions.get(streamId).products[productId]
-            return { streamId, streamPrice }
+            const strm = streamSessions.get(streamId)
+            for (let i = 0; i < strm.products.length; i++) {
+                const prod = strm.products[i]
+                if (prod.productId === _id.toString()) {
+                    const { streamPrice } = prod
+                    return { streamId, streamPrice, productIndex: i }
+                }
+            }
         }
     }
     return null

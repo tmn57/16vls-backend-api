@@ -1,27 +1,55 @@
 const Cart = require('../models/cart')
 const Product = require('../models/product')
+const { checkProductLiveStream } = require('./product')
+const { emitToStream } = require('../sockets/io')
+const eventKeys = require('../sockets/event_keys.io')
 
-//output: cart
-const addProductToCart = async (productId, quantity, color, size, userId, reliablePrice) => {
+const addProductToCart = async (productId, quantity, variantIndex, userId, isReliable) => {
     const product = await Product.findById(productId)
 
-    let variantIndex = -1;
-    for (let i = 0; i < product.variants.length; i++) {
-        if (product.variants[i].color == color && product.variants[i].size == size) {
-            variantIndex = i;
-            break;
-        }
+    if (typeof (product.variants[variantIndex]) === 'undefined') {
+        console.log(`warning: user ${userId} add product ${productId} to cart but variant index ${variantIndex} not found`)
+        return null
+    }
+
+    const liveProduct = checkProductLiveStream(product)
+    let reliablePrice = -1
+
+    if (liveProduct !== null && isReliable) {
+        console.log(`warning: user ${userId} is buying 'NOT LIVE'-product ${productId} in reliable`)
+        return null
     }
 
     let objProduct = {
-        reliablePrice: reliablePrice,
-        productId: productId,
+        productId,
         storeId: product.storeId,
         variantIndex: variantIndex,
         quantity: quantity,
     }
 
     const cart = await Cart.findOne({ userId })
+
+    //#IF in valid reliable buy 
+    if (liveProduct !== null && isReliable) {
+        const { streamId, streamPrice, productIndex } = liveProduct
+        reliablePrice = streamPrice
+        const currentProductVariantQty = product.variants[variantIndex].quantity
+        if (quantity > currentProductVariantQty) {
+            console.log(`warning: user ${userId} is reliable buy ${quantity} of product ${productId} but it only ${currentProductVariantQty} in stock`)
+            return null
+        }
+        const newQty = currentProductVariantQty - quantity
+        product.variants[variantIndex].quantity = newQty
+        await product.save()
+        emitToStream(streamId, eventKeys.STREAM_PRODUCT_QUANTITY, { productIndex, variantIndex, quantity: uProduct.variants[variantIndex].quantity })
+        objProduct['reliablePrice'] = reliablePrice
+        objProduct['expiredTime'] = Date.now() + 2 * 24 * 3600 * 1000 //2 days in millisecs
+        cart.products.push(objProduct);
+        await cart.save()
+        return cart
+    }
+
+    //#ELSE: normal add product to cart
     let isExisted = false;
     for (let i = 0; i < cart.products.length; i++) {
         if (cart.products[i].productId == productId && cart.products[i].variantIndex == variantIndex) {
