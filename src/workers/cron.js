@@ -21,7 +21,7 @@ var pushNotificationJob = new CronJob('7 * * * * *', () => {
     // isPushing = false
 })
 
-var pushMulticastNotificationJob = new CronJob('5 * * * * *', () => {
+var pushMulticastNotificationJob = new CronJob('10 * * * * *', () => {
     if (!multicastMessageQueue.length) return;
     isPushing = true
     const { messageObject, tokens } = multicastMessageQueue.shift()
@@ -30,7 +30,7 @@ var pushMulticastNotificationJob = new CronJob('5 * * * * *', () => {
     isPushing = false
 })
 
-var updateMessageQJob = new CronJob('3 * * * * *', () => {
+var updateMessageQJob = new CronJob('5 * * * * *', () => {
     if (isPushing) return;
     updateMulticastMessageQueue()
 })
