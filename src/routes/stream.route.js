@@ -82,7 +82,7 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
     const { name: storeName } = store
     const { _id } = addedStream
     const nofMsgObj = fb.toMessageObject(`Livestream của ${storeName} sắp diễn ra!`, `${title} lúc ${dayjs(startTime).locale('vi-vn').format('HH:mm:ss')}`)
-    workerServices.addToStreamTasks(_id.toString(), startTime, nofMsgObj)
+    workerServices.addToStreamTasks(_id.toString(), startTime, nofMsgObj, req.storeId)
     //END
 
     res.status(200).json({
