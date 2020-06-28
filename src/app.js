@@ -102,6 +102,8 @@ const connectDatabase = () => {
 
 connectDatabase()
 
+//Run cronJob
+require('./workers/cron').init()
 
 //helpers
 const onListening = server => {
