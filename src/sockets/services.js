@@ -143,6 +143,26 @@ const removeFromProductSessions = productIds => {
     return false
 }
 
+const getValidLiveStream = (userId, cb, storeId) => {
+    const streamId = getStreamIdByUserId(userId)
+    const callback = (typeof (cb) === 'function') ? cb : console.log
+    if (!streamId) {
+        callback({ success: false, message: `error: not found stream of you` })
+        return null
+    }
+    let strm = streamSessions.get(streamId)
+    if (!strm) {
+        console.log(`error: stream ${streamId} not found in streamSessions (live)`)
+        callback({ success: false, message: `error: stream ${streamId} not found in streamSessions (live)` })
+        return null
+    }
+    if (storeId && (strm.storeId !== storeId)) {
+        callback({ success: false, message: `error: you are trying to action stream of shopId ${strm.storeId}` })
+        return null
+    }
+    return strm
+}
+
 module.exports = {
     streamSessions,
     userSessions,
@@ -159,5 +179,6 @@ module.exports = {
     addStreamVideoStatusHistory,
     addToProductSessions,
     removeFromProductSessions,
+    getValidLiveStream,
 }
 

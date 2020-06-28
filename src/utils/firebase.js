@@ -42,6 +42,14 @@ const sendMulticast = async (registrationTokens, messageObject) => {
         });
 }
 
+const sendBatch = async (messageObjects) => {
+    if (!Array.isArray(messageObjects)) return
+    await admin.messaging().sendAll(messageObjects)
+        .then((response) => {
+            console.log('FCM service sent batch of msgs:' + response.successCount + ' messages were sent successfully');
+        });
+}
+
 const toMessageObject = (title, body, dataObject) => {
     let msgObj = {
         notification: {
@@ -57,5 +65,6 @@ const toMessageObject = (title, body, dataObject) => {
 module.exports = {
     toMessageObject,
     sendMulticast,
-    sendSingle
+    sendSingle,
+    sendBatch
 }
