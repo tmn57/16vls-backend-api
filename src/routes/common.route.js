@@ -1,13 +1,12 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../models/user')
-const { PASSWORD_KEY, PHONE_CODE_KEY, JWT_KEY } = require('../config')
+const { PASSWORD_KEY, JWT_KEY } = require('../config')
 const jwt = require('jsonwebtoken')
-const User_Verify = require('../models/verify')
 const bcrypt = require('bcryptjs')
 const CryptoJS = require('crypto-js')
 const { phoneNumberVerify, getRandomCode } = require('../utils/common')
-const sendSMSVerify = require('../utils/twilio.sms')
+const { sendSmsOtpCode, checkSmsOtpCode } = require('../middlewares/twilio.sms')
 const Store = require('../models/store')
 const { isAuthenticated } = require('../middlewares/auth')
 const low = require('lowdb')
@@ -22,7 +21,7 @@ router.post('/login', async (req, res, next) => {
     if (!phone || !password) {
       return res.json({
         success: false,
-        message: 'phone and password are required!'
+        message: 'phone and password are required!',
       })
     } else {
       User.findOne({ phone }).then(async (user) => {
@@ -31,13 +30,13 @@ router.post('/login', async (req, res, next) => {
             return res.status(403).json({
               success: false,
               message:
-                'This account have been locked, please contact to administrator!'
+                'This account have been locked, please contact to administrator!',
             })
           } else {
             if (!user.isVerified) {
               return res.status(403).json({
                 success: false,
-                message: 'This account is not verified!'
+                message: 'This account is not verified!',
               })
             }
             // Encrypt password
@@ -54,7 +53,7 @@ router.post('/login', async (req, res, next) => {
                 { userId: user._id, type: user.type },
                 JWT_KEY,
                 {
-                  expiresIn: '24h'
+                  expiresIn: '24h',
                 }
               )
               const store = await Store.findOne({ userId: user._id })
@@ -65,20 +64,20 @@ router.post('/login', async (req, res, next) => {
                 token,
                 result: {
                   user,
-                  store: store || false
-                }
+                  store: store || false,
+                },
               })
             } else {
               return res.status(400).json({
                 success: false,
-                message: 'Password is incorrect!'
+                message: 'Password is incorrect!',
               })
             }
           }
         } else {
           return res.status(403).json({
             success: false,
-            message: 'This account is not existed!'
+            message: 'This account is not existed!',
           })
         }
       })
@@ -86,7 +85,7 @@ router.post('/login', async (req, res, next) => {
   } catch (err) {
     return res.status(500).json({
       success: false,
-      message: err
+      message: err,
     })
   }
 })
@@ -97,13 +96,13 @@ router.post('/register', async (req, res, next) => {
     if (!phone || !password || !name) {
       return res.status(400).json({
         success: false,
-        message: 'phone, password, name are required!'
+        message: 'phone, password, name are required!',
       })
     }
     if (!phoneNumberVerify.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: 'invalid phone number!'
+        message: 'invalid phone number!',
       })
     }
     const userExisted = await User.findOne({ phone })
@@ -112,19 +111,19 @@ router.post('/register', async (req, res, next) => {
         return res.status(403).json({
           success: false,
           message:
-            'This account was existed and have been locked, please contact to administrator!'
+            'This account was existed and have been locked, please contact to administrator!',
         })
       } else {
         if (!userExisted.isVerified) {
           return res.status(403).json({
             success: false,
-            message: 'This account was existed and have not been verified yet!'
+            message: 'This account was existed and have not been verified yet!',
           })
         } else {
           return res.status(403).json({
             success: false,
             message:
-              'This phone number has already used, please type another number!'
+              'This phone number has already used, please type another number!',
           })
         }
       }
@@ -143,20 +142,20 @@ router.post('/register', async (req, res, next) => {
       let newCart = new Cart({
         ownerId: newUser._id,
         userId: newUser._id,
-        products: []
+        products: [],
       })
 
       return res.json({
         success: true,
         message: 'create account successfully!',
         type: 'normal',
-        profile: newUser
+        profile: newUser,
       })
     }
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.toString()
+      message: error.toString(),
     })
   }
 })
@@ -167,7 +166,7 @@ router.post('/getCode', async (req, res, next) => {
     if (!phoneNumberVerify.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: 'invalid phone number!'
+        message: 'invalid phone number!',
       })
     } else {
       const userExisted = await User.findOne({ phone })
@@ -176,37 +175,23 @@ router.post('/getCode', async (req, res, next) => {
           return res.status(403).json({
             success: false,
             message:
-              'This account was existed and have been locked, please contact to administrator!'
+              'This account was existed and have been locked, please contact to administrator!',
           })
         } else {
-          await User_Verify.updateMany(
-            { phone, isUsed: false },
-            {
-              $set: { isUsed: true }
-            }
-          )
-
-          const codeSent = getRandomCode()
-          const smsSent = await sendSMSVerify(codeSent, userExisted.phone)
-          if (smsSent.success) {
-            const newUserVerify = new User_Verify()
-            newUserVerify.phone = userExisted.phone
-            newUserVerify.verifiedCode = await bcrypt.hash(codeSent, 10)
-            await newUserVerify.save()
-          }
+          const smsSent = await sendSmsOtpCode({ phone: userExisted.phone })
           return res.json(smsSent)
         }
       } else {
         return res.status(403).json({
           success: false,
-          message: 'This phone number has not been registered before!'
+          message: 'This phone number has not been registered before!',
         })
       }
     }
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.toString()
+      message: error.toString(),
     })
   }
 })
@@ -217,82 +202,55 @@ router.post('/verify', async (req, res, next) => {
     if (!phone || !code) {
       return res.status(400).json({
         success: false,
-        message: 'phone, code are required!'
+        message: 'phone, code are required!',
       })
     }
     if (!phoneNumberVerify.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: 'invalid phone number!'
+        message: 'invalid phone number!',
       })
     } else {
       const userExisted = await User.findOne({ phone })
-      const userNeedVerified = await User_Verify.findOne({
-        phone,
-        isUsed: false
-      })
-      if (userExisted && userNeedVerified) {
+      if (userExisted) {
         if (!userExisted.isEnabled) {
           return res.status(403).json({
             success: false,
             message:
-              'This account was existed and have been locked, please contact to administrator!'
+              'This account was existed and have been locked, please contact to administrator!',
           })
         } else {
           if (!userExisted.isVerified) {
-            const verifyCode = CryptoJS.AES.decrypt(
+            const verification = await checkSmsOtpCode({
+              phone: userExisted.phone,
               code,
-              PHONE_CODE_KEY
-            ).toString(CryptoJS.enc.Utf8)
-            const matched = await bcrypt.compare(
-              verifyCode,
-              userNeedVerified.verifiedCode
-            )
-            if (matched) {
-              const result1 = await User_Verify.updateOne(
-                { phone, isUsed: false },
-                {
-                  $set: { isUsed: true }
-                }
-              )
-              const result2 = await User.updateOne(
-                { phone },
-                {
-                  $set: { isVerified: true }
-                }
-              )
-              if (result1 && result2) {
-                return res.json({
-                  success: true,
-                  message: 'This phone number is verified!'
-                })
-              }
-            } else {
+            })
+            if (
+              verification &&
+              verification.valid
+            ) {
               return res.status(400).json({
+                success: true,
+                message: 'Verify successfully!',
+              })
+            } else {
+              return res.status(403).json({
                 success: false,
-                message: 'This code is incorrect'
+                message: 'This code is incorrect or expired!',
               })
             }
           } else {
             return res.status(403).json({
               success: false,
-              message: 'This phone number has been verified!'
+              message: 'This phone number has been verified!',
             })
           }
         }
       } else {
-        if (!userNeedVerified) {
-          return res.status(403).json({
-            success: false,
-            message:
-              'There are no codes sent for this phone number before, please get code!'
-          })
-        } else {
-          return res.status(403).json({
-            success: false,
-            message: 'This phone number has not been registered before!'
-          })
-        }
+        return res.status(403).json({
+          success: false,
+          message: 'This phone number has not been registered before!',
+        })
       }
     }
   } catch (error) {
@@ -306,71 +264,48 @@ router.post('/checkCode', async (req, res, next) => {
     if (!phone || !code) {
       return res.status(400).json({
         success: false,
-        message: 'phone, code are required!'
+        message: 'phone, code are required!',
       })
     }
     if (!phoneNumberVerify.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: 'invalid phone number!'
+        message: 'invalid phone number!',
       })
     } else {
       const userFound = await User.findOne({
         phone,
-        isEnabled: true
+        isEnabled: true,
       })
-      const userNeedVerified = await User_Verify.findOne({
-        phone,
-        isUsed: false
-      })
-      if (userFound && userNeedVerified) {
-        const verifyCode = CryptoJS.AES.decrypt(code, PHONE_CODE_KEY).toString(
-          CryptoJS.enc.Utf8
-        )
-        const matched = await bcrypt.compare(
-          verifyCode,
-          userNeedVerified.verifiedCode
-        )
-        if (matched) {
-          const result = await User_Verify.updateOne(
-            { phone, isUsed: false },
+      if (userFound) {
+        const verification = await checkSmsOtpCode({
+          phone: userFound.phone,
+          code,
+        })
+        if (verification && verification.valid) {
+          const token = jwt.sign(
+            { userId: userFound._id, type: userFound.type },
+            JWT_KEY,
             {
-              $set: { isUsed: true }
+              expiresIn: 5,
             }
           )
-          if (result) {
-            const token = jwt.sign(
-              { userId: userFound._id, type: userFound.type },
-              JWT_KEY,
-              {
-                expiresIn: 5
-              }
-            )
-            return res.json({
-              success: true,
-              message: 'This token is available in 5 minutes!',
-              token
-            })
-          }
+          return res.json({
+            success: true,
+            message: 'This token is available in 5 minutes!',
+            token,
+          })
         } else {
           return res.status(400).json({
             success: false,
-            message: 'This code is incorrect'
+            message: 'This code is incorrect or expired!',
           })
         }
       } else {
-        if (!userNeedVerified) {
-          return res.status(403).json({
-            success: false,
-            message:
-              'There are no codes sent for this phone number before, please get code!'
-          })
-        } else {
-          return res.status(403).json({
-            success: false,
-            message: 'This phone number has not been registered before!'
-          })
-        }
+        return res.status(403).json({
+          success: false,
+          message: 'This phone number has not been registered before!',
+        })
       }
     }
   } catch (error) {
@@ -384,20 +319,20 @@ router.post('/refreshToken', async (req, res) => {
     if (!accessToken || !refreshToken) {
       return res.status(400).json({
         success: false,
-        message: 'accessToken, refreshToken are required!'
+        message: 'accessToken, refreshToken are required!',
       })
     }
     jwt.verify(
       accessToken,
       JWT_KEY,
       {
-        ignoreExpiration: true
+        ignoreExpiration: true,
       },
       async (err, payload) => {
         if (err) {
           return res.status(400).json({
             success: false,
-            message: err
+            message: err,
           })
         }
         const { userId } = payload
@@ -405,32 +340,32 @@ router.post('/refreshToken', async (req, res) => {
         if (!user || !user.isEnabled) {
           return res.status(400).json({
             success: false,
-            message: 'this account not found or was blocked!'
+            message: 'this account not found or was blocked!',
           })
         }
         if (user.refreshToken !== refreshToken) {
           return res.status(400).json({
             success: false,
-            message: 'refreshToken is incorrect!'
+            message: 'refreshToken is incorrect!',
           })
         }
         const newAccessToken = jwt.sign(
           { userId: user._id, type: user.type },
           JWT_KEY,
           {
-            expiresIn: '24h'
+            expiresIn: '24h',
           }
         )
         return res.json({
           success: true,
-          newAccessToken
+          newAccessToken,
         })
       }
     )
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.toString()
+      message: error.toString(),
     })
   }
 })
@@ -440,12 +375,12 @@ router.get('/sysCategories', isAuthenticated, async (req, res) => {
     const data = SYS_CATEGORY.get('sysCategories').value()
     return res.json({
       success: true,
-      sysCategories: data || []
+      sysCategories: data || [],
     })
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.toString()
+      message: error.toString(),
     })
   }
 })
@@ -455,19 +390,19 @@ router.get('/sysCategories/restore', isAuthenticated, async (req, res) => {
     if (req.tokenPayload.type !== 'admin') {
       res.status(403).json({
         success: false,
-        message: 'only administrator can access this api!'
+        message: 'only administrator can access this api!',
       })
     }
     const original = SYS_CATEGORY.get('originalSysCategories').value()
     SYS_CATEGORY.set('sysCategories', [...original]).write()
     return res.json({
       success: true,
-      sysCategories: original || []
+      sysCategories: original || [],
     })
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.toString()
+      message: error.toString(),
     })
   }
 })
@@ -477,7 +412,7 @@ router.post('/sysCategories/replace', isAuthenticated, async (req, res) => {
     if (req.tokenPayload.type !== 'admin') {
       res.status(403).json({
         success: false,
-        message: 'only administrator can access this api!'
+        message: 'only administrator can access this api!',
       })
     }
     const { sysCategories } = req.body
@@ -486,18 +421,18 @@ router.post('/sysCategories/replace', isAuthenticated, async (req, res) => {
       const data = SYS_CATEGORY.get('sysCategories').value()
       return res.json({
         success: true,
-        sysCategories: data || []
+        sysCategories: data || [],
       })
     } else {
       return res.json({
         success: true,
-        message: 'sysCategories is required!'
+        message: 'sysCategories is required!',
       })
     }
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.toString()
+      message: error.toString(),
     })
   }
 })
