@@ -107,10 +107,9 @@ const initIoServer = server => {
             const strm = getValidLiveStream(userId, cb, storeId)
             if (strm) {
                 const { streamId, messages, products } = strm
-                socketServices.addStreamVideoStatusHistory(strm.streamId, StreamVideoStatus.END)
-                streamSessions.set(strm.streamId, strm)
+                socketServices.addStreamVideoStatusHistory(streamId, StreamVideoStatus.END)
                 //find the stream of storeId
-                StreamModel.findById(strm.streamId).then(async stream => {
+                StreamModel.findById(streamId).then(async stream => {
                     if (stream === null) {
                         cb({ success: false, message: 'error: cannot find stream in db by stream in session' })
                     } else {

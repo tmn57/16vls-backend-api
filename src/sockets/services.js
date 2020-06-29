@@ -118,6 +118,7 @@ const addStreamVideoStatusHistory = (streamId, statusCode) => {
     let strm = streamSessions.get(streamId)
     if (strm) {
         strm.videoStreamStatusHistory.push({ statusCode, time: Date.now() })
+        streamSessions.set(streamId, strm)
     }
 }
 

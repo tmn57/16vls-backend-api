@@ -225,7 +225,7 @@ router.post('/rtmp-record-join-done', async (req, res) => {
     try {
         let stream = await StreamModel.findById(streamId)
         if (stream) {
-            stream.recordedFileName = fn
+            stream.recordedFileName = filename
             await stream.save()
             return res.sendStatus(200)
         }
