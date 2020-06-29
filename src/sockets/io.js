@@ -1,7 +1,7 @@
 
 //TODO: quantities of a variant of a product updated from product schema
 const socketioJwt = require('socketio-jwt')
-const { SOCKETIO_JWT_SECRET, STREAM_ENDTIME_MINIMUM_TIMESTAMP } = require('../config')
+const { SOCKETIO_JWT_SECRET } = require('../config')
 const { StreamVideoStatus } = require('./constants')
 
 const StreamModel = require('../models/stream')

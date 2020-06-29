@@ -1,5 +1,6 @@
 const { userSessions, streamSessions, streamTokens, productSessions } = require('./storage')
 const { StreamVideoStatus } = require('./constants')
+const { STREAM_ENDTIME_MINIMUM_TIMESTAMP } = require('../config')
 
 var count = 0
 const generateStreamToken = (streamKey, isHost) => {
@@ -106,7 +107,7 @@ const newStreamSession = streamDbObj => {
         storeId,
         products: productSS,
         participants: []
-        
+
     }
     streamSessions.set(_id.toString(), newStreamSS)
     addToProductSessions(productIds, _id.toString())
