@@ -62,7 +62,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
 
 
             product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
-
+            // console.log(product.variants[listProducts[i].products[j].variantIndex].quantity)
             // let objVariant = {
             //     color: product.variants[listProducts[i].products[j].variantIndex].color,
             //     size: product.variants[listProducts[i].products[j].variantIndex].size,

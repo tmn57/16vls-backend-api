@@ -8,6 +8,9 @@ const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
 const { phoneNumberVerify, isAdmin } = require('../utils/common')
 const { isAuthenticated, storeOwnerRequired, isAdministrator } = require('../middlewares/auth')
+const NotificationModel = require('../models/notification')
+const NotificationService = require('../services/notification')
+
 
 router.post('/create', async (req, res, next) => {
   try {
@@ -389,6 +392,14 @@ router.post('/approve', asyncHandler(async (req, res, next) => {
   order.updatedAt = +new Date()
   await order.save();
 
+  await NotificationService.sendToSingle(
+    'Đơn hàng đã được duyệt',
+    'Đơn hàng ' + order._id.toString() + ' đã được shop duyệt thành công',
+    order.userId,
+    -1
+  )
+
+
   return res.status(200).json({
     success: true,
     result: order
@@ -404,7 +415,6 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
   const store = await Store.findOne({ userId })
   const order = await Order.findById(orderId)
 
-  // cộng lại quantity
 
   if (order.storeId != store._id) {
     return res.status(400).json({
@@ -424,6 +434,13 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
     product.variants[order.products[i].variantIndex].quantity = product.variants[order.products[i].variantIndex].quantity + order.products[i].quantity
     await product.save()
   }
+
+  await NotificationService.sendToSingle(
+    'Đơn hàng đã hủy',
+    'Đơn hàng ' + order._id.toString() + ' đã bị shop hủy, vui lòng đặt lại đơn hàng khác',
+    order.userId,
+    -1
+  )
 
   return res.status(200).json({
     success: true,
