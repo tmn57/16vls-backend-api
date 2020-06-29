@@ -168,10 +168,9 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
                 ...streamStatusObj
             }
             list.push(l)
-        } else {
-            return next(raiseError(400, `invalid status code`))
         }
     })
+
     res.status(200).json({
         success: true,
         data: list
@@ -200,10 +199,9 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
                 ...streamStatusObj
             }
             list.push(l)
-        } else {
-            return next(raiseError(400, `invalid status code`))
         }
     })
+    
     res.status(200).json({
         success: true,
         data: list
