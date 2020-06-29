@@ -26,8 +26,7 @@ router.post('/device-token', isAuthenticated, asyncHandler(async (req, res, next
 router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
     const { limit } = req.body
     const { userId } = req.tokenPayload
-    const notifs = await NotificationModel.find({ userId })
-    console.log(`user ${userId} request notifications ${notifs}`)
+    const notifs = await NotificationModel.find({ userId }).sort({createdAt: -1}).limit(limit || 32)
     res.status(200).json({
         success: true,
         data: notifs
@@ -38,8 +37,8 @@ router.post('/seen', isAuthenticated, asyncHandler(async (req, res, next) => {
     const { notificationIds } = req.body
     const { userId } = req.tokenPayload
 
-    if(!Array.isArray(notificationIds)) {
-        return next(raiseError(400,`array of notification ids is required`))
+    if (!Array.isArray(notificationIds)) {
+        return next(raiseError(400, `array of notification ids is required`))
     }
 
     await NotificationModel.updateMany({ _id: { $in: notificationIds } }, { $set: { status: 2 } }, (err, writeResult) => {
@@ -57,8 +56,7 @@ router.get('/test', asyncHandler(async (req, res) => {
     const users = await UserModel.find()
     let uids = []
     users.forEach(u => { uids.push(u._id.toString()) })
-    console.log(`sending test token for users ${uids}`)
-    await NotificationService.sendToMany('this is test', 'welcome to 16vls app', uids, -1)
+    await NotificationService.sendToMany('Thông điệp thử nghiệm của 16VLS', 'Đây là thông điệp thử nghiệm lúc: ' + Date.now().toString(), uids, -1)
     res.status(200).send('sent')
 }))
 

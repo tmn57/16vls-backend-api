@@ -9,7 +9,8 @@ const NotificationModel = require('../models/notification')
  * @param {*} time: Number: timestamp (milliseconds) of time to send notification OR -1 if want to send immediately
  * @param {*} metadata (optional): object return from toMetadataObject
  */
-const sendToSingle = async (title, body, userId, time, metadata) => {
+const sendToSingle = async (title, body, userId, itime, metadata) => {
+    const time = itime || -1
     const user = await UserModel.findById(userId)
     if (user && user.firebaseDeviceToken && user.firebaseDeviceToken !== "") {
         const { firebaseDeviceToken } = user
@@ -45,7 +46,8 @@ const sendToSingle = async (title, body, userId, time, metadata) => {
  * @param {*} time: Number: timestamp (milliseconds) of time to send notification OR -1 if want to send immediately
  * @param {*} metadata (optional): object return from toMetadataObject
  */
-const sendToMany = async (title, body, userIds, time, metadata) => {
+const sendToMany = async (title, body, userIds, itime, metadata) => {
+    const time = itime || -1
     if (!Array.isArray(userIds)) return
     if (userIds.length === 1) return sendToSingle(title, body, userIds[0], time, metadata)
 

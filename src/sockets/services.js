@@ -1,7 +1,8 @@
-const { userSessions, streamSessions, streamTokens } = require('./storage')
+const { userSessions, streamSessions, streamTokens, productSessions } = require('./storage')
 const { StreamVideoStatus } = require('./constants')
+const { STREAM_ENDTIME_MINIMUM_TIMESTAMP } = require('../config')
 
-var count = 0 
+var count = 0
 const generateStreamToken = (streamKey, isHost) => {
     //TODO: generate a simple token
     const token = '123' + count++
@@ -86,6 +87,7 @@ const removeStreamWithUserId = userId => {
 const newStreamSession = streamDbObj => {
     const { _id, storeId, products } = streamDbObj
     let productSS = []
+    let productIds = []
     products.forEach(prod => {
         const { productId, inStreamAts, streamPrice } = prod
         productSS.push({
@@ -93,8 +95,10 @@ const newStreamSession = streamDbObj => {
             inStreamAts,
             streamPrice
         })
+        productIds.push(productId)
     })
-    streamSessions.set(_id.toString(), {
+    const newStreamSS = {
+        streamId: _id.toString(),
         videoStreamStatusHistory: [{ statusCode: StreamVideoStatus.WAIT, time: Date.now() }],
         //currentViews: 0,
         messages: [],
@@ -103,21 +107,95 @@ const newStreamSession = streamDbObj => {
         storeId,
         products: productSS,
         participants: []
-    })
+
+    }
+    streamSessions.set(_id.toString(), newStreamSS)
+    addToProductSessions(productIds, _id.toString())
     console.log('added stream to mem: ', streamSessions.get(_id.toString()))
+    return newStreamSS
 }
 
 const addStreamVideoStatusHistory = (streamId, statusCode) => {
     let strm = streamSessions.get(streamId)
     if (strm) {
-        strm.videoStreamStatusHistory.push({statusCode, time:Date.now()})
+        strm.videoStreamStatusHistory.push({ statusCode, time: Date.now() })
+        streamSessions.set(streamId, strm)
     }
+}
+
+const addToProductSessions = (productIds, streamId) => {
+    console.log(`productSessions: Adding products `, productIds, ` with ${streamId} to prosduct sessions`)
+    if (Array.isArray(productIds)) {
+        productIds.forEach(id => {
+            productSessions.set(id, streamId)
+        })
+        return true
+    }
+    return false
+}
+
+const removeFromProductSessions = productIds => {
+    console.log(`productSessions: Removing products ${productIds} to products sessions`)
+    if (Array.isArray(productIds)) {
+        productIds.forEach(id => {
+            productSessions.delete(id)
+        })
+        return true
+    }
+    return false
+}
+
+const getValidLiveStream = (userId, cb, storeId) => {
+    const streamId = getStreamIdByUserId(userId)
+    const callback = (typeof (cb) === 'function') ? cb : console.log
+    if (!streamId) {
+        callback({ success: false, message: `error: not found stream of you` })
+        return null
+    }
+    let strm = streamSessions.get(streamId)
+    if (!strm) {
+        console.log(`error: stream ${streamId} not found in streamSessions (live)`)
+        callback({ success: false, message: `error: stream ${streamId} not found in streamSessions (live)` })
+        return null
+    }
+    if (storeId && (strm.storeId !== storeId)) {
+        callback({ success: false, message: `error: you are trying to action stream of shopId ${strm.storeId}` })
+        return null
+    }
+    return strm
+}
+
+const toStreamStatusObject = (streamObject) => {
+    if (!process.env.RTMP_SERVER_IP) {
+        return console.log('env RTMP_SERVER_IP not found')
+    }
+    const rtmpIp = process.env.RTMP_SERVER_IP
+    let statusCode = 3
+    let videoUri = ''
+    let message = ''
+    const { startTime, endTime, _id: streamId, recordedFileName } = streamObject
+    if (endTime === Number.MAX_SAFE_INTEGER) {
+        statusCode = 1
+        videoUri = `http://${rtmpIp}/hls/${streamId.toString()}/index.m3u8`
+    }
+    if (endTime > STREAM_ENDTIME_MINIMUM_TIMESTAMP && endTime < Number.MAX_SAFE_INTEGER) {
+        statusCode = 2
+        if (recordedFileName !== '') {
+            videoUri = `http://${rtmpIp}/vod/${recordedFileName}`
+        }
+    }
+    if (endTime === Number.MIN_SAFE_INTEGER && startTime !== 0) {
+        statusCode = 0
+        message = 'the stream is scheduled but not live yet'
+    }
+    return { statusCode, videoUri, message }
 }
 
 module.exports = {
     streamSessions,
     userSessions,
     streamTokens,
+    productSessions,
     generateStreamToken,
     isValidStreamToken,
     getStreamInfoList,
@@ -126,6 +204,10 @@ module.exports = {
     setStreamWithUserId,
     removeStreamWithUserId,
     newStreamSession,
-    addStreamVideoStatusHistory
+    addStreamVideoStatusHistory,
+    addToProductSessions,
+    removeFromProductSessions,
+    getValidLiveStream,
+    toStreamStatusObject,
 }
 

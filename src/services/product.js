@@ -1,16 +1,20 @@
-const { streamSessions } = require('../sockets/services')
+const { streamSessions, productSessions } = require('../sockets/services')
 const { emitToStream } = require('../sockets/io')
 const realTimeEventKeys = require('../sockets/event_keys.io')
 //input: product db object
 //output: {streamId, streamPrice} if have stream is live for product / return null if none
 const checkProductLiveStream = productDbObject => {
-    const { _id, inStreams } = productDbObject
-    if (Array.isArray(inStreams) && inStreams.length) {
-        const productId = _id.toString()
-        const streamId = inStreams[inStreams.length - 1]
-        if (streamSessions.has(streamId)) {
-            const { streamPrice } = streamSessions.get(streamId).products[productId]
-            return { streamId, streamPrice }
+    const { _id } = productDbObject
+    const productId = _id.toString()
+    const streamId = productSessions.get(productId)
+    const strm = streamSessions.get(streamId)
+    if (strm) {
+        const { products } = strm
+        for (let i = 0; i < products.length; i++) {
+            if (products[i].productId === productId) {
+                const { streamPrice } = products[i]
+                return { streamId, streamPrice }
+            }
         }
     }
     return null

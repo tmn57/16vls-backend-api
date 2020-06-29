@@ -81,7 +81,7 @@ socketServer.on('listening', () => onListening(socketServer))
 
 //connect database
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-c2upe.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-zeckz.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
+//const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0-zeckz.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
 const connectDatabase = () => {
   mongoose.connect(
     uri,
@@ -102,6 +102,8 @@ const connectDatabase = () => {
 
 connectDatabase()
 
+//Run cronJob
+require('./workers/cron').init()
 
 //helpers
 const onListening = server => {

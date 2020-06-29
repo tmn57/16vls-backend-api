@@ -1,66 +1,60 @@
 const express = require('express')
 const asyncHandler = require('express-async-handler')
 const jwt = require('jsonwebtoken')
+const dayjs = require('dayjs')
 const { SOCKETIO_JWT_SECRET } = require('../config')
 const { StreamVideoStatus } = require('../sockets/constants')
 const streamHandler = require('../sockets/services')
-const router = express.Router()
 const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
 const StreamModel = require('../models/stream')
 const StoreModel = require('../models/store')
 const { raiseError } = require('../utils/common')
-const { streamSessions } = require('../sockets/services')
+const { streamSessions, getStreamIdByUserId, getValidLiveStream, toStreamStatusObject } = require('../sockets/services')
+const workerServices = require('../workers/services')
+const fb = require('../utils/firebase')
 
-//Stream Server publish authentication
-//Required queries: sk = stream key; st = stream token; sr = role (default:play)
-// router.post('/rtmp-auth', (req, res) => {
-//     const trustedId = process.env.RTMP_SERVER_IP || 'http://13.229.229.219/'
-//     const reqIp = req.connection.remoteAddress
-//     if (reqIp !== trustedId) {
-//         res.status(400).send("intrusted rtmp srv")
-//     } else {
-//         const streamKey = req.query.sk || ''
-//         const token = req.query.st || ''
-//         const role = req.query.sr || ''
-//         if (streamKey !== '' && token !== '' && role !== '') {
-//             const isPublish = role === 'publish'
-//             if (streamHandler.isValidStreamToken(streamKey, isPublish, token)) {
-//                 res.status(200)
-//             } else {
-//                 res.status(401).send('unauthorized')
-//             }
-//         } else {
-//             res.status(400).send('not enough query field(s)')
-//         }
-//     }
-// })
+const router = express.Router()
 
-router.post('/rtmp-pub-auth', (req, res) => {
-    console.log(
-        `rtmp-pub-auth request from ${req.connection.remoteAddress} / got env ip ${process.env.RTMP_SERVER_IP}`,
-        `rtmp auth request with token ${sk} for stream ${st}`
-    )
-
-    if (!process.env.RTMP_SERVER_IP) {
-        return res.status(500).json({ message: 'rtmp server ip does not found in env config' })
+router.get('/sellerCheck', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
+    const { userId } = req.tokenPayload
+    const { storeId } = req
+    const strm = getValidLiveStream(userId, 'naf', storeId)
+    if (strm) {
+        return res.status(200).json({
+            success: true,
+            streamId: strm.streamId,
+            isLive: false
+        })
     }
-
-    const reqIp = req.connection.remoteAddress
-
-    if (reqIp === '::ffff:' + process.env.RTMP_SERVER_IP) {
-        const streamKey = req.query.sk || ''
-        const token = req.query.st || ''
-
-        return res.sendStatus(200)
-
-        if (streamKey !== '' && token !== '') {
-            if (streamHandler.isValidStreamToken(streamKey, true, token)) {
-                return res.sendStatus(200)
-            }
-        }
+    const dbStream = await StreamModel.findOne({ storeId, endTime: Number.MIN_SAFE_INTEGER })
+    if (dbStream) {
+        return res.status(200).json({
+            success: true,
+            streamId: dbStream._id.toString(),
+            isLive: false
+        })
     }
-    return res.sendStatus(400)
-})
+    res.status(200).json({
+        success: true,
+        streamId: null,
+        isLive: false
+    })
+}))
+
+router.post('/delete', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
+    const { streamId } = req.body
+    const delStream = await StreamModel.findOneAndDelete({ _id: streamId, endTime: Number.MIN_SAFE_INTEGER })
+    if (delStream) {
+        workerServices.removeFromStreamTasks(delStream._id.toString())
+        return res.status(200).json({
+            success: true
+        })
+    }
+    res.status(400).json({
+        success: false,
+        message: `không thể tìm thấy stream hợp lệ cho ${streamId} của bạn`
+    })
+}))
 
 router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
     const { startTime, title, products } = req.body
@@ -82,6 +76,14 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
     })
 
     addedStream = await nStream.save()
+
+    //START createIncomingStreamNotification()
+    const store = await StoreModel.findById(req.storeId)
+    const { name: storeName } = store
+    const { _id } = addedStream
+    const nofMsgObj = fb.toMessageObject(`Livestream của ${storeName} sắp diễn ra!`, `${title} lúc ${dayjs(startTime).locale('vi-vn').format('HH:mm:ss')}`, { target: 'streaming', params: { streamId: _id.toString() } })
+    workerServices.addToStreamTasks(_id.toString(), startTime, nofMsgObj, req.storeId)
+    //END
 
     res.status(200).json({
         success: true,
@@ -108,6 +110,14 @@ router.post('/update', isAuthenticated, storeOwnerRequired, asyncHandler(async (
             stream.startTime = startTime
             stream.title = title
             stream.products = prodsDbObj
+            stream.markModified('startTime')
+            stream.markModified('title')
+            stream.markModified('products')
+            await stream.save()
+
+            //START updateIncomingStreamNotification()
+            workerServices.updateInStreamTasks(_id.toString(), startTime)
+            //END
 
         } else {
             next.raiseError(400, `update information for started stream is not allowed`)
@@ -137,15 +147,94 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
     })
 }))
 
-router.post('/list', asyncHandler(async (req, res) => {
-    //TODO: check req.body for checking type of stream ('live', 'incoming', 'archived')
-    let list = await StreamModel.find({})
+router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
+    let statusCode = -1
+    if (typeof req.body['statusCode'] !== 'undefined') {
+        if (req.body.statusCode > -1 && req.body.statusCode < 3) {
+            statusCode = req.body.codeStatus
+        }
+    }
 
+    let streams = await StreamModel.find({}).sort({ endTime: -1 })
+
+    let list = []
+
+    streams.forEach(stream => {
+        const streamStatusObj = toStreamStatusObject(stream)
+        if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
+            if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
+            let l = {
+                ...stream,
+                ...streamStatusObj
+            }
+            list.push(l)
+        } else {
+            return next(raiseError(400, `invalid status code`))
+        }
+    })
     res.status(200).json({
         success: true,
         data: list
     })
 }))
+
+router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
+    const { storeId } = req
+    let statusCode = -1
+    if (typeof req.body['statusCode'] !== 'undefined') {
+        if (req.body.statusCode > -1 && req.body.statusCode < 3) {
+            statusCode = req.body.codeStatus
+        }
+    }
+
+    let streams = await StreamModel.find({ storeId }).sort({ endTime: -1 })
+
+    let list = []
+
+    streams.forEach(stream => {
+        const streamStatusObj = toStreamStatusObject(stream)
+        if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
+            if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
+            let l = {
+                ...stream,
+                ...streamStatusObj
+            }
+            list.push(l)
+        } else {
+            return next(raiseError(400, `invalid status code`))
+        }
+    })
+    res.status(200).json({
+        success: true,
+        data: list
+    })
+}))
+
+router.post('/rtmp-pub-auth', (req, res) => {
+    console.log(`rtmp-pub-auth request from ${req.connection.remoteAddress} / got env ip ${process.env.RTMP_SERVER_IP}`)
+
+    if (!process.env.RTMP_SERVER_IP) {
+        return res.status(500).json({ message: 'rtmp server ip does not found in env config' })
+    }
+
+    const reqIp = req.connection.remoteAddress
+
+    if (reqIp === '::ffff:' + process.env.RTMP_SERVER_IP) {
+        const streamKey = req.query.sk || ''
+        const token = req.query.st || ''
+
+        console.log(`rtmp auth request with token ${streamKey} for stream ${token}`)
+
+        return res.sendStatus(200)
+
+        if (streamKey !== '' && token !== '') {
+            if (streamHandler.isValidStreamToken(streamKey, true, token)) {
+                return res.sendStatus(200)
+            }
+        }
+    }
+    return res.sendStatus(400)
+})
 
 //request structure: /rtmp-check-allow-join?sk=streamId
 router.post('/rtmp-check-allow-join', async (req, res) => {
@@ -188,7 +277,7 @@ router.post('/rtmp-record-join-done', async (req, res) => {
     try {
         let stream = await StreamModel.findById(streamId)
         if (stream) {
-            stream.recordedFileName = fn
+            stream.recordedFileName = filename
             await stream.save()
             return res.sendStatus(200)
         }

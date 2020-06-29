@@ -6,6 +6,8 @@ const NotificationSchema = new Schema({
     body: String,
     data: Object,
     status: {type: Number, default: 0}, //0: isNotSent, 1: isSent, 2: isSeen
+}, {
+    timestamps: true,
 })
 
 module.exports = model('Notification', NotificationSchema)

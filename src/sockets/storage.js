@@ -8,8 +8,12 @@ var streamSessions = new Map()
 //streamTokens <K,V>: K: streamId (streamKey in nginx), V: {token,createdAt}
 var streamTokens = new Map()
 
+//
+var productSessions = new Map()
+
 module.exports = {
     userSessions,
     streamSessions,
     streamTokens,
+    productSessions
 }
