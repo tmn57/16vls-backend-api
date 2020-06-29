@@ -14,6 +14,7 @@ const FileSync = require('lowdb/adapters/FileSync')
 const adapter = new FileSync('./public/common/sysCategory.json')
 const SYS_CATEGORY = low(adapter)
 const Cart = require('../models/cart')
+const asyncHandler = require('express-async-handler')
 
 router.post('/login', async (req, res, next) => {
   try {
@@ -440,5 +441,107 @@ router.post('/sysCategories/replace', isAuthenticated, async (req, res) => {
     })
   }
 })
+
+// api reset password
+router.post('/checkPhoneNumber', asyncHandler(async (req, res, next) => {
+  const { phone } = req.body
+
+  if (!phone) {
+    return res.status(400).json({
+      success: false,
+      message: 'Phone number is required!',
+    })
+  }
+
+  if (!phoneNumberVerify.test(phone)) {
+    return res.status(400).json({
+      success: false,
+      message: 'invalid phone number!',
+    })
+  }
+  const userExisted = await User.findOne({ phone })
+  if (userExisted) {
+    if (!userExisted.isEnabled) {
+      return res.status(403).json({
+        success: false,
+        message: 'This account was existed and have been locked, please contact to administrator!',
+      })
+    }
+    else {
+      if (!userExisted.isVerified) {
+        return res.status(403).json({
+          success: false,
+          message: 'This account is not verified!',
+        })
+      }
+      else {
+        return res.status(200).json({
+          success: true,
+        })
+      }
+    }
+  }
+  else {
+    return res.status(403).json({
+      success: false,
+      message: 'This phone number has not been registered before!',
+    })
+  }
+
+}))
+
+router.post('/resetPassword', asyncHandler(async (req, res, next) => {
+  const { phone, passwordNew } = req.body
+
+  if (!phone || !passwordNew) {
+    return res.status(400).json({
+      success: false,
+      message: 'Phone number, passwordNew are required!',
+    })
+  }
+
+  if (!phoneNumberVerify.test(phone)) {
+    return res.status(400).json({
+      success: false,
+      message: 'invalid phone number!',
+    })
+  }
+  const userExisted = await User.findOne({ phone })
+  if (userExisted) {
+    if (!userExisted.isEnabled) {
+      return res.status(403).json({
+        success: false,
+        message: 'This account was existed and have been locked, please contact to administrator!',
+      })
+    }
+    else {
+      if (!userExisted.isVerified) {
+        return res.status(403).json({
+          success: false,
+          message: 'This account is not verified!',
+        })
+      }
+      else {
+        let decodedPassword = CryptoJS.AES.decrypt(passwordNew, PASSWORD_KEY).toString(CryptoJS.enc.Utf8)
+        userExisted.password = await bcrypt.hash(decodedPassword, 10)
+        userExisted.updatedAt = +new Date()
+        userExisted.updatedBy = userExisted._id
+        await userExisted.save()
+        return res.status(200).json({
+          success: true,
+          message: 'Reset password successfully!',
+        })
+
+      }
+    }
+  }
+  else {
+    return res.status(403).json({
+      success: false,
+      message: 'This phone number has not been registered before!',
+    })
+  }
+
+}))
 
 module.exports = router
