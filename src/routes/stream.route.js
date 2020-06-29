@@ -151,7 +151,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
     let statusCode = -1
     if (typeof req.body['statusCode'] !== 'undefined') {
         if (req.body.statusCode > -1 && req.body.statusCode < 3) {
-            statusCode = req.body.codeStatus
+            statusCode = req.body.statusCode
         }
     }
 
@@ -164,7 +164,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
         if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
             if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
             let l = {
-                ...stream,
+                ...stream.toObject(),
                 ...streamStatusObj
             }
             list.push(l)
@@ -183,7 +183,7 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
     let statusCode = -1
     if (typeof req.body['statusCode'] !== 'undefined') {
         if (req.body.statusCode > -1 && req.body.statusCode < 3) {
-            statusCode = req.body.codeStatus
+            statusCode = req.body.statusCode
         }
     }
 
@@ -196,7 +196,7 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
         if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
             if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
             let l = {
-                ...stream,
+                ...stream.toObject(),
                 ...streamStatusObj
             }
             list.push(l)
