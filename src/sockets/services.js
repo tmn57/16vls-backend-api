@@ -134,7 +134,7 @@ const addToProductSessions = (productIds, streamId) => {
 }
 
 const removeFromProductSessions = productIds => {
-    console.log(`productSessions: Removing products `, productIds, ` with ${streamId} to prosduct sessions`)
+    console.log(`productSessions: Removing products ${productIds} to products sessions`)
     if (Array.isArray(productIds)) {
         productIds.forEach(id => {
             productSessions.delete(id)

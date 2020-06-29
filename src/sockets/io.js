@@ -106,6 +106,7 @@ const initIoServer = server => {
         socket.on(eventKeys.SELLER_END_STREAM, (p, cb) => {
             const strm = getValidLiveStream(userId, cb, storeId)
             if (strm) {
+                console.log('strm', strm)
                 const { streamId, messages, products } = strm
                 socketServices.addStreamVideoStatusHistory(streamId, StreamVideoStatus.END)
                 //find the stream of storeId
@@ -113,6 +114,7 @@ const initIoServer = server => {
                     if (stream === null) {
                         cb({ success: false, message: 'error: cannot find stream in db by stream in session' })
                     } else {
+                        let streamId = stream._id.toString()
                         if (stream.endTime !== Number.MAX_SAFE_INTEGER) {
                             return cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
                         }
@@ -134,6 +136,7 @@ const initIoServer = server => {
                         return cb({ success: true })
                     }
                 }).catch(error => {
+                    console.log(error)
                     cb({ success: false, message: `internal server error: ${error}` })
                 })
             }
@@ -172,9 +175,9 @@ const initIoServer = server => {
                     return cb({ success: false, message: 'error:  product index change while stream video is not pushing is not allowed' });
                 }
 
-                if (!strm.products[productIndex]) {
+                if (typeof(strm.products[productIndex]) === 'undefined') {
                     console.log(`strm invalid product idx ${productIndex} type of ${productIndex}`, strm)
-                    return cb({ success: false, message: 'error:  product index is invalid' })
+                    return cb({ success: false, message: 'error:  product index is is out of range' })
                 }
                 //TODO: convert to 'relative' time
                 const inStreamAt = convertRealTimeToVideoTime(Date.now())
@@ -323,7 +326,7 @@ const toStreamStatusObject = (streamObject) => {
     }
     if (endTime > STREAM_ENDTIME_MINIMUM_TIMESTAMP && endTime < Number.MAX_SAFE_INTEGER) {
         statusCode = 2
-        videoUri = `http://${rtmpIp}/vod/${recordedFileName}.flv`
+        videoUri = `http://${rtmpIp}/vod/${recordedFileName}`
     }
     if (endTime === Number.MIN_SAFE_INTEGER && startTime !== 0) {
         statusCode = 0
