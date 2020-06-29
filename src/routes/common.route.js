@@ -229,6 +229,8 @@ router.post('/verify', async (req, res, next) => {
               verification &&
               verification.valid
             ) {
+              userExisted.isVerified = true
+              await userExisted.save()
               return res.status(400).json({
                 success: true,
                 message: 'Verify successfully!',
