@@ -47,6 +47,7 @@ router.post('/login', async (req, res, next) => {
             let hash = CryptoJS.AES.decrypt(password, PASSWORD_KEY).toString(
               CryptoJS.enc.Utf8
             )
+            console.log(hash)
             const matched = await bcrypt.compare(hash, user.password)
             if (matched) {
               const token = jwt.sign(
@@ -144,6 +145,7 @@ router.post('/register', async (req, res, next) => {
         userId: newUser._id,
         products: [],
       })
+      await newCart.save()
 
       return res.json({
         success: true,
