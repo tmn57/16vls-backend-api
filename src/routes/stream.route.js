@@ -147,7 +147,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
     })
 }))
 
-router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
+router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
     let statusCode = -1
     if (typeof req.body['statusCode'] !== 'undefined') {
         if (req.body.statusCode > -1 && req.body.statusCode < 3) {
@@ -178,7 +178,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
     })
 }))
 
-router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
+router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
     const { storeId } = req
     let statusCode = -1
     if (typeof req.body['statusCode'] !== 'undefined') {
