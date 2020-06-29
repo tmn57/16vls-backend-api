@@ -26,7 +26,7 @@ router.post('/device-token', isAuthenticated, asyncHandler(async (req, res, next
 router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
     const { limit } = req.body
     const { userId } = req.tokenPayload
-    const notifs = await NotificationModel.find({ userId })
+    const notifs = await NotificationModel.find({ userId }).limit(limit || 32)
     console.log(`user ${userId} got ${notifs.length} notifications `)
     res.status(200).json({
         success: true,
