@@ -27,7 +27,6 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
     const { limit } = req.body
     const { userId } = req.tokenPayload
     const notifs = await NotificationModel.find({ userId }).limit(limit || 32)
-    console.log(`user ${userId} got ${notifs.length} notifications `)
     res.status(200).json({
         success: true,
         data: notifs
@@ -57,7 +56,7 @@ router.get('/test', asyncHandler(async (req, res) => {
     const users = await UserModel.find()
     let uids = []
     users.forEach(u => { uids.push(u._id.toString()) })
-    await NotificationService.sendToMany('Thông điệp thử nghiệm của 16VLS', 'Đây là thông điệp thử nghiệm lúc: ' + Date.now().toString(), uids, -1, { target: 'user' })
+    await NotificationService.sendToMany('Thông điệp thử nghiệm của 16VLS', 'Đây là thông điệp thử nghiệm lúc: ' + Date.now().toString(), uids, -1)
     res.status(200).send('sent')
 }))
 
