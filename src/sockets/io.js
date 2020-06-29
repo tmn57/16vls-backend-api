@@ -8,7 +8,7 @@ const StreamModel = require('../models/stream')
 const ProductModel = require('../models/product')
 
 const eventKeys = require('./event_keys.io')
-const { streamSessions, addStreamVideoStatusHistory, getValidLiveStream } = require('./services')
+const { streamSessions, addStreamVideoStatusHistory, getValidLiveStream, toStreamStatusObject } = require('./services')
 const socketServices = require('./services')
 const { addProductToCart } = require('../services/cart')
 
@@ -310,34 +310,6 @@ const toMessageObject = (type, message) => {
         type,
         message
     }
-}
-
-const toStreamStatusObject = (streamObject) => {
-    if (!process.env.RTMP_SERVER_IP) {
-        return console.log('env RTMP_SERVER_IP not found')
-    }
-    const rtmpIp = process.env.RTMP_SERVER_IP
-    let statusCode = 3
-    let videoUri = ''
-    let message = ''
-    const { startTime, endTime, _id: streamId, recordedFileName } = streamObject
-    if (endTime === Number.MAX_SAFE_INTEGER) {
-        statusCode = 1
-        videoUri = `http://${rtmpIp}/hls/${streamId.toString()}/index.m3u8`
-    }
-    if (endTime > STREAM_ENDTIME_MINIMUM_TIMESTAMP && endTime < Number.MAX_SAFE_INTEGER) {
-        statusCode = 2
-        if (recordedFileName === '') {
-            videoUri = null
-        } else {
-            videoUri = `http://${rtmpIp}/vod/${recordedFileName}`
-        }
-    }
-    if (endTime === Number.MIN_SAFE_INTEGER && startTime !== 0) {
-        statusCode = 0
-        message = 'the stream is scheduled but not live yet'
-    }
-    return { statusCode, videoUri, message }
 }
 
 const updateStreamViewCount = (userId, streamId, isInc) => {

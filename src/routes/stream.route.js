@@ -9,7 +9,7 @@ const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
 const StreamModel = require('../models/stream')
 const StoreModel = require('../models/store')
 const { raiseError } = require('../utils/common')
-const { streamSessions, getStreamIdByUserId, getValidLiveStream } = require('../sockets/services')
+const { streamSessions, getStreamIdByUserId, getValidLiveStream, toStreamStatusObject } = require('../sockets/services')
 const workerServices = require('../workers/services')
 const fb = require('../utils/firebase')
 
@@ -81,7 +81,7 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
     const store = await StoreModel.findById(req.storeId)
     const { name: storeName } = store
     const { _id } = addedStream
-    const nofMsgObj = fb.toMessageObject(`Livestream của ${storeName} sắp diễn ra!`, `${title} lúc ${dayjs(startTime).locale('vi-vn').format('HH:mm:ss')}`, { target: 'streaming', params: { streamId:_id.toString() }})
+    const nofMsgObj = fb.toMessageObject(`Livestream của ${storeName} sắp diễn ra!`, `${title} lúc ${dayjs(startTime).locale('vi-vn').format('HH:mm:ss')}`, { target: 'streaming', params: { streamId: _id.toString() } })
     workerServices.addToStreamTasks(_id.toString(), startTime, nofMsgObj, req.storeId)
     //END
 
@@ -147,10 +147,63 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
     })
 }))
 
-router.post('/list', asyncHandler(async (req, res) => {
-    //TODO: check req.body for checking type of stream ('live', 'incoming', 'archived')
-    let list = await StreamModel.find({})
+router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
+    let statusCode = -1
+    if (typeof req.body['statusCode'] !== 'undefined') {
+        if (req.body.statusCode > -1 && req.body.statusCode < 3) {
+            statusCode = req.body.codeStatus
+        }
+    }
 
+    let streams = await StreamModel.find({}).sort({ endTime: -1 })
+
+    let list = []
+
+    streams.forEach(stream => {
+        const streamStatusObj = toStreamStatusObject(stream)
+        if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
+            if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
+            let l = {
+                ...stream,
+                ...streamStatusObj
+            }
+            list.push(l)
+        } else {
+            return next(raiseError(400, `invalid status code`))
+        }
+    })
+    res.status(200).json({
+        success: true,
+        data: list
+    })
+}))
+
+router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
+    const { storeId } = req
+    let statusCode = -1
+    if (typeof req.body['statusCode'] !== 'undefined') {
+        if (req.body.statusCode > -1 && req.body.statusCode < 3) {
+            statusCode = req.body.codeStatus
+        }
+    }
+
+    let streams = await StreamModel.find({ storeId }).sort({ endTime: -1 })
+
+    let list = []
+
+    streams.forEach(stream => {
+        const streamStatusObj = toStreamStatusObject(stream)
+        if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
+            if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
+            let l = {
+                ...stream,
+                ...streamStatusObj
+            }
+            list.push(l)
+        } else {
+            return next(raiseError(400, `invalid status code`))
+        }
+    })
     res.status(200).json({
         success: true,
         data: list
