@@ -124,6 +124,7 @@ const initIoServer = server => {
                         stream.products = products
                         await stream.save()
                         const streamStatusObj = toStreamStatusObject(stream)
+
                         emitToStream(streamId, eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
 
                         let productIds = []
@@ -326,7 +327,11 @@ const toStreamStatusObject = (streamObject) => {
     }
     if (endTime > STREAM_ENDTIME_MINIMUM_TIMESTAMP && endTime < Number.MAX_SAFE_INTEGER) {
         statusCode = 2
-        videoUri = `http://${rtmpIp}/vod/${recordedFileName}`
+        if (recordedFileName === '') {
+            videoUri = null
+        } else {
+            videoUri = `http://${rtmpIp}/vod/${recordedFileName}`
+        }
     }
     if (endTime === Number.MIN_SAFE_INTEGER && startTime !== 0) {
         statusCode = 0
