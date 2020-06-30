@@ -181,11 +181,10 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
     const { storeId } = req
     let statusCode = -1
     if (typeof req.body['statusCode'] !== 'undefined') {
-        if (req.body.statusCode > -1 && req.body.statusCode < 3) {
+        if (req.body.statusCode > -1 && req.body.statusCode < 6) {
             statusCode = req.body.statusCode
         }
     }
-
     let streams = await StreamModel.find({ storeId }).sort({ endTime: -1 })
 
     let list = []

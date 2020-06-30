@@ -26,8 +26,6 @@ module.exports = {
     //test OK
 
     STREAM_STATUS_UPDATE: 'stream status updated', 
-    //{statusCode: 0/1/2/3, [videoUri], [message]} 
-    //0: incoming stream, 1 is live (HLS link) , 2: was live (http VOD link), 3: error
     //test OK
 
     STREAM_UPDATE_STREAMPRICE: 'stream updates streamPrice', 

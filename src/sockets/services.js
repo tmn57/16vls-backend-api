@@ -169,26 +169,48 @@ const toStreamStatusObject = (streamObject) => {
     if (!process.env.RTMP_SERVER_IP) {
         return console.log('env RTMP_SERVER_IP not found')
     }
-    const rtmpIp = process.env.RTMP_SERVER_IP
-    let statusCode = 3
+    const videoServerAddr = process.env.RTMP_SERVER_IP
+    let statusCode = 0
     let videoUri = ''
     let message = ''
-    const { startTime, endTime, _id: streamId, recordedFileName } = streamObject
-    if (endTime === Number.MAX_SAFE_INTEGER) {
-        statusCode = 1
-        videoUri = `http://${rtmpIp}/hls/${streamId.toString()}/index.m3u8`
-    }
-    if (endTime > STREAM_ENDTIME_MINIMUM_TIMESTAMP && endTime < Number.MAX_SAFE_INTEGER) {
-        statusCode = 2
-        if (recordedFileName !== '') {
-            videoUri = `http://${rtmpIp}/vod/${recordedFileName}`
+
+    if (typeof streamObject['streamId'] === 'undefined') {
+        //if stream db obj
+        if (endTime === Number.MIN_SAFE_INTEGER && startTime !== 0) {
+            statusCode = 0
+            message = 'the stream is scheduled but not live yet'
+        }
+        if (endTime === Number.MAX_SAFE_INTEGER) {
+            statusCode = 1
+            videoUri = `http://${videoServerAddr}/hls/${streamId.toString()}/index.m3u8`
+        }
+        if (endTime > STREAM_ENDTIME_MINIMUM_TIMESTAMP && endTime < Number.MAX_SAFE_INTEGER) {
+            statusCode = 5
+            if (recordedFileName !== '') {
+                videoUri = `http://${videoServerAddr}/vod/${recordedFileName}`
+            }
+        }
+        return { statusCode, videoUri, message }
+    } else {
+        //if stream session obj
+        const { videoStreamStatusHistory: vsh } = streamObject
+        if (vsh.length === 1) {
+            return { statusCode: 1, videoUri, message }
+        }
+        if (vsh.length === 2) {
+            return { statusCode: 2, videoUri: `http://${videoServerAddr}/hls/${streamId.toString()}/index.m3u8`, message }
+        }
+        const lastStatusCode = vsh[vsh.length - 1].statusCode
+        if (lastStatusCode === StreamVideoStatus.START) {
+            return { statusCode: 2, videoUri: `http://${videoServerAddr}/hls/${streamId.toString()}/index.m3u8`, message }
+        }
+        if (lastStatusCode === StreamVideoStatus.INTERRUPT) {
+            return { statusCode: 3, videoUri, message: 'Stream từ người bán đang bị gián đoạn' }
+        }
+        if (lastStatusCode === StreamVideoStatus.END) {
+            return { statusCode: 4, videoUri, message: 'Stream từ người bán đã kết thúc' }
         }
     }
-    if (endTime === Number.MIN_SAFE_INTEGER && startTime !== 0) {
-        statusCode = 0
-        message = 'the stream is scheduled but not live yet'
-    }
-    return { statusCode, videoUri, message }
 }
 
 module.exports = {

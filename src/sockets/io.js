@@ -106,40 +106,7 @@ const initIoServer = server => {
         socket.on(eventKeys.SELLER_END_STREAM, (p, cb) => {
             const strm = getValidLiveStream(userId, cb, storeId)
             if (strm) {
-                console.log('strm', strm)
-                const { streamId, messages, products } = strm
-                socketServices.addStreamVideoStatusHistory(streamId, StreamVideoStatus.END)
-                //find the stream of storeId
-                StreamModel.findById(streamId).then(async stream => {
-                    if (stream === null) {
-                        cb({ success: false, message: 'error: cannot find stream in db by stream in session' })
-                    } else {
-                        let streamId = stream._id.toString()
-                        if (stream.endTime !== Number.MAX_SAFE_INTEGER) {
-                            return cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
-                        }
-                        //Archive the stream
-                        stream.messages = messages
-                        stream.endTime = Date.now()
-                        stream.products = products
-                        await stream.save()
-                        const streamStatusObj = toStreamStatusObject(stream)
-
-                        emitToStream(streamId, eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
-
-                        let productIds = []
-                        products.forEach(p => {
-                            productIds.push(p.productId)
-                        })
-
-                        socketServices.removeFromProductSessions(productIds)
-                        streamSessions.delete(streamId)
-                        return cb({ success: true })
-                    }
-                }).catch(error => {
-                    console.log(error)
-                    cb({ success: false, message: `internal server error: ${error}` })
-                })
+                endStreamHandler(strm.streamId, cb)
             }
         })
 
@@ -176,7 +143,7 @@ const initIoServer = server => {
                     return cb({ success: false, message: 'error:  product index change while stream video is not pushing is not allowed' });
                 }
 
-                if (typeof(strm.products[productIndex]) === 'undefined') {
+                if (typeof (strm.products[productIndex]) === 'undefined') {
                     console.log(`strm invalid product idx ${productIndex} type of ${productIndex}`, strm)
                     return cb({ success: false, message: 'error:  product index is is out of range' })
                 }
@@ -210,12 +177,14 @@ const initIoServer = server => {
                 const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
                 if (statusCode === 2001) {
                     if (lastVideoStatusCode === StreamVideoStatus.WAIT || lastVideoStatusCode === StreamVideoStatus.INTERRUPT) {
-                        return addStreamVideoStatusHistory(strm.streamId, StreamVideoStatus.START)
+                        addStreamVideoStatusHistory(strm.streamId, StreamVideoStatus.START)
+                        return emitToStream(strm.streamId, eventKeys.STREAM_STATUS_UPDATE, toStreamStatusObject(strm))
                     }
                 }
                 if (statusCode === 2002 || statusCode === 2004 || statusCode === 2100 || statusCode === 2101 || statusCode === 2005) {
                     if (lastVideoStatusCode === StreamVideoStatus.START) {
-                        return addStreamVideoStatusHistory(strm.streamId, StreamVideoStatus.INTERRUPT)
+                        addStreamVideoStatusHistory(strm.streamId, StreamVideoStatus.INTERRUPT)
+                        return emitToStream(strm.streamId, eventKeys.STREAM_STATUS_UPDATE, toStreamStatusObject(strm))
                     }
                 }
             }
@@ -263,20 +232,31 @@ const initIoServer = server => {
 
         socket.on('disconnect', reason => {
             console.log(`socketio: client disconnected with reason ${reason}`)
+            //check for store owner behavior
+            let strm = getValidLiveStream(userId, 'naf', storeId)
+            if (strm) {
+                const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
+                if (lastVideoStatusCode === StreamVideoStatus.START) {
+                    addStreamVideoStatusHistory(strm.streamId, StreamVideoStatus.INTERRUPT)
+                    emitToStream(strm.streamId, eventKeys.STREAM_STATUS_UPDATE, toStreamStatusObject(strm))
+                }
+                const lastVideoStatusTime = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].time
+
+                //"freeze" the input to timeout function handling
+                (function(streamId, lastVideoStatusTime) {
+                    setTimeout(() => {
+                        sellerInterruptHandler(streamId, lastVideoStatusTime)
+                    }, 60 * 1000)
+                } (streamId, lastVideoStatusTime));
+
+            }
+
             //check for normal user behavior
-            let strm = getValidLiveStream(userId, 'naf')
+            strm = getValidLiveStream(userId, 'naf')
             if (strm) {
                 socket.leave(strm.streamId)
                 socketServices.removeStreamWithUserId(userId)
                 updateStreamViewCount(userId, strm.streamId, false)
-            }
-            //check for store owner behavior
-            strm = getValidLiveStream(userId, 'naf', storeId)
-            if (strm) {
-                const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
-                if (lastVideoStatusCode === StreamVideoStatus.START) {
-                    return addStreamVideoStatusHistory(strm.streamId, StreamVideoStatus.INTERRUPT)
-                }
             }
         })
 
@@ -400,6 +380,54 @@ const convertRealTimeToVideoTime = (streamId, time) => {
         return time - startTime - delay
     }
     return -1
+}
+
+const endStreamHandler = (streamId, cb) => {
+    socketServices.addStreamVideoStatusHistory(streamId, StreamVideoStatus.END)
+    const strm = streamSessions.get(streamId)
+    const streamStatusObj = toStreamStatusObject(strm)
+    emitToStream(streamId, eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
+
+    //find the stream of storeId
+    StreamModel.findById(streamId).then(async stream => {
+        if (stream === null) {
+            cb({ success: false, message: 'error: cannot find stream in db by stream in session' })
+        } else {
+            let streamId = stream._id.toString()
+            if (stream.endTime !== Number.MAX_SAFE_INTEGER) {
+                return cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
+            }
+            //Archive the stream
+            stream.messages = strm.messages
+            stream.endTime = Date.now()
+            stream.products = strm.products
+            await stream.save()
+
+            let productIds = []
+            strm.products.forEach(p => {
+                productIds.push(p.productId)
+            })
+
+            socketServices.removeFromProductSessions(productIds)
+            streamSessions.delete(streamId)
+            return cb({ success: true })
+        }
+    }).catch(error => {
+        console.log(error)
+        cb({ success: false, message: `internal server error: ${error}` })
+    })
+}
+
+const sellerInterruptHandler = (streamId, lastVideoStatusTime) => {
+    const strm = streamSessions.get(streamId)
+    if (strm) {
+        const lvst = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].time
+        if (lvst !== lastVideoStatusTime) {
+            return console.log(`sellerInterruptHandler: different events triggered, no need to end`)
+        }
+        const cb = console.log
+        endStreamHandler(strm.streamId, cb)
+    }
 }
 
 module.exports = {
