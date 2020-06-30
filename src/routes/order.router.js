@@ -60,8 +60,12 @@ router.post('/create', asyncHandler(async (req, res, next) => {
                 total = total + checkProductStream.streamPrice * listProducts[i].products[j].quantity
             }
 
-
-            product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
+            let listVariantsProduct = product.variants
+            listVariantsProduct[listProducts[i].products[j].variantIndex].quantity = listVariantsProduct[listProducts[i].products[j].variantIndex].quantity- listProducts[i].products[j].quantity
+            // console.log(listVariantsProduct, listVariantsProduct[listProducts[i].products[j].variantIndex].quantity)
+            product.variants = listVariantsProduct
+            // console.log(product.variants)
+            // product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
             // console.log(product.variants[listProducts[i].products[j].variantIndex].quantity)
             // let objVariant = {
             //     color: product.variants[listProducts[i].products[j].variantIndex].color,
@@ -74,6 +78,9 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             // product.variants = [...product.variants]
 
             await product.save();
+
+            // const product1 = await Product.findById(listProducts[i].products[j].productId)
+            // console.log(product1.variants)
         }
 
         const order = await Order.findOne({ $and: [{ userId: userId }, { storeId: listProducts[i].storeId }, { isCompleted: false }, { status: 'PEDDING' }] })
