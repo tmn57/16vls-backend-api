@@ -492,7 +492,6 @@ router.post('/checkPhoneNumber', asyncHandler(async (req, res, next) => {
 
 router.post('/resetPassword', asyncHandler(async (req, res, next) => {
   const { phone, passwordNew } = req.body
-
   if (!phone || !passwordNew) {
     return res.status(400).json({
       success: false,

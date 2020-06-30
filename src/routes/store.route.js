@@ -429,11 +429,26 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
   order.updatedAt = +new Date()
   await order.save();
 
+
   for (let i = 0; i < order.products.length; i++) {
     const product = await Product.findById(order.products[i].productId)
-    product.variants[order.products[i].variantIndex].quantity = product.variants[order.products[i].variantIndex].quantity + order.products[i].quantity
+    // product.variants[order.products[i].variantIndex].quantity = product.variants[order.products[i].variantIndex].quantity + order.products[i].quantity
+    let listVariantsProduct = []
+    for (let k = 0; k < product.variants.length; k++) {
+        let objVariantInProduct = {}
+        objVariantInProduct.color = product.variants[k].color
+        objVariantInProduct.size = product.variants[k].size
+        if (k == order.products[i].variantIndex) {
+            objVariantInProduct.quantity = product.variants[k].quantity + order.products[i].quantity
+        }
+        else {
+            objVariantInProduct.quantity = product.variants[k].quantity
+        }
+        listVariantsProduct.push(objVariantInProduct)
+    }
+    product.variants = listVariantsProduct
     await product.save()
-  }
+}
 
   await NotificationService.sendToSingle(
     'Đơn hàng đã hủy',

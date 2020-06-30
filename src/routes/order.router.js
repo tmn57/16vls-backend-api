@@ -60,27 +60,27 @@ router.post('/create', asyncHandler(async (req, res, next) => {
                 total = total + checkProductStream.streamPrice * listProducts[i].products[j].quantity
             }
 
-            let listVariantsProduct = product.variants
-            listVariantsProduct[listProducts[i].products[j].variantIndex].quantity = listVariantsProduct[listProducts[i].products[j].variantIndex].quantity- listProducts[i].products[j].quantity
+            // let listVariantsProduct = product.variants
+            // listVariantsProduct[listProducts[i].products[j].variantIndex].quantity = listVariantsProduct[listProducts[i].products[j].variantIndex].quantity- listProducts[i].products[j].quantity
             // console.log(listVariantsProduct, listVariantsProduct[listProducts[i].products[j].variantIndex].quantity)
+            // product.variants = listVariantsProduct
+            let listVariantsProduct = []
+            for (let k = 0; k < product.variants.length; k++) {
+                let objVariantInProduct = {}
+                objVariantInProduct.color = product.variants[k].color
+                objVariantInProduct.size = product.variants[k].size
+                if (k == listProducts[i].products[j].variantIndex) {
+                    objVariantInProduct.quantity = product.variants[k].quantity - listProducts[i].products[j].quantity
+                }
+                else {
+                    objVariantInProduct.quantity = product.variants[k].quantity
+                }
+                listVariantsProduct.push(objVariantInProduct)
+            }
             product.variants = listVariantsProduct
-            // console.log(product.variants)
-            // product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
-            // console.log(product.variants[listProducts[i].products[j].variantIndex].quantity)
-            // let objVariant = {
-            //     color: product.variants[listProducts[i].products[j].variantIndex].color,
-            //     size: product.variants[listProducts[i].products[j].variantIndex].size,
-            //     quantity: product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
-            // }
-            // product.variants[listProducts[i].products[j].variantIndex] = objVariant
-            // let tmpVariants = product.variants
-            // product.variants = tmpVariants
-            // product.variants = [...product.variants]
-
-            await product.save();
-
-            // const product1 = await Product.findById(listProducts[i].products[j].productId)
-            // console.log(product1.variants)
+                // product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
+                /
+                await product.save();
         }
 
         const order = await Order.findOne({ $and: [{ userId: userId }, { storeId: listProducts[i].storeId }, { isCompleted: false }, { status: 'PEDDING' }] })
@@ -444,17 +444,31 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
         })
     }
 
-    for (let i = 0; i < order.products.length; i++) {
-        const product = await Product.findById(order.products[i].productId)
-        product.variants[order.products[i].variantIndex].quantity = product.variants[order.products[i].variantIndex].quantity + order.products[i].quantity
-        await product.save()
-    }
-
     order.status = 'REJECT'
     order.isCompleted = true
     order.updatedBy = userId
     order.updatedAt = +new Date()
     await order.save();
+
+    for (let i = 0; i < order.products.length; i++) {
+        const product = await Product.findById(order.products[i].productId)
+        // product.variants[order.products[i].variantIndex].quantity = product.variants[order.products[i].variantIndex].quantity + order.products[i].quantity
+        let listVariantsProduct = []
+        for (let k = 0; k < product.variants.length; k++) {
+            let objVariantInProduct = {}
+            objVariantInProduct.color = product.variants[k].color
+            objVariantInProduct.size = product.variants[k].size
+            if (k == order.products[i].variantIndex) {
+                objVariantInProduct.quantity = product.variants[k].quantity + order.products[i].quantity
+            }
+            else {
+                objVariantInProduct.quantity = product.variants[k].quantity
+            }
+            listVariantsProduct.push(objVariantInProduct)
+        }
+        product.variants = listVariantsProduct
+        await product.save()
+    }
 
     return res.status(200).json({
         success: true,
