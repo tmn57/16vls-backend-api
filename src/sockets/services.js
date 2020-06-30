@@ -42,23 +42,6 @@ const getStreamInfoList = () => {
     return result
 }
 
-const getUsersInfo = async userIds => {
-    if (userIds.length) {
-        //get infos from db
-        // await userModels.find({'_id':{$in:userIds}}).then(users=>{
-
-        // }).catch(error => {
-        //     console.log('get info of users error',error)
-        //     return {}
-        // })
-        return [{ userId: 'useridtest' }, { userId: 'hostuidtest' }]
-
-    } else {
-        console.warn('getUsersInfo error: the userIds must not be an empty array')
-        return []
-    }
-}
-
 const getStreamIdByUserId = userId => {
     if (userSessions.has(userId)) {
         return userSessions.get(userId).streamId || null
@@ -149,17 +132,17 @@ const getValidLiveStream = (userId, cb, storeId) => {
     const streamId = getStreamIdByUserId(userId)
     const callback = (typeof (cb) === 'function') ? cb : console.log
     if (!streamId) {
-        callback({ success: false, message: `error: not found stream of you` })
+        callback({ success: false, message: `Không tìm thấy stream cho bạn` })
         return null
     }
     let strm = streamSessions.get(streamId)
     if (!strm) {
         console.log(`error: stream ${streamId} not found in streamSessions (live)`)
-        callback({ success: false, message: `error: stream ${streamId} not found in streamSessions (live)` })
+        callback({ success: false, message: `StreamID ${streamId} không tồn tại trên trình quản lý phiên stream` })
         return null
     }
     if (storeId && (strm.storeId !== storeId)) {
-        callback({ success: false, message: `error: you are trying to action stream of shopId ${strm.storeId}` })
+        callback({ success: false, message: `Bạn đang cố thao tác trên shop của ShopID: ${strm.storeId}` })
         return null
     }
     return strm
@@ -215,6 +198,13 @@ const toStreamStatusObject = (streamObject) => {
     }
 }
 
+
+//User RealTime Token Manager
+//{userId, name, phone, avatarUri, expiredAt}
+const signToken = (userDbObject) => {
+    const {userId, name, phone} = userDbObject;
+}
+//END: user realtime token manager
 module.exports = {
     streamSessions,
     userSessions,
@@ -223,7 +213,6 @@ module.exports = {
     generateStreamToken,
     isValidStreamToken,
     getStreamInfoList,
-    getUsersInfo,
     getStreamIdByUserId,
     setStreamWithUserId,
     removeStreamWithUserId,

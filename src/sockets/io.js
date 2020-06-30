@@ -35,13 +35,13 @@ const initIoServer = server => {
         oldStreamId && socket.leave(oldStreamId)
 
 
-        socket.emit(eventKeys.SERVER_MESSAGE, toMessageObject('message', `hello ${userId}`))
+        socket.emit(eventKeys.SERVER_MESSAGE, toMessageObject('message', `Xin chào ${userId}!`))
 
         socket.on(eventKeys.USER_JOIN_STREAM, (streamId, cb) => {
             try {
                 StreamModel.findById(streamId).then(stream => {
                     if (stream === null) {
-                        cb({ success: false, message: 'error: streamId is invalid' })
+                        cb({ success: false, message: 'StreamID không hợp lệ' })
                     } else {
                         console.log(`user ${userId} is joining stream ${streamId}`)
                         userJoinsStream(socket, streamId)
@@ -68,25 +68,25 @@ const initIoServer = server => {
                 })
             } catch (error) {
                 console.log(`error: db error ${error}`)
-                cb({ success: false, message: `error: internal server error: ${error}` })
+                cb({ success: false, message: `Đã có lỗi xảy ra trong hệ thống: ${error}` })
             }
         })
 
         socket.on(eventKeys.SELLER_START_STREAM, (p, cb) => {
             const streamId = socketServices.getStreamIdByUserId(userId)
             if (!streamId) {
-                return cb({ success: false, message: 'error: you must join a stream first' })
+                return cb({ success: false, message: 'Bạn phải tham gia vào một phiên stream trước' })
             }
             console.log(`user ${userId} with store ${storeId} is start stream ${streamId}`)
             //find the stream of storeId
             try {
                 StreamModel.findOne({ storeId, endTime: Number.MIN_SAFE_INTEGER }).then(async stream => {
                     if (stream === null) {
-                        return cb({ success: false, message: 'error: streamId is invalid for you, seller!' })
+                        return cb({ success: false, message: 'Bạn không phải là chủ phiên stream này' })
                     } else {
                         if (streamId !== stream._id.toString()) {
                             console.log(`error: seller ${userId} want to start stream ${streamId} but got ${stream._id.toString()}`)
-                            return cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
+                            return cb({ success: false, message: 'Lỗi khi triển khai stream, bạn cần thoát màn hình stream và quay lại' })
                         }
                         stream.endTime = Number.MAX_SAFE_INTEGER
                         stream.markModified('endTime')
@@ -99,7 +99,7 @@ const initIoServer = server => {
                     }
                 })
             } catch (error) {
-                cb({ success: false, message: `error: internal server error: ${error}` })
+                cb({ success: false, message: `Đã có lỗi xảy ra trong hệ thống: ${error}` })
             }
         })
 
@@ -115,7 +115,7 @@ const initIoServer = server => {
             if (strm) {
                 //not allow comment in not-live-yet stream
                 if (strm.videoStreamStatusHistory.length === 1) {
-                    return cb({ success: false, message: 'stream does not allow comment while video is not starting yet' })
+                    return cb({ success: false, message: 'Bạn không thể bình luận khi phiên stream chưa bắt đầu' })
                 }
                 //calc current time in video:
                 const lastStatusObject = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1]
@@ -140,15 +140,15 @@ const initIoServer = server => {
             if (strm) {
                 const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
                 if (lastVideoStatusCode !== StreamVideoStatus.START) {
-                    return cb({ success: false, message: 'error:  product index change while stream video is not pushing is not allowed' });
+                    return cb({ success: false, message: 'Bạn không được đổi sản phẩm đang giới thiệu khi việc phát video bị gián đoạn' });
                 }
 
                 if (typeof (strm.products[productIndex]) === 'undefined') {
                     console.log(`strm invalid product idx ${productIndex} type of ${productIndex}`, strm)
-                    return cb({ success: false, message: 'error:  product index is is out of range' })
+                    return cb({ success: false, message: 'Sản phẩm nằm ngoài danh mục đang phát, có thể xuất phát từ lỗi ứng dụng' })
                 }
-                //TODO: convert to 'relative' time
-                const inStreamAt = convertRealTimeToVideoTime(Date.now())
+                
+		const inStreamAt = convertRealTimeToVideoTime(Date.now())
                 strm['currentProductIndex'] = productIndex
                 strm.products[productIndex].inStreamAts.push(inStreamAt)
                 streamSessions.set(strm.streamId, strm)
@@ -211,7 +211,7 @@ const initIoServer = server => {
                     const result = await addProductToCart(productId, quantity, variantIndex, userId, isReliable)
                     if (result.cart) {
                         if (isReliable) emitToStream(strm.streamId, eventKeys.STREAM_PRODUCT_QUANTITY, { productIndex, variantIndex, quantity: result.newProductQuantity })
-                        return cb({ success: true, message: `added to cart!` })
+                        return cb({ success: true, message: `Đã thêm vào giỏ hàng!` })
                     }
                 }
             }
@@ -226,7 +226,7 @@ const initIoServer = server => {
                 if (isSuccess) {
                     return cb({ success: true, isUnlike: iUL })
                 }
-                return cb({ success: false, message: 'cannot do like/unlike action' })
+                return cb({ success: false, message: 'Không thể thao tác thích/bỏ thích lúc này' })
             }
         })
 
@@ -268,12 +268,12 @@ const userJoinsStream = (socket, streamId) => {
         const userId = socket.decoded_token.userId
         socketServices.setStreamWithUserId(userId, streamId)
         socket.join(streamId)
-        emitToStream(streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `${userId} joined the stream`))
+        emitToStream(streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `${userId} đã tham gia`))
         updateStreamViewCount(userId, streamId, true)
     }
     catch (error) {
         console.log(error)
-        emitToStream(streamId, eventKeys.SERVER_MESSAGE, toMessageObject('error', `error: ${error}`))
+        emitToStream(streamId, eventKeys.SERVER_MESSAGE, toMessageObject('error', `Lỗi từ hệ thống: ${error}`))
     }
 }
 
@@ -391,11 +391,11 @@ const endStreamHandler = (streamId, cb) => {
     //find the stream of storeId
     StreamModel.findById(streamId).then(async stream => {
         if (stream === null) {
-            cb({ success: false, message: 'error: cannot find stream in db by stream in session' })
+            cb({ success: false, message: 'Không tồn tại stream trong db nhưng lại có trong streamSessions' })
         } else {
             let streamId = stream._id.toString()
             if (stream.endTime !== Number.MAX_SAFE_INTEGER) {
-                return cb({ success: false, message: 'error: seller streaming flow is broken: you must use "join the stream" event before start the stream' })
+                return cb({ success: false, message: 'Lỗi khi triển khai stream, bạn cần thoát màn hình stream và quay lại' })
             }
             //Archive the stream
             stream.messages = strm.messages
@@ -414,7 +414,7 @@ const endStreamHandler = (streamId, cb) => {
         }
     }).catch(error => {
         console.log(error)
-        cb({ success: false, message: `internal server error: ${error}` })
+        cb({ success: false, message: `Lỗi từ hệ thống: ${error}` })
     })
 }
 

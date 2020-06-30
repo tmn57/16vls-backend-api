@@ -11,9 +11,13 @@ var streamTokens = new Map()
 //
 var productSessions = new Map()
 
+//userTokens <K,V>: K: token, V: {userId, name, phone, avatarUri, expiredAt}
+var userTokens = new Map()
+
 module.exports = {
     userSessions,
     streamSessions,
     streamTokens,
-    productSessions
+    productSessions,
+    userTokens
 }
