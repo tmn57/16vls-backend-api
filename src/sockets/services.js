@@ -175,6 +175,8 @@ const toStreamStatusObject = (streamObject) => {
     let message = ''
 
     if (typeof streamObject['streamId'] === 'undefined') {
+        const { endTime, startTime, recordedFileName, _id } = streamObject
+        const streamId = _id.toString()
         //if stream db obj
         if (endTime === Number.MIN_SAFE_INTEGER && startTime !== 0) {
             statusCode = 0
@@ -193,7 +195,7 @@ const toStreamStatusObject = (streamObject) => {
         return { statusCode, videoUri, message }
     } else {
         //if stream session obj
-        const { videoStreamStatusHistory: vsh } = streamObject
+        const { streamId, videoStreamStatusHistory: vsh } = streamObject
         if (vsh.length === 1) {
             return { statusCode: 1, videoUri, message }
         }
