@@ -42,38 +42,41 @@ router.post('/update', asyncHandler(async (req, res, next) => {
   }
 }))
 
-router.post('/changePass', async (req, res, next) => {
-  try {
-    const { newPassword } = req.body
-    const { userId } = req.tokenPayload
-    const user = await User.findById(userId, {
-      refreshToken: false
-    })
-    if (user) {
-      let decodedPassword = CryptoJS.AES.decrypt(
-        newPassword,
-        PASSWORD_KEY
-      ).toString(CryptoJS.enc.Utf8)
-      user.password = await bcrypt.hash(decodedPassword, 10)
-      user.refreshToken = randtoken.generate(80)
-      await user.save()
-      return res.status(201).json({
-        success: true,
-        message: 'password has been changed successfully!'
-      })
-    } else {
-      return res.status(401).json({
+router.post('/changePassword', asyncHandler(async (req, res, next) => {
+  const { newPassword, curPassword } = req.body
+  const { userId } = req.tokenPayload
+  const user = await User.findById(userId, {
+    refreshToken: false
+  })
+  if (user) {
+    let decodedCurPassword = CryptoJS.AES.decrypt(curPassword, PASSWORD_KEY).toString(CryptoJS.enc.Utf8)
+    const matched = await bcrypt.compare(decodedCurPassword, user.password)
+    if (!matched) {
+      return res.status(400).json({
         success: false,
-        message: 'user not found in database!'
+        message: 'Current password is incorrect!',
       })
     }
-  } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: err.toString()
+
+    let decodedPassword = CryptoJS.AES.decrypt(newPassword, PASSWORD_KEY).toString(CryptoJS.enc.Utf8)
+    user.password = await bcrypt.hash(decodedPassword, 10)
+    user.refreshToken = randtoken.generate(80)
+    user.updatedBy = userId
+    user.updatedAt = +new Date()
+    await user.save()
+    return res.status(201).json({
+      success: true,
+      message: 'Password has been changed successfully!'
     })
   }
-})
+  else {
+    return res.status(401).json({
+      success: false,
+      message: 'user not found in database!'
+    })
+  }
+
+}))
 
 router.get('/info', async (req, res) => {
   try {
