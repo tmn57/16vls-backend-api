@@ -544,4 +544,64 @@ router.post('/resetPassword', asyncHandler(async (req, res, next) => {
 
 }))
 
+
+router.post('/verifyResetPassword', asyncHandler(async (req, res, next) => {
+    const { code, phone } = req.body
+    if (!phone || !code) {
+      return res.status(400).json({
+        success: false,
+        message: 'phone, code are required!',
+      })
+    }
+    if (!phoneNumberVerify.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: 'invalid phone number!',
+      })
+    } else {
+      const userExisted = await User.findOne({ phone })
+      if (userExisted) {
+        if (!userExisted.isEnabled) {
+          return res.status(403).json({
+            success: false,
+            message:
+              'This account was existed and have been locked, please contact to administrator!',
+          })
+        } else {
+          if (userExisted.isVerified) {
+            const verification = await checkSmsOtpCode({
+              phone: userExisted.phone,
+              code,
+            })
+            if (
+              verification &&
+              verification.valid
+            ) {
+              return res.status(400).json({
+                success: true,
+                message: 'Verify successfully!',
+              })
+            } else {
+              return res.status(403).json({
+                success: false,
+                message: 'This code is incorrect or expired!',
+              })
+            }
+          } else {
+            return res.status(403).json({
+              success: false,
+              message: 'This phone number has not been verified!',
+            })
+          }
+        }
+      } else {
+        return res.status(403).json({
+          success: false,
+          message: 'This phone number has not been registered before!',
+        })
+      }
+    }
+  
+}))
+
 module.exports = router
