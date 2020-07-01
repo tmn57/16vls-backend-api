@@ -29,6 +29,7 @@ const sendMulticast = async (registrationTokens, messageObject) => {
     let msgObj = messageObject
     msgObj['tokens'] = registrationTokens
     console.log(`fb send multicast msgObj`, msgObj)
+    msgObj.notification.meta = msgObj['data']
     delete msgObj['data']
     await admin.messaging().sendMulticast(msgObj)
         .then((response) => {
