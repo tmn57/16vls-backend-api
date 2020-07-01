@@ -25,12 +25,8 @@ const sendSingle = async (registrationToken, messageObject) => {
 
 const sendMulticast = async (registrationTokens, messageObject) => {
     if (!Array.isArray(registrationTokens)) return []
-    console.log(`FB sendMulticast called: sending notification : ${messageObject} to ${registrationTokens.length} tokens`)
     let msgObj = messageObject
     msgObj['tokens'] = registrationTokens
-    console.log(`fb send multicast msgObj`, msgObj)
-    msgObj.notification.meta = msgObj['data']
-    delete msgObj['data']
     await admin.messaging().sendMulticast(msgObj)
         .then((response) => {
             if (response.failureCount > 0) {
@@ -62,7 +58,7 @@ const toMessageObject = (title, body, dataObject) => {
         }
     }
     if (typeof (dataObject) === 'object')
-        msgObj['data'] = dataObject
+        msgObj['data'] = {meta: JSON.stringify(dataObject)}
     return msgObj
 }
 
