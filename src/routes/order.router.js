@@ -78,9 +78,9 @@ router.post('/create', asyncHandler(async (req, res, next) => {
                 listVariantsProduct.push(objVariantInProduct)
             }
             product.variants = listVariantsProduct
-                // product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
-                /
-                await product.save();
+            // product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
+
+            await product.save();
         }
 
         const order = await Order.findOne({ $and: [{ userId: userId }, { storeId: listProducts[i].storeId }, { isCompleted: false }, { status: 'PEDDING' }] })

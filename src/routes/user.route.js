@@ -138,6 +138,7 @@ router.post('/updateAddress', asyncHandler(async (req, res, next) => {
 
   user.address = obj
   user.updatedBy = userId
+  user.updatedAt = +new Date()
   await user.save()
 
   return res.status(200).json({
