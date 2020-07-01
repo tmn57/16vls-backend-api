@@ -25,6 +25,7 @@ const sendSingle = async (registrationToken, messageObject) => {
 
 const sendMulticast = async (registrationTokens, messageObject) => {
     if (!Array.isArray(registrationTokens)) return []
+    console.log(`FB sendMulticast called: sending notification : ${messageObject} to ${registrationTokens.length} tokens`)
     let msgObj = messageObject
     msgObj['tokens'] = registrationTokens
     await admin.messaging().sendMulticast(msgObj)

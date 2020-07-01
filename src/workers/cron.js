@@ -1,5 +1,6 @@
 var CronJob = require('cron').CronJob;
 const fb = require('../utils/firebase');
+const NotificationServices = require('../services/notification')
 const { multicastMessageQueue, updateMulticastMessageQueue } = require('./services')
 const MAX_NOTIFICATIONS_PER_REQUEST = 10
 
