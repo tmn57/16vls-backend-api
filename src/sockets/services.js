@@ -215,7 +215,7 @@ const signRealtimeToken = async userDbObject => {
     //set to map
     userTokens.set(newToken, {
         userId,
-        name,
+        name: name ? name : phone,
         phone,
         avatar,
         storeId,

@@ -135,6 +135,7 @@ const initIoServer = server => {
                 }
                 let payload = {
                     userId,
+                    name: userName,
                     inStreamAt: convertRealTimeToVideoTime(strm.streamId, currentVideoTime),
                     message: msg
                 }
@@ -275,10 +276,10 @@ const initIoServer = server => {
 
 const userJoinsStream = (socket, streamId) => {
     try {
-        const userId = socket.user_payload.userId
+        const {userId, userName} = socket.user_payload
         socketServices.setStreamWithUserId(userId, streamId)
         socket.join(streamId)
-        emitToStream(streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `${userId} đã tham gia`))
+        emitToStream(streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `${userName} đã tham gia`))
         updateStreamViewCount(userId, streamId, true)
     }
     catch (error) {

@@ -16,6 +16,7 @@ const StreamSchema = new Schema(//_id,newname
     }],
     messages: [{
       userId: String,
+      name: String,
       message: { type: String, default: 'text message' },
       inStreamAt: { type: Number, default: 0 }
     }],
