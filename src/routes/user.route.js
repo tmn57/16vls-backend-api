@@ -37,7 +37,7 @@ router.post('/update', asyncHandler(async (req, res, next) => {
   } else {
     return res.status(401).json({
       success: false,
-      message: 'User not found in database!'
+      message: 'Không tìm thấy người dùng trong database'
     })
   }
 }))
@@ -54,7 +54,7 @@ router.post('/changePassword', asyncHandler(async (req, res, next) => {
     if (!matched) {
       return res.status(400).json({
         success: false,
-        message: 'Current password is incorrect!',
+        message: 'Sai mật khẩu cũ',
       })
     }
 
@@ -66,13 +66,13 @@ router.post('/changePassword', asyncHandler(async (req, res, next) => {
     await user.save()
     return res.status(201).json({
       success: true,
-      message: 'Password has been changed successfully!'
+      message: 'Thay đổi mật khẩu thành công'
     })
   }
   else {
     return res.status(401).json({
       success: false,
-      message: 'user not found in database!'
+      message: 'Không tìm thấy người dùng trong database'
     })
   }
 
@@ -98,7 +98,7 @@ router.get('/info', async (req, res) => {
     } else {
       res.status(403).json({
         success: false,
-        message: 'user not found!'
+        message: 'Không tìm thấy người dùng'
       })
     }
   } catch (err) {
@@ -117,7 +117,7 @@ router.post('/updateAddress', asyncHandler(async (req, res, next) => {
   if (Object.keys(req.body).length < 1) {
     return res.status(400).json({
       success: false,
-      message: 'Bothing to update'
+      message: 'Không có gì để cập nhật'
     })
   }
 
@@ -125,7 +125,7 @@ router.post('/updateAddress', asyncHandler(async (req, res, next) => {
   if (!user) {
     return res.status(400).json({
       success: false,
-      message: 'User not found in database!'
+      message: 'Không tìm thấy người dùng trong database'
     })
   }
 
@@ -156,7 +156,7 @@ router.post('/updateShippingAddress', asyncHandler(async (req, res, next) => {
   if (Object.keys(req.body).length < 1) {
     return res.status(400).json({
       success: false,
-      message: 'Bothing to update'
+      message: 'Không có gì để cập nhật'
     })
   }
 
@@ -164,7 +164,7 @@ router.post('/updateShippingAddress', asyncHandler(async (req, res, next) => {
   if (!user) {
     return res.status(400).json({
       success: false,
-      message: 'User not found in database!'
+      message: 'Không tìm thấy người dùng trong database'
     })
   }
 
