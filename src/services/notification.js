@@ -73,7 +73,7 @@ const sendToMany = async (title, body, userIds, itime, metadata) => {
     })
 
     if (fbDeviceTokens.length) {
-        console.log(`Notification Service: sending notification for tokens ${fbDeviceTokens}`)
+        console.log(`Notification Service: sending notification for ${fbDeviceTokens.length} tokens`)
         NotificationModel.collection.insertMany(newNotifications, (err, docs) =>{
             console.log(`inserted ${docs.insertedCount} notifications ${err && `got errors: ${err}`}`)
         })

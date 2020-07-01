@@ -28,6 +28,7 @@ const sendMulticast = async (registrationTokens, messageObject) => {
     console.log(`FB sendMulticast called: sending notification : ${messageObject} to ${registrationTokens.length} tokens`)
     let msgObj = messageObject
     msgObj['tokens'] = registrationTokens
+    console.log(`fb send multicast msgObj`, msgObj)
     await admin.messaging().sendMulticast(msgObj)
         .then((response) => {
             if (response.failureCount > 0) {
