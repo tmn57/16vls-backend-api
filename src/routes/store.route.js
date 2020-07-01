@@ -10,7 +10,7 @@ const { phoneNumberVerify, isAdmin } = require('../utils/common')
 const { isAuthenticated, storeOwnerRequired, isAdministrator } = require('../middlewares/auth')
 const NotificationModel = require('../models/notification')
 const NotificationService = require('../services/notification')
-
+const { checkProductLiveStream, onChangeQuantityProductVariant } = require('../services/product')
 
 router.post('/create', async (req, res, next) => {
   try {
@@ -324,12 +324,20 @@ router.get('/orderOfStore', asyncHandler(async (req, res, next) => {
     let listProductsOrder = []
     for (let j = 0; j < order[i].products.length; j++) {
       const product = await Product.findById(order[i].products[j].productId)
+
+      let checkProductStream = checkProductLiveStream(product)
+      let price = product.price
+      if (checkProductStream != null) {
+        price = checkProductStream.streamPrice
+      }
+
       let objProduct = {
         productId: order[i].products[j].productId,
         variantIndex: order[i].products[j].variantIndex,
         quantity: order[i].products[j].quantity,
         productName: product.name,
-        productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
+        productPrice: price,
+        // productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
         productImage: product.images.length > 0 ? product.images[0] : '',
         productVariant: {
           color: product.variants[order[i].products[j].variantIndex].color,
@@ -435,20 +443,20 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
     // product.variants[order.products[i].variantIndex].quantity = product.variants[order.products[i].variantIndex].quantity + order.products[i].quantity
     let listVariantsProduct = []
     for (let k = 0; k < product.variants.length; k++) {
-        let objVariantInProduct = {}
-        objVariantInProduct.color = product.variants[k].color
-        objVariantInProduct.size = product.variants[k].size
-        if (k == order.products[i].variantIndex) {
-            objVariantInProduct.quantity = product.variants[k].quantity + order.products[i].quantity
-        }
-        else {
-            objVariantInProduct.quantity = product.variants[k].quantity
-        }
-        listVariantsProduct.push(objVariantInProduct)
+      let objVariantInProduct = {}
+      objVariantInProduct.color = product.variants[k].color
+      objVariantInProduct.size = product.variants[k].size
+      if (k == order.products[i].variantIndex) {
+        objVariantInProduct.quantity = product.variants[k].quantity + order.products[i].quantity
+      }
+      else {
+        objVariantInProduct.quantity = product.variants[k].quantity
+      }
+      listVariantsProduct.push(objVariantInProduct)
     }
     product.variants = listVariantsProduct
     await product.save()
-}
+  }
 
   await NotificationService.sendToSingle(
     'Đơn hàng đã hủy',
@@ -481,12 +489,20 @@ router.get('/orderApproveOfStore', asyncHandler(async (req, res, next) => {
     let listProductsOrder = []
     for (let j = 0; j < order[i].products.length; j++) {
       const product = await Product.findById(order[i].products[j].productId)
+
+      let checkProductStream = checkProductLiveStream(product)
+      let price = product.price
+      if (checkProductStream != null) {
+        price = checkProductStream.streamPrice
+      }
+
       let objProduct = {
         productId: order[i].products[j].productId,
         variantIndex: order[i].products[j].variantIndex,
         quantity: order[i].products[j].quantity,
         productName: product.name,
-        productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
+        productPrice: price,
+        // productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
         productImage: product.images.length > 0 ? product.images[0] : '',
         productVariant: {
           color: product.variants[order[i].products[j].variantIndex].color,
@@ -545,12 +561,20 @@ router.get('/orderRejectOfStore', asyncHandler(async (req, res, next) => {
     let listProductsOrder = []
     for (let j = 0; j < order[i].products.length; j++) {
       const product = await Product.findById(order[i].products[j].productId)
+
+      let checkProductStream = checkProductLiveStream(product)
+      let price = product.price
+      if (checkProductStream != null) {
+        price = checkProductStream.streamPrice
+      }
+
       let objProduct = {
         productId: order[i].products[j].productId,
         variantIndex: order[i].products[j].variantIndex,
         quantity: order[i].products[j].quantity,
         productName: product.name,
-        productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
+        productPrice: price,
+        // productPrice: product.promotionPrice != 0 ? product.promotionPrice : product.price,
         productImage: product.images.length > 0 ? product.images[0] : '',
         productVariant: {
           color: product.variants[order[i].products[j].variantIndex].color,
