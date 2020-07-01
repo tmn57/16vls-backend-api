@@ -134,17 +134,17 @@ const getValidLiveStream = (userId, cb, storeId) => {
     const streamId = getStreamIdByUserId(userId)
     const callback = (typeof (cb) === 'function') ? cb : console.log
     if (!streamId) {
-        callback({ success: false, message: `Không tìm thấy stream cho bạn` })
+        callback({ success: false, message: `Không tìm thấy stream cho bạn`, errorCode: 2 })
         return null
     }
     let strm = streamSessions.get(streamId)
     if (!strm) {
         console.log(`error: stream ${streamId} not found in streamSessions (live)`)
-        callback({ success: false, message: `StreamID ${streamId} không tồn tại trên trình quản lý phiên stream` })
+        callback({ success: false, message: `StreamID ${streamId} không tồn tại trên trình quản lý phiên stream`, errorCode: 2 })
         return null
     }
     if (storeId && (strm.storeId !== storeId)) {
-        callback({ success: false, message: `Bạn đang cố thao tác trên shop của ShopID: ${strm.storeId}` })
+        callback({ success: false, message: `Bạn đang cố thao tác trên shop của ShopID: ${strm.storeId}`, errorCode: 0 })
         return null
     }
     return strm
