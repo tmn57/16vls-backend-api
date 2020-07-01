@@ -63,7 +63,9 @@ const sendToMany = async (title, body, userIds, itime, metadata) => {
                 userId: u._id.toString(),
                 title,
                 body,
-                status: 1
+                status: 1,
+                createdAt: Date.now(),
+                updatedAt: Date.now()
             })
             metadata && (newNotification.data = metadata)
             newNotifications.push(newNotification)

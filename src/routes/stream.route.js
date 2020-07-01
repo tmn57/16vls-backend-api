@@ -44,7 +44,8 @@ router.get('/sellerCheck', isAuthenticated, storeOwnerRequired, asyncHandler(asy
 
 router.post('/delete', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
     const { streamId } = req.body
-    const delStream = await StreamModel.findOneAndDelete({ _id: streamId, endTime: Number.MIN_SAFE_INTEGER })
+    const { storeId } = req
+    const delStream = await StreamModel.findOneAndDelete({ _id: streamId, storeId , endTime: Number.MIN_SAFE_INTEGER })
     if (delStream) {
         workerServices.removeFromStreamTasks(delStream._id.toString())
         return res.status(200).json({
@@ -53,7 +54,7 @@ router.post('/delete', isAuthenticated, storeOwnerRequired, asyncHandler(async (
     }
     res.status(400).json({
         success: false,
-        message: `không thể tìm thấy stream hợp lệ cho ${streamId} của bạn`
+        message: `Chỉ được xóa bởi chủ store và stream đó chưa live `
     })
 }))
 
@@ -205,7 +206,7 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
             list.push(l)
         }
     })
-    
+
     res.status(200).json({
         success: true,
         data: list

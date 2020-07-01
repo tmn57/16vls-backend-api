@@ -48,7 +48,9 @@ const updateMulticastMessageQueue = () => {
                         userId: user._id.toString(),
                         title,
                         body,
-                        status: 1
+                        status: 1,
+                        createdAt: Date.now(),
+                        updatedAt: Date.now(),
                     }))
                 }
             })
