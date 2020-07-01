@@ -2,7 +2,6 @@ const express = require('express')
 const asyncHandler = require('express-async-handler')
 const jwt = require('jsonwebtoken')
 const dayjs = require('dayjs')
-const { SOCKETIO_JWT_SECRET } = require('../config')
 const { StreamVideoStatus } = require('../sockets/constants')
 const streamHandler = require('../sockets/services')
 const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
@@ -44,7 +43,8 @@ router.get('/sellerCheck', isAuthenticated, storeOwnerRequired, asyncHandler(asy
 
 router.post('/delete', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
     const { streamId } = req.body
-    const delStream = await StreamModel.findOneAndDelete({ _id: streamId, endTime: Number.MIN_SAFE_INTEGER })
+    const { storeId } = req
+    const delStream = await StreamModel.findOneAndDelete({ _id: streamId, storeId , endTime: Number.MIN_SAFE_INTEGER })
     if (delStream) {
         workerServices.removeFromStreamTasks(delStream._id.toString())
         return res.status(200).json({
@@ -53,7 +53,7 @@ router.post('/delete', isAuthenticated, storeOwnerRequired, asyncHandler(async (
     }
     res.status(400).json({
         success: false,
-        message: `không thể tìm thấy stream hợp lệ cho ${streamId} của bạn`
+        message: `Chỉ được xóa bởi chủ store và stream đó chưa live `
     })
 }))
 
@@ -61,8 +61,6 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
     const { startTime, title, products } = req.body
 
     let prodsDbObj = []
-
-    console.log("body payload", req.body)
 
     products.forEach(product => {
         const { productId, streamPrice } = product
@@ -82,7 +80,7 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
     const store = await StoreModel.findById(req.storeId)
     const { name: storeName } = store
     const { _id } = addedStream
-    const nofMsgObj = fb.toMessageObject(`Livestream của ${storeName} sắp diễn ra!`, `${title} lúc ${dayjs(startTime).locale('vi-vn').format('HH:mm:ss')}`, { target: 'streaming', params: { streamId: _id.toString() } })
+    const nofMsgObj = fb.toMessageObject(`Livestream của ${storeName} sắp diễn ra!`, `${title} lúc ${dayjs(startTime).locale('vi-vn').format('HH:mm:ss')}`, { target: 'watching', params: { streamId: _id.toString() } })
     workerServices.addToStreamTasks(_id.toString(), startTime, nofMsgObj, req.storeId)
     //END
 
@@ -94,8 +92,6 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
 
 router.post('/update', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
     const { streamId, startTime, title, products } = req.body
-
-    console.log("body payload", req.body)
 
     let stream = await StreamModel.findOne({ _id: streamId, storeId: req.storeId })
 
@@ -139,17 +135,6 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
         })
     }
     next(raiseError(500, 'Đã có lỗi xảy ra trong quá trình lấy rttk'))
-    // let rtPayload = { userId }
-
-    // store = await StoreModel.findOne({ userId })
-
-    // if (store !== null) {
-    //     rtPayload["storeId"] = store._id.toString()
-    // }
-
-    // const tok = jwt.sign(rtPayload, SOCKETIO_JWT_SECRET, { expiresIn: '6h' })
-
-    // console.log(rtPayload, tok)
 }))
 
 router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
@@ -205,7 +190,7 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
             list.push(l)
         }
     })
-    
+
     res.status(200).json({
         success: true,
         data: list

@@ -1,5 +1,6 @@
 var CronJob = require('cron').CronJob;
 const fb = require('../utils/firebase');
+const NotificationServices = require('../services/notification')
 const { multicastMessageQueue, updateMulticastMessageQueue } = require('./services')
 const MAX_NOTIFICATIONS_PER_REQUEST = 10
 
@@ -21,12 +22,15 @@ var pushNotificationJob = new CronJob('7 * * * * *', () => {
     // isPushing = false
 })
 
-var pushMulticastNotificationJob = new CronJob('10 * * * * *', () => {
+var pushMulticastNotificationJob = new CronJob('10 * * * * *', async () => {
     if (!multicastMessageQueue.length) return;
     isPushing = true
     const { messageObject, tokens } = multicastMessageQueue.shift()
     console.log(`pushMulticastNotificationJob: sending `, messageObject,`for ${tokens.length} tokens`)
-    fb.sendMulticast(tokens, messageObject)
+    const failedTokens = await fb.sendMulticast(tokens, messageObject)
+    if (failedTokens && Array.isArray(failedTokens)) {
+        console.log(`pushMulticastNotificationJob: sent got ${failedTokens.length} failed tokens`)
+    }
     isPushing = false
 })
 

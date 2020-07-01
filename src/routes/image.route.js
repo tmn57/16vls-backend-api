@@ -17,7 +17,7 @@ router.post('/upload', async (req, res, next) => {
         if (!Array.isArray(req.files)) {
           return res.status(400).json({
             success: false,
-            message: 'Error: No Files Selected!'
+            message: 'Chưa có file nào được chọn'
           })
         } else {
           req.files.forEach(async (item) => {
@@ -54,7 +54,7 @@ router.get('/allByUser', async (req, res) => {
     } else {
       return res.status(403).json({
         success: false,
-        message: 'this user does not own any images!'
+        message: 'Người dùng này chưa có hình ảnh nào'
       })
     }
   } catch (error) {

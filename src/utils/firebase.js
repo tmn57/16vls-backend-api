@@ -58,7 +58,7 @@ const toMessageObject = (title, body, dataObject) => {
         }
     }
     if (typeof (dataObject) === 'object')
-        msgObj['data'] = dataObject
+        msgObj['data'] = {meta: JSON.stringify(dataObject)}
     return msgObj
 }
 

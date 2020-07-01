@@ -22,14 +22,14 @@ router.post('/create', async (req, res, next) => {
       if (!phoneNumberVerify.test(phone)) {
         return res.status(400).json({
           success: false,
-          message: 'invalid phone number!'
+          message: 'Số điện thoại không hợp lệ'
         })
       }
       const existedName = await Store.findOne({ name })
       if (existedName) {
         return res.status(400).json({
           success: false,
-          message: "store's name is already existed!"
+          message: "Tên cửa hàng đã tồn tại"
         })
       } else {
         let newStore = new Store({
@@ -41,7 +41,7 @@ router.post('/create', async (req, res, next) => {
         await newStore.save()
         return res.status(201).json({
           success: true,
-          message: 'Wait for approval!',
+          message: 'Đang chờ duyệt',
           result: newStore
         })
       }
@@ -87,7 +87,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
   if (!store) {
     return res.status(400).json({
       success: false,
-      message: 'Store not found!'
+      message: 'Không tìm thấy cửa hàng'
     })
   }
   else {
@@ -118,7 +118,7 @@ router.get('/all', async (req, res, next) => {
     } else {
       return res.status(400).json({
         success: false,
-        message: 'This user does not own any store!'
+        message: 'Người dùng này không có cửa hàng nào'
       })
     }
   } catch (error) {
@@ -153,7 +153,7 @@ router.post('/getByConditions', async (req, res, next) => {
     } else {
       return res.status(400).json({
         success: false,
-        message: 'there is no results for this conditions!'
+        message: 'Không tìm thấy cửa hàng nào theo yêu cầu'
       })
     }
   } catch (error) {
@@ -211,7 +211,7 @@ router.post('/update', async (req, res, next) => {
     } else {
       return res.status(401).json({
         success: false,
-        message: 'store not found in database!'
+        message: 'Không tìm thấy cửa hàng trong database'
       })
     }
   } catch (err) {
@@ -258,7 +258,7 @@ router.post('/updatestatus', isAdministrator, asyncHandler(async (req, res, next
   if (!storeFound) {
     return res.status(400).json({
       success: false,
-      message: 'Store not found!'
+      message: 'Không tìm thấy cửa hàng'
     })
   }
   else {
@@ -391,7 +391,7 @@ router.post('/approve', asyncHandler(async (req, res, next) => {
   if (order.storeId != store._id) {
     return res.status(400).json({
       success: false,
-      message: 'StoreId is incorrect!'
+      message: 'ID cửa hàng không đúng'
     })
   }
 
@@ -427,7 +427,7 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
   if (order.storeId != store._id) {
     return res.status(400).json({
       success: false,
-      message: 'StoreId is incorrect!'
+      message: 'ID cửa hàng không đúng'
     })
   }
 

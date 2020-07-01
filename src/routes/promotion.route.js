@@ -21,7 +21,7 @@ router.post('/create', isAdministrator, asyncHandler(async (req, res, next) => {
   if (codeExisted) {
     return res.status(400).json({
       success: false,
-      message: 'Code Promotion already exists!'
+      message: 'Mã giảm giá đã tồn tại'
     })
   }
   saleOff = (saleOff < 0 || saleOff > 100) ? 0 : saleOff
@@ -69,7 +69,7 @@ router.post('/update', isAdministrator, asyncHandler(async (req, res, next) => {
   if (codeExisted) {
     return res.status(400).json({
       success: false,
-      message: 'Code Promotion already exists!'
+      message: 'Mã giảm giá đã tồn tại'
     })
   }
 
@@ -107,7 +107,7 @@ router.post('/register', asyncHandler(async (req, res, next) => {
   if (!promotion || (promotion.endDate < now)) {
     return res.status(400).json({
       success: false,
-      message: 'Promotion not found!'
+      message: 'Không tìm thấy khuyễn mãi'
     })
   }
 
@@ -115,7 +115,7 @@ router.post('/register', asyncHandler(async (req, res, next) => {
   if (listStoresInPromotion.indexOf(storeId) >= 0) {
     return res.status(400).json({
       success: false,
-      message: 'Store has subscribed to this promotion!'
+      message: 'Cửa hàng đã có mã giảm giá này'
     })
   }
   else {
@@ -144,7 +144,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
   if (promotion.endDate < now) {
     return res.status(200).json({
       success: false,
-      message: "Promotion not found!"
+      message: "Không tìm thấy khuyến mãi"
     })
   }
   else {

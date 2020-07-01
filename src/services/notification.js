@@ -63,7 +63,9 @@ const sendToMany = async (title, body, userIds, itime, metadata) => {
                 userId: u._id.toString(),
                 title,
                 body,
-                status: 1
+                status: 1,
+                createdAt: Date.now(),
+                updatedAt: Date.now()
             })
             metadata && (newNotification.data = metadata)
             newNotifications.push(newNotification)
@@ -71,9 +73,9 @@ const sendToMany = async (title, body, userIds, itime, metadata) => {
     })
 
     if (fbDeviceTokens.length) {
-        console.log(`Notification Service: sending notification for tokens ${fbDeviceTokens}`)
+        console.log(`Notification Service: sending notification for ${fbDeviceTokens.length} tokens`)
         NotificationModel.collection.insertMany(newNotifications, (err, docs) =>{
-            console.log(`insert many notifications ${err && `with error ${err}`}`, docs)
+            console.log(`inserted ${docs.insertedCount} notifications ${err && `got errors: ${err}`}`)
         })
         const now = Date.now()
         if (time === -1 || time >= now) {

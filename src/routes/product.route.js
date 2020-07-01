@@ -22,7 +22,7 @@ router.post('/create', async (req, res, next) => {
       if (existedName) {
         return res.status(400).json({
           success: false,
-          message: "Product's name is already existed!"
+          message: "Tên sản phẩm đã tồn tại"
         })
       } else {
         let newProduct = new Product({
@@ -69,7 +69,7 @@ router.get('/', async (req, res, next) => {
     } else {
       return res.status(400).json({
         success: false,
-        message: 'product not found!'
+        message: 'Không tìm thấy sản phẩm'
       })
     }
   } catch (error) {
@@ -128,7 +128,7 @@ router.post('/getByConditions', async (req, res, next) => {
     } else {
       return res.status(400).json({
         success: false,
-        message: 'there is no results for this conditions!'
+        message: 'Không tìm thấy sản phẩm nào với yêu cầu này'
       })
     }
   } catch (error) {
@@ -189,7 +189,7 @@ router.post('/update', async (req, res, next) => {
     } else {
       return res.status(401).json({
         success: false,
-        message: 'product not found in database!'
+        message: 'Không tìm thấy sản phẩm trong database'
       })
     }
   } catch (err) {

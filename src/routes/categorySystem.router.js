@@ -11,7 +11,7 @@ router.post('/create', isAdministrator, asyncHandler(async (req, res, next) => {
     if (!name) {
         return res.status(400).json({
             success: false,
-            message: "Required field: Name"
+            message: "Thiếu tên người dùng"
         })
     }
     else {
@@ -19,7 +19,7 @@ router.post('/create', isAdministrator, asyncHandler(async (req, res, next) => {
         if (existedName) {
             return res.status(400).json({
                 success: false,
-                message: "CategorySystem's name is already existed!"
+                message: "Tên của danh mục hệ thống đã tồn tại"
             })
         }
         else {
@@ -52,7 +52,7 @@ router.post('/delete', isAdministrator, asyncHandler(async (req, res, next) => {
     if (!categorySystemId) {
         return res.status(400).json({
             success: false,
-            message: "Required field: CategorySystemId"
+            message: "Required fields: CategorySystemId"
         })
     }
     else {
@@ -60,7 +60,7 @@ router.post('/delete', isAdministrator, asyncHandler(async (req, res, next) => {
         if (!cateSystem) {
             return res.status(400).json({
                 success: false,
-                message: 'Category system not found'
+                message: 'Không tìm thấy danh mục hệ thống'
             })
         }
         else {
@@ -68,13 +68,13 @@ router.post('/delete', isAdministrator, asyncHandler(async (req, res, next) => {
             if (result.n == 1) {
                 return res.status(200).json({
                     success: true,
-                    message: 'Delete successfully!',
+                    message: 'Xóa thành công',
                 })
             }
             else {
                 return res.status(400).json({
                     success: false,
-                    message: 'Delete failed!',
+                    message: 'Xóa thất bại',
                 })
             }
 
@@ -90,7 +90,7 @@ router.post('/update', isAdministrator, asyncHandler(async (req, res, next) => {
     if (!_id || !content) {
         return res.status(400).json({
             success: false,
-            message: 'Id, Name are required!'
+            message: 'Required fields: Id, Name'
         })
     }
 
@@ -110,7 +110,7 @@ router.post('/update', isAdministrator, asyncHandler(async (req, res, next) => {
     else {
         return res.status(401).json({
             success: false,
-            message: 'Category system not found in database!'
+            message: 'Không tìm thấy danh mục hệ thống trong database'
         })
     }
 

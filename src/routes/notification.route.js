@@ -19,14 +19,14 @@ router.post('/device-token', isAuthenticated, asyncHandler(async (req, res, next
             data: token
         })
     } else {
-        next(raiseError(400, `user ${userId} not found`))
+        next(raiseError(400, `Không tìm thấy tài khoản ${userId}`))
     }
 }))
 
 router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
     const { limit } = req.body
     const { userId } = req.tokenPayload
-    const notifs = await NotificationModel.find({ userId }).sort({createdAt: -1}).limit(limit || 32)
+    const notifs = await NotificationModel.find({ userId }).sort({ createdAt: -1 }).limit(limit || 32)
     res.status(200).json({
         success: true,
         data: notifs
@@ -41,7 +41,7 @@ router.post('/seen', isAuthenticated, asyncHandler(async (req, res, next) => {
         return next(raiseError(400, `array of notification ids is required`))
     }
 
-    await NotificationModel.updateMany({ _id: { $in: notificationIds } }, { $set: { status: 2 } }, (err, writeResult) => {
+    await NotificationModel.updateMany({ _id: { $in: notificationIds } }, { $set: { status: 2, updatedAt: Date.now() } }, (err, writeResult) => {
         console.log(`user ${userId} set 'seen' notifications ${writeResult}`)
         res.status(200).json({
             success: true,
@@ -50,7 +50,14 @@ router.post('/seen', isAuthenticated, asyncHandler(async (req, res, next) => {
     });
 }))
 
-
+router.get('/checkNewCount', isAuthenticated, asyncHandler(async (req, res) => {
+    const {userId} =req.tokenPayload
+    const notifs = await NotificationModel.find({userId, status: 1})
+    res.status(200).json({
+        success: true,
+        count: notifs.length
+    })
+}))
 
 router.get('/test', asyncHandler(async (req, res) => {
     const users = await UserModel.find()
