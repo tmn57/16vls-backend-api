@@ -2,7 +2,6 @@ const express = require('express')
 const asyncHandler = require('express-async-handler')
 const jwt = require('jsonwebtoken')
 const dayjs = require('dayjs')
-const { SOCKETIO_JWT_SECRET } = require('../config')
 const { StreamVideoStatus } = require('../sockets/constants')
 const streamHandler = require('../sockets/services')
 const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
@@ -136,17 +135,6 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
         })
     }
     next(raiseError(500, 'Đã có lỗi xảy ra trong quá trình lấy rttk'))
-    // let rtPayload = { userId }
-
-    // store = await StoreModel.findOne({ userId })
-
-    // if (store !== null) {
-    //     rtPayload["storeId"] = store._id.toString()
-    // }
-
-    // const tok = jwt.sign(rtPayload, SOCKETIO_JWT_SECRET, { expiresIn: '6h' })
-
-    // console.log(rtPayload, tok)
 }))
 
 router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {

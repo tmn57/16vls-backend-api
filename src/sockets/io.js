@@ -1,7 +1,5 @@
 
 //TODO: quantities of a variant of a product updated from product schema
-const socketioJwt = require('socketio-jwt')
-const { SOCKETIO_JWT_SECRET } = require('../config')
 const { StreamVideoStatus } = require('./constants')
 
 const StreamModel = require('../models/stream')
@@ -20,13 +18,6 @@ const initIoServer = server => {
         pingTimeout: process.env.SOCKETIO_CALLBACK_SECS * 1000,
     })
 
-    // /** "One round trip" authorization **/
-    // io.use(socketioJwt.authorize({
-    //     secret: SOCKETIO_JWT_SECRET,
-    //     handshake: true,
-    //     callback: process.env.SOCKETIO_CALLBACK_SECS * 1000
-    // }))
-
     //new auth middleware
     io.use((socket, next) => {
         let token = socket.handshake.query.token;
@@ -40,7 +31,7 @@ const initIoServer = server => {
     });
 
     io.on('connection', socket => {
-        const {userId, avatar: userAvatar, storeId, name: userName, phone: userPhone} = socket.user_payload
+        const {userId, userAvatar, storeId, userName, userPhone} = socket.user_payload
         // const userId = socket.decoded_token.userId
         // const storeId = socket.decoded_token.storeId
         console.log(`user ${userId} connected`)

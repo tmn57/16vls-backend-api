@@ -216,9 +216,9 @@ const signRealtimeToken = async userDbObject => {
     //set to map
     userTokens.set(newToken, {
         userId,
-        name: name ? name : phone,
-        phone,
-        avatar,
+        userName: name ? name : phone,
+        userPhone: phone,
+        userAvatar: avatar,
         storeId,
         expiredTime: Date.now() + 1000000 //1000secs 
     })
