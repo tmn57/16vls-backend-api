@@ -8,8 +8,9 @@ const streamHandler = require('../sockets/services')
 const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
 const StreamModel = require('../models/stream')
 const StoreModel = require('../models/store')
+const UserModel = require('../models/user')
 const { raiseError } = require('../utils/common')
-const { streamSessions, getStreamIdByUserId, getValidLiveStream, toStreamStatusObject } = require('../sockets/services')
+const { streamSessions, getStreamIdByUserId, getValidLiveStream, toStreamStatusObject, signRealtimeToken } = require('../sockets/services')
 const workerServices = require('../workers/services')
 const fb = require('../utils/firebase')
 
@@ -129,22 +130,26 @@ router.post('/update', isAuthenticated, storeOwnerRequired, asyncHandler(async (
 
 router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
     const { userId } = req.tokenPayload
-    let rtPayload = { userId }
-
-    store = await StoreModel.findOne({ userId })
-
-    if (store !== null) {
-        rtPayload["storeId"] = store._id.toString()
+    const user = await UserModel.findById(userId)
+    if (user) {
+        const tok = await signRealtimeToken(user)
+        return res.status(200).json({
+            success: true,
+            token: tok
+        })
     }
+    next(raiseError(500, 'Đã có lỗi xảy ra trong quá trình lấy rttk'))
+    // let rtPayload = { userId }
 
-    const tok = jwt.sign(rtPayload, SOCKETIO_JWT_SECRET, { expiresIn: '6h' })
+    // store = await StoreModel.findOne({ userId })
 
-    console.log(rtPayload, tok)
+    // if (store !== null) {
+    //     rtPayload["storeId"] = store._id.toString()
+    // }
 
-    res.status(200).json({
-        success: true,
-        token: tok
-    })
+    // const tok = jwt.sign(rtPayload, SOCKETIO_JWT_SECRET, { expiresIn: '6h' })
+
+    // console.log(rtPayload, tok)
 }))
 
 router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {

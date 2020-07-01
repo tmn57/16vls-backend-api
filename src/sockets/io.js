@@ -20,23 +20,33 @@ const initIoServer = server => {
         pingTimeout: process.env.SOCKETIO_CALLBACK_SECS * 1000,
     })
 
-    /** "One round trip" authorization **/
-    io.use(socketioJwt.authorize({
-        secret: SOCKETIO_JWT_SECRET,
-        handshake: true,
-        callback: process.env.SOCKETIO_CALLBACK_SECS * 1000
-    }))
+    // /** "One round trip" authorization **/
+    // io.use(socketioJwt.authorize({
+    //     secret: SOCKETIO_JWT_SECRET,
+    //     handshake: true,
+    //     callback: process.env.SOCKETIO_CALLBACK_SECS * 1000
+    // }))
+
+    //new auth middleware
+    io.use((socket, next) => {
+        let token = socket.handshake.query.token;
+        console.log(`socket token: ${token}`)
+        const realtimeUserPayload = socketServices.checkValidRealtimeToken(token)
+        if (realtimeUserPayload) {
+            socket.user_payload = realtimeUserPayload
+            return next();
+        }
+        return next(new Error('unauthorized'));
+    });
 
     io.on('connection', socket => {
-        const userId = socket.decoded_token.userId
-        const storeId = socket.decoded_token.storeId || null
+        const {userId, avatar: userAvatar, storeId, name: userName, phone: userPhone} = socket.user_payload
+        // const userId = socket.decoded_token.userId
+        // const storeId = socket.decoded_token.storeId
         console.log(`user ${userId} connected`)
         const oldStreamId = socketServices.getStreamIdByUserId(userId)
         oldStreamId && socket.leave(oldStreamId)
-
-
-        socket.emit(eventKeys.SERVER_MESSAGE, toMessageObject('message', `Xin chào ${userId}!`))
-
+        socket.emit(eventKeys.SERVER_MESSAGE, toMessageObject('message', `Xin chào ${userName}!`))
         socket.on(eventKeys.USER_JOIN_STREAM, (streamId, cb) => {
             try {
                 StreamModel.findById(streamId).then(stream => {
@@ -45,7 +55,7 @@ const initIoServer = server => {
                     } else {
                         console.log(`user ${userId} is joining stream ${streamId}`)
                         userJoinsStream(socket, streamId)
-                        //Get productIds 
+                        //Get productIds
                         let prodIds = []
                         stream.products.forEach(prod => {
                             prodIds.push(prod.productId)
@@ -147,8 +157,8 @@ const initIoServer = server => {
                     console.log(`strm invalid product idx ${productIndex} type of ${productIndex}`, strm)
                     return cb({ success: false, message: 'Sản phẩm nằm ngoài danh mục đang phát, có thể xuất phát từ lỗi ứng dụng' })
                 }
-                
-		const inStreamAt = convertRealTimeToVideoTime(Date.now())
+
+                const inStreamAt = convertRealTimeToVideoTime(Date.now())
                 strm['currentProductIndex'] = productIndex
                 strm.products[productIndex].inStreamAts.push(inStreamAt)
                 streamSessions.set(strm.streamId, strm)
@@ -242,12 +252,12 @@ const initIoServer = server => {
                 }
                 const lastVideoStatusTime = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].time
 
-                //"freeze" the input to timeout function handling
-                (function(streamId, lastVideoStatusTime) {
-                    setTimeout(() => {
-                        sellerInterruptHandler(streamId, lastVideoStatusTime)
-                    }, 60 * 1000)
-                } (streamId, lastVideoStatusTime));
+                    //"freeze" the input to timeout function handling
+                    (function (streamId, lastVideoStatusTime) {
+                        setTimeout(() => {
+                            sellerInterruptHandler(streamId, lastVideoStatusTime)
+                        }, 60 * 1000)
+                    }(streamId, lastVideoStatusTime));
 
             }
 
@@ -265,7 +275,7 @@ const initIoServer = server => {
 
 const userJoinsStream = (socket, streamId) => {
     try {
-        const userId = socket.decoded_token.userId
+        const userId = socket.user_payload.userId
         socketServices.setStreamWithUserId(userId, streamId)
         socket.join(streamId)
         emitToStream(streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `${userId} đã tham gia`))
@@ -342,7 +352,7 @@ const updateLikedUsers = (streamId, userId, isUnlike) => {
 }
 
 // This function converts "absolute" point of timestamp (milliseconds) to "relative" time in video (for seeking)
-//returns -1 if is not a valid 
+//returns -1 if is not a valid
 const convertRealTimeToVideoTime = (streamId, time) => {
     const stream = streamSessions.get(streamId)
     if (stream) {

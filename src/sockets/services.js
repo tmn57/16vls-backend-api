@@ -1,6 +1,8 @@
-const { userSessions, streamSessions, streamTokens, productSessions } = require('./storage')
+const { uuid } = require('uuidv4');
+const StoreModel = require('../models/store')
+const { userSessions, streamSessions, streamTokens, productSessions, userTokens } = require('./storage')
 const { StreamVideoStatus } = require('./constants')
-const { STREAM_ENDTIME_MINIMUM_TIMESTAMP } = require('../config')
+const { STREAM_ENDTIME_MINIMUM_TIMESTAMP } = require('../config');
 
 var count = 0
 const generateStreamToken = (streamKey, isHost) => {
@@ -200,10 +202,46 @@ const toStreamStatusObject = (streamObject) => {
 
 
 //User RealTime Token Manager
-//{userId, name, phone, avatarUri, expiredAt}
-const signToken = (userDbObject) => {
-    const {userId, name, phone} = userDbObject;
+//{userId, name, phone, avatar, expiredAt}
+const signRealtimeToken = async userDbObject => {
+    const { _id, name, phone, avatar } = userDbObject;
+    const userId = _id.toString();
+    const store = await StoreModel.findOne({ userId })
+    let storeId = null
+    if (store) {
+        storeId = store._id.toString();
+    }
+    let newToken = uuid().split('-').join('')
+    //set to map
+    userTokens.set(newToken, {
+        userId,
+        name,
+        phone,
+        avatar,
+        storeId,
+        expiredTime: Date.now() + 1000000 //1000secs 
+    })
+    cleanupUserTokens()
+    return newToken
 }
+
+const cleanupUserTokens = () => {
+    userTokens.forEach((v, k) => {
+        if (v.expiredTime < Date.now()) {
+            userTokens.delete(k)
+        }
+    })
+}
+
+const checkValidRealtimeToken = token => {
+    const userPayload = userTokens.get(token)
+    if (userPayload && (userPayload.expiredTime >= Date.now())) {
+        userPayload.expiredTime = Date.now() + 1000000 //1000secs
+        return userPayload
+    }
+    return null
+}
+
 //END: user realtime token manager
 module.exports = {
     streamSessions,
@@ -222,5 +260,7 @@ module.exports = {
     removeFromProductSessions,
     getValidLiveStream,
     toStreamStatusObject,
+    checkValidRealtimeToken,
+    signRealtimeToken,
 }
 
