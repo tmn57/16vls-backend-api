@@ -172,9 +172,10 @@ const toStreamStatusObject = (streamObject) => {
             videoUri = `http://${videoServerAddr}/hls/${streamId.toString()}/index.m3u8`
         }
         if (endTime > STREAM_ENDTIME_MINIMUM_TIMESTAMP && endTime < Number.MAX_SAFE_INTEGER) {
-            statusCode = 5
+            statusCode = 4;
             if (recordedFileName !== '') {
-                videoUri = `http://${videoServerAddr}/vod/${recordedFileName}`
+                statusCode = 5;
+                videoUri = `http://${videoServerAddr}/vod/${recordedFileName}`;
             }
         }
         return { statusCode, videoUri, message }
