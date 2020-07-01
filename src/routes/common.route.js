@@ -22,7 +22,7 @@ router.post('/login', async (req, res, next) => {
     if (!phone || !password) {
       return res.json({
         success: false,
-        message: 'phone and password are required!',
+        message: 'Thiếu số điện thoại hoặc mật khẩu',
       })
     } else {
       User.findOne({ phone }).then(async (user) => {
@@ -31,13 +31,13 @@ router.post('/login', async (req, res, next) => {
             return res.status(403).json({
               success: false,
               message:
-                'This account have been locked, please contact to administrator!',
+                'Tài khoản đã bị khóa, vui lòng liên hệ với admin',
             })
           } else {
             if (!user.isVerified) {
               return res.status(403).json({
                 success: false,
-                message: 'This account is not verified!',
+                message: 'Tài khoản chưa được kích hoạt',
               })
             }
             // Encrypt password
@@ -62,7 +62,7 @@ router.post('/login', async (req, res, next) => {
 
               return res.json({
                 success: true,
-                message: 'Login successfully!',
+                message: 'Đăng nhập thành công',
                 token,
                 result: {
                   user,
@@ -72,14 +72,14 @@ router.post('/login', async (req, res, next) => {
             } else {
               return res.status(400).json({
                 success: false,
-                message: 'Password is incorrect!',
+                message: 'Sai mật khẩu',
               })
             }
           }
         } else {
           return res.status(403).json({
             success: false,
-            message: 'This account is not existed!',
+            message: 'Tài khoản không tồn tại',
           })
         }
       })
@@ -98,13 +98,13 @@ router.post('/register', async (req, res, next) => {
     if (!phone || !password || !name) {
       return res.status(400).json({
         success: false,
-        message: 'phone, password, name are required!',
+        message: 'Required fields: phone, password, name',
       })
     }
     if (!phoneNumberVerify.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: 'invalid phone number!',
+        message: 'Số điện thoại không hợp lệ',
       })
     }
     const userExisted = await User.findOne({ phone })
@@ -113,19 +113,19 @@ router.post('/register', async (req, res, next) => {
         return res.status(403).json({
           success: false,
           message:
-            'This account was existed and have been locked, please contact to administrator!',
+            'Tài khoản đã bị khóa, vui lòng liên hệ admin',
         })
       } else {
         if (!userExisted.isVerified) {
           return res.status(403).json({
             success: false,
-            message: 'This account was existed and have not been verified yet!',
+            message: 'Tài khoản chưa được kích hoạt',
           })
         } else {
           return res.status(403).json({
             success: false,
             message:
-              'This phone number has already used, please type another number!',
+              'Số điện thoại đã được sử dụng',
           })
         }
       }
@@ -150,7 +150,7 @@ router.post('/register', async (req, res, next) => {
 
       return res.json({
         success: true,
-        message: 'create account successfully!',
+        message: 'Tạo tài khoản thành công',
         type: 'normal',
         profile: newUser,
       })
@@ -169,7 +169,7 @@ router.post('/getCode', async (req, res, next) => {
     if (!phoneNumberVerify.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: 'invalid phone number!',
+        message: 'Số điện thoại không hợp lệ',
       })
     } else {
       const userExisted = await User.findOne({ phone })
@@ -178,7 +178,7 @@ router.post('/getCode', async (req, res, next) => {
           return res.status(403).json({
             success: false,
             message:
-              'This account was existed and have been locked, please contact to administrator!',
+              'Tài khoản đã bị khóa, vui lòng liên hệ admin',
           })
         } else {
           const smsSent = await sendSmsOtpCode({ phone: userExisted.phone })
@@ -187,7 +187,7 @@ router.post('/getCode', async (req, res, next) => {
       } else {
         return res.status(403).json({
           success: false,
-          message: 'This phone number has not been registered before!',
+          message: 'Số điện thoại chưa được đăng ký trong hệ thống',
         })
       }
     }
@@ -205,13 +205,13 @@ router.post('/verify', async (req, res, next) => {
     if (!phone || !code) {
       return res.status(400).json({
         success: false,
-        message: 'phone, code are required!',
+        message: 'Required fields: số điện thoại, mã code',
       })
     }
     if (!phoneNumberVerify.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: 'invalid phone number!',
+        message: 'Số điện thoại không hợp lệ',
       })
     } else {
       const userExisted = await User.findOne({ phone })

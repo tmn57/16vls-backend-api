@@ -13,7 +13,7 @@ router.post('/update', asyncHandler(async (req, res, next) => {
   if (Object.keys(req.body).length < 1) {
     return res.status(400).json({
       success: false,
-      message: 'Nothing to update'
+      message: 'Không có gì để cập nhập'
     })
   }
   const { name, email, address, avatar, shippingAddress } = req.body

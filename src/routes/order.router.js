@@ -17,7 +17,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     if (!listProducts || !shippingAddress) {
         return res.status(400).json({
             success: false,
-            message: "Required field: products, shippingAddress"
+            message: "Required fields: products, shippingAddress"
         })
     }
     // check còn sp k
@@ -27,7 +27,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             if (product1.variants[listProducts[i].products[j].variantIndex].quantity < listProducts[i].products[j].quantity) {
                 return res.status(400).json({
                     success: false,
-                    message: "Product is out of stock"
+                    message: "Sản phẩm trong kho hàng đã hết"
                 })
             }
         }
@@ -126,7 +126,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
 
     return res.status(200).json({
         success: true,
-        message: "Order is successfully!"
+        message: "Tạo đơn hàng thành công"
     })
 
 }))
@@ -440,7 +440,7 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
     if (!order) {
         return res.status(400).json({
             success: false,
-            message: 'Order not found!'
+            message: 'Không tìm thấy đơn hàng'
         })
     }
 
@@ -472,7 +472,7 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
 
     return res.status(200).json({
         success: true,
-        message: 'Cancel Order successfully!',
+        message: 'Hủy đơn hàng thành công',
         result: order
     })
 

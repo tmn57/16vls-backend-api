@@ -19,7 +19,7 @@ router.post('/device-token', isAuthenticated, asyncHandler(async (req, res, next
             data: token
         })
     } else {
-        next(raiseError(400, `user ${userId} not found`))
+        next(raiseError(400, `Không tìm thấy tài khoản ${userId}`))
     }
 }))
 

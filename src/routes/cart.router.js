@@ -14,7 +14,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     if (!productId || !quantity || !color || !size) {
         return res.status(400).json({
             success: false,
-            message: "Required field: ProductId, quantity, color, size"
+            message: "Required fields: ProductId, quantity, color, size"
         })
     }
 
@@ -23,7 +23,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     if (!product) {
         return res.status(400).json({
             success: false,
-            message: "Product not found!"
+            message: "Không tìm thấy sản phẩm"
         })
     }
 
