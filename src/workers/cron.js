@@ -21,12 +21,15 @@ var pushNotificationJob = new CronJob('7 * * * * *', () => {
     // isPushing = false
 })
 
-var pushMulticastNotificationJob = new CronJob('10 * * * * *', () => {
+var pushMulticastNotificationJob = new CronJob('10 * * * * *', async () => {
     if (!multicastMessageQueue.length) return;
     isPushing = true
     const { messageObject, tokens } = multicastMessageQueue.shift()
     console.log(`pushMulticastNotificationJob: sending `, messageObject,`for ${tokens.length} tokens`)
-    fb.sendMulticast(tokens, messageObject)
+    const failedTokens = await fb.sendMulticast(tokens, messageObject)
+    if (failedTokens && Array.isArray(failedTokens)) {
+        console.log(`pushMulticastNotificationJob: sent got ${failedTokens.length} failed tokens`)
+    }
     isPushing = false
 })
 

@@ -63,8 +63,6 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
 
     let prodsDbObj = []
 
-    console.log("body payload", req.body)
-
     products.forEach(product => {
         const { productId, streamPrice } = product
         prodsDbObj.push({ productId, streamPrice })
@@ -95,8 +93,6 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
 
 router.post('/update', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
     const { streamId, startTime, title, products } = req.body
-
-    console.log("body payload", req.body)
 
     let stream = await StreamModel.findOne({ _id: streamId, storeId: req.storeId })
 

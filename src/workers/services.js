@@ -11,21 +11,21 @@ const addToStreamTasks = (streamId, startTime, msgObject, storeId) => {
         msgObject,
         storeId
     })
-    console.log('addToStreamTask called: added to streamTasks', streamTasks.get(streamId))
+    console.log('addToStreamTask called: added to streamTasks')
 }
 
 const updateInStreamTasks = (streamId, startTime) => {
     const st = streamTasks.get(streamId)
     st.startTime = startTime
     streamTasks.set(streamId, st)
-    console.log('updateToStreamTask called: added to streamTasks', streamTasks.get(streamId))
+    console.log('updateToStreamTask called: updated to streamTasks')
 }
 
 const removeFromStreamTasks = (streamId) => {
     if (streamTasks.has(streamId)) {
         streamTasks.delete(streamId)
     }
-    console.log('removeFromStreamTasks called: added to streamTasks', streamTasks.get(streamId))
+    console.log('removeFromStreamTasks called: removed from streamTasks')
 
 }
 
@@ -54,7 +54,7 @@ const updateMulticastMessageQueue = () => {
                     }))
                 }
             })
-            console.log(`updateMessageQueue: devtoks:`, dvtoks, `newnotifications`, newNotifications)
+            console.log(`updateMessageQueue: updated for ${dvtoks.length} with ${newNotifications.length} new notifications: `)
             if (dvtoks.length) {
                 const fcmMsg = {
                     messageObject: msgObject,
@@ -62,10 +62,10 @@ const updateMulticastMessageQueue = () => {
                 }
                 multicastMessageQueue.push(fcmMsg)
                 NotificationModel.collection.insertMany(newNotifications, (err, docs) => {
-                    console.log(`stream task: insert many notifications ${err && `with error ${err}`}`, docs)
+                    console.log(`inserted ${docs.insertedCount} notifications ${err && `got errors: ${err}`}`)
                 })
             }
-            console.log(`added to MessageQueue:`, messageQueue)
+            console.log(`added to MessageQueue.`)
             streamTasks.delete(k)
         }
     })
