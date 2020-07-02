@@ -46,7 +46,7 @@ router.post('/seen', isAuthenticated, asyncHandler(async (req, res, next) => {
     }
 
     await NotificationModel.updateMany({ _id: { $in: notificationIds } }, { $set: { status: 2, updatedAt: Date.now() } }, (err, writeResult) => {
-        console.log(`user ${userId} set 'seen' notifications ${writeResult}`)
+        //console.log(`user ${userId} set 'seen' notifications ${writeResult}`)
         res.status(200).json({
             success: true,
             data: writeResult

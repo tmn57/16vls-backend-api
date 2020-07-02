@@ -12,6 +12,7 @@ const { raiseError } = require('../utils/common')
 const { streamSessions, getStreamIdByUserId, getValidLiveStream, toStreamStatusObject, signRealtimeToken } = require('../sockets/services')
 const workerServices = require('../workers/services')
 const fb = require('../utils/firebase')
+const { Stream } = require('twilio/lib/twiml/VoiceResponse')
 
 const router = express.Router()
 
@@ -44,7 +45,7 @@ router.get('/sellerCheck', isAuthenticated, storeOwnerRequired, asyncHandler(asy
 router.post('/delete', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
     const { streamId } = req.body
     const { storeId } = req
-    const delStream = await StreamModel.findOneAndDelete({ _id: streamId, storeId , endTime: Number.MIN_SAFE_INTEGER })
+    const delStream = await StreamModel.findOneAndDelete({ _id: streamId, storeId, endTime: Number.MIN_SAFE_INTEGER })
     if (delStream) {
         workerServices.removeFromStreamTasks(delStream._id.toString())
         return res.status(200).json({
@@ -90,11 +91,21 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
     })
 }))
 
+router.post('/details', asyncHandler((async (req, res, next) => {
+    const { streamId } = req.body
+    const stream = await StreamModel.findById(streamId)
+    if (stream) {
+        return res.status(200).json({
+            success: true,
+            stream: stream.toObject()
+        })
+    }
+    next(raiseError(400, "Không tìm thấy theo stream ID"))
+})))
+
 router.post('/update', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
     const { streamId, startTime, title, products } = req.body
-
     let stream = await StreamModel.findOne({ _id: streamId, storeId: req.storeId })
-
     if (stream) {
         if (stream.endTime === Number.MIN_SAFE_INTEGER) {
             let prodsDbObj = []
