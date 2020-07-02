@@ -1,6 +1,7 @@
 
 //TODO: quantities of a variant of a product updated from product schema
 const { StreamVideoStatus } = require('./constants')
+const {STREAM_INTERRUPT_TIMEOUT_SECS} =require('../config')
 
 const StreamModel = require('../models/stream')
 const ProductModel = require('../models/product')
@@ -254,7 +255,7 @@ const initIoServer = server => {
                     (function (streamId, lastVideoStatusTime) {
                         setTimeout(() => {
                             sellerInterruptHandler(streamId, lastVideoStatusTime)
-                        }, 60 * 1000)
+                        }, STREAM_INTERRUPT_TIMEOUT_SECS * 1000)
                     }(streamId, lastVideoStatusTime));
 
             }
@@ -391,6 +392,7 @@ const convertRealTimeToVideoTime = (streamId, time) => {
 }
 
 const endStreamHandler = (streamId, cb) => {
+    console.log(`endStreamHandler started for stream ${streamId}`)
     socketServices.addStreamVideoStatusHistory(streamId, StreamVideoStatus.END)
     const strm = streamSessions.get(streamId)
     const streamStatusObj = toStreamStatusObject(strm)
@@ -398,6 +400,7 @@ const endStreamHandler = (streamId, cb) => {
 
     //find the stream of storeId
     StreamModel.findById(streamId).then(async stream => {
+        console.log(`endStreamHandler: DB saving for stream ${streamId}`)
         if (stream === null) {
             cb({ success: false, message: 'Không tồn tại stream trong db nhưng lại có trong streamSessions', errorCode: 2 })
         } else {
@@ -409,6 +412,9 @@ const endStreamHandler = (streamId, cb) => {
             stream.messages = strm.messages
             stream.endTime = Date.now()
             stream.products = strm.products
+            stream.markModified('messages')
+            stream.markModified('endTime')
+            stream.markModified('products')
             await stream.save()
 
             let productIds = []
@@ -427,6 +433,7 @@ const endStreamHandler = (streamId, cb) => {
 }
 
 const sellerInterruptHandler = (streamId, lastVideoStatusTime) => {
+    console.log(`sellerInterruptHandler: caused by stream ${streamId} interrupt timeout`)
     const strm = streamSessions.get(streamId)
     if (strm) {
         const lvst = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].time
