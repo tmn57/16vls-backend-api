@@ -27,9 +27,13 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
     const { limit } = req.body
     const { userId } = req.tokenPayload
     const notifs = await NotificationModel.find({ userId }).sort({ createdAt: -1 }).limit(limit || 32)
+    const result = [] 
+    notifs.forEach(notif => {
+        result.push(notif.toObject())
+    })
     res.status(200).json({
         success: true,
-        data: notifs
+        data: result
     })
 }))
 
@@ -42,7 +46,7 @@ router.post('/seen', isAuthenticated, asyncHandler(async (req, res, next) => {
     }
 
     await NotificationModel.updateMany({ _id: { $in: notificationIds } }, { $set: { status: 2, updatedAt: Date.now() } }, (err, writeResult) => {
-        console.log(`user ${userId} set 'seen' notifications ${writeResult}`)
+        //console.log(`user ${userId} set 'seen' notifications ${writeResult}`)
         res.status(200).json({
             success: true,
             data: writeResult

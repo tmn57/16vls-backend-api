@@ -5,7 +5,7 @@ const NotificationSchema = new Schema(
         userId: String,
         title: String,
         body: String,
-        data: Object,
+        data: String, //json stringified
         status: { type: Number, default: 0 }, //0: isNotSent, 1: isSent, 2: isSeen
     },
     {

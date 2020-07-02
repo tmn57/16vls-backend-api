@@ -1,6 +1,7 @@
 
 //TODO: quantities of a variant of a product updated from product schema
 const { StreamVideoStatus } = require('./constants')
+const { STREAM_INTERRUPT_TIMEOUT_SECS } = require('../config')
 
 const StreamModel = require('../models/stream')
 const ProductModel = require('../models/product')
@@ -21,20 +22,17 @@ const initIoServer = server => {
     //new auth middleware
     io.use((socket, next) => {
         let token = socket.handshake.query.token;
-        console.log(`socket token: ${token}`)
         const realtimeUserPayload = socketServices.checkValidRealtimeToken(token)
         if (realtimeUserPayload) {
             socket.user_payload = realtimeUserPayload
             return next();
         }
-        return next(new Error('unauthorized'));
+        return next();
     });
 
     io.on('connection', socket => {
         const { userId, userAvatar, storeId, userName, userPhone } = socket.user_payload
-        // const userId = socket.decoded_token.userId
-        // const storeId = socket.decoded_token.storeId
-        console.log(`user ${userId} connected`)
+        console.log(`Socket: user ${userId} connected`)
         const oldStreamId = socketServices.getStreamIdByUserId(userId)
         oldStreamId && socket.leave(oldStreamId)
         socket.emit(eventKeys.SERVER_MESSAGE, toMessageObject('message', `Xin chào ${userName}!`))
@@ -44,16 +42,14 @@ const initIoServer = server => {
                     if (stream === null) {
                         cb({ success: false, message: 'StreamID không hợp lệ', errorCode: 2 })
                     } else {
-                        console.log(`user ${userId} is joining stream ${streamId}`)
+                        console.log(`Socket: user ${userId} is joining stream ${streamId}`)
                         userJoinsStream(socket, streamId)
                         //Get productIds
                         let prodIds = []
                         stream.products.forEach(prod => {
                             prodIds.push(prod.productId)
                         })
-
                         let streamObject = stream.toObject()
-
                         ProductModel.find({
                             '_id': { $in: prodIds }
                         }).then(rows => {
@@ -62,13 +58,19 @@ const initIoServer = server => {
                                 streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
                             })
                             cb({ success: true, data: streamObject })
-                            const streamStatusObj = toStreamStatusObject(streamObject)
-                            socket.emit(eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
+                            const strm = getValidLiveStream(userId, cb)
+                            let streamStatusObj = null
+                            if (strm) {
+                                streamStatusObj = toStreamStatusObject(strm)
+                            } else {
+                                streamStatusObj = toStreamStatusObject(streamObject)
+                            }
+                            streamStatusObj && socket.emit(eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
                         })
                     }
                 })
             } catch (error) {
-                console.log(`error: db error ${error}`)
+                console.log(`Socket USER_JOIN_STREAM: db error: `, error)
                 cb({ success: false, message: `Đã có lỗi xảy ra trong hệ thống: ${error}`, errorCode: 2 })
             }
         })
@@ -78,7 +80,7 @@ const initIoServer = server => {
             if (!streamId) {
                 return cb({ success: false, message: 'Bạn phải tham gia vào một phiên stream trước', errorCode: 2 })
             }
-            console.log(`user ${userId} with store ${storeId} is start stream ${streamId}`)
+            console.log(`Socket: seller ${userId} with store ${storeId} is start stream ${streamId}`)
             //find the stream of storeId
             try {
                 StreamModel.findOne({ storeId, endTime: Number.MIN_SAFE_INTEGER }).then(async stream => {
@@ -86,7 +88,7 @@ const initIoServer = server => {
                         return cb({ success: false, message: 'Bạn không phải là chủ phiên stream này' })
                     } else {
                         if (streamId !== stream._id.toString()) {
-                            console.log(`error: seller ${userId} want to start stream ${streamId} but got ${stream._id.toString()}`)
+                            console.log(`SELLER_START_STREAM error: seller ${userId} want to start stream ${streamId} but got ${stream._id.toString()}`)
                             return cb({ success: false, message: 'Lỗi khi triển khai stream, bạn cần thoát màn hình stream và quay lại', errorCode: 2 })
                         }
                         stream.endTime = Number.MAX_SAFE_INTEGER
@@ -146,11 +148,10 @@ const initIoServer = server => {
                 }
 
                 if (typeof (strm.products[productIndex]) === 'undefined') {
-                    console.log(`strm invalid product idx ${productIndex} type of ${productIndex}`, strm)
                     return cb({ success: false, message: 'Sản phẩm nằm ngoài danh mục đang phát, có thể xuất phát từ lỗi ứng dụng', errorCode: 0 })
                 }
 
-                const inStreamAt = convertRealTimeToVideoTime(Date.now())
+                const inStreamAt = convertRealTimeToVideoTime(strm.streamId, Date.now())
                 strm['currentProductIndex'] = productIndex
                 strm.products[productIndex].inStreamAts.push(inStreamAt)
                 streamSessions.set(strm.streamId, strm)
@@ -165,17 +166,16 @@ const initIoServer = server => {
                 const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
                 if (lastVideoStatusCode === StreamVideoStatus.WAIT || lastVideoStatusCode === StreamVideoStatus.INTERRUPT) {
                     const tok = socketServices.generateStreamToken(strm.streamId, true)
-                    console.log(`get publishoken streamId ${strm.streamId} type of ${typeof (strm.streamId)}`)
                     return cb({ success: true, rtmpToken: tok })
                 }
-                console.log(`get publish token error : seller ${userId} is request a publish token for being live stream`, strm.videoStreamStatusHistory)
+                console.log(`SELLER_GET_PUBLISH_TOKEN error : seller ${userId} is request a publish token for being live stream`, strm.videoStreamStatusHistory)
             }
         })
 
         socket.on(eventKeys.SELLER_PUBLISH_PLAYER_STATUS, statusCode => {
             const strm = getValidLiveStream(userId, 'naf', storeId)
             if (strm) {
-                console.log(`seller ${userId} / store ${storeId} / pusher status code ${statusCode} of type: ${typeof (statusCode)}`)
+                console.log(`SELLER_PUBLISH_PLAYER_STATUS seller ${userId} /w store ${storeId}: pusher status code ${statusCode}`)
                 const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
                 if (statusCode === 2001) {
                     if (lastVideoStatusCode === StreamVideoStatus.WAIT || lastVideoStatusCode === StreamVideoStatus.INTERRUPT) {
@@ -200,7 +200,7 @@ const initIoServer = server => {
                 streamSessions.set(strm.streamId, strm)
                 cb({ success: true })
                 emitToStream(strm.streamId, eventKeys.STREAM_UPDATE_STREAMPRICE, { productIndex, streamPrice })
-                console.log(`seller ${userId} updated stream price ${streamPrice} for product index ${productIndex} in stream ${strm.streamId}`)
+                console.log(`SELLER_UPDATE_STREAMPRICE: seller ${userId} updated stream price ${streamPrice} for product index ${productIndex} in stream ${strm.streamId}`)
             }
         })
 
@@ -233,7 +233,7 @@ const initIoServer = server => {
         })
 
         socket.on('disconnect', reason => {
-            console.log(`socketio: client disconnected with reason ${reason}`)
+            console.log(`Socket: user ${userId} disconnected with reason ${reason}`)
             //check for store owner behavior
             let strm = getValidLiveStream(userId, 'naf', storeId)
             if (strm) {
@@ -242,14 +242,17 @@ const initIoServer = server => {
                     addStreamVideoStatusHistory(strm.streamId, StreamVideoStatus.INTERRUPT)
                     emitToStream(strm.streamId, eventKeys.STREAM_STATUS_UPDATE, toStreamStatusObject(strm))
                 }
+
                 const lastVideoStatusTime = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].time
 
-                    //"freeze" the input to timeout function handling
-                    (function (streamId, lastVideoStatusTime) {
-                        setTimeout(() => {
-                            sellerInterruptHandler(streamId, lastVideoStatusTime)
-                        }, 60 * 1000)
-                    }(streamId, lastVideoStatusTime));
+                //"freeze" the input to timeout function handling
+                const triggerTimeout = function (streamId, lastVideoStatusTime) {
+                    setTimeout(() => {
+                        sellerInterruptHandler(streamId, lastVideoStatusTime)
+                    }, STREAM_INTERRUPT_TIMEOUT_SECS * 1000)
+                }
+
+                triggerTimeout(strm.streamId, lastVideoStatusTime)
 
             }
 
@@ -274,7 +277,7 @@ const userJoinsStream = (socket, streamId) => {
         updateStreamViewCount(userId, streamId, true)
     }
     catch (error) {
-        console.log(error)
+        console.log(`userJoinsStream error: `, error)
         emitToStream(streamId, eventKeys.SERVER_MESSAGE, toMessageObject('error', `Lỗi từ hệ thống: ${error}`))
     }
 }
@@ -299,8 +302,7 @@ const updateStreamViewCount = (userId, streamId, isInc) => {
         let strm = streamSessions.get(streamId)
         let { participants } = strm
 
-        //isInc ? strm.currentViews++ : strm.currentViews--
-        console.log(`stream ${streamId} change with ${userId}`, participants)
+        console.log(`Socket: stream ${streamId}'s participants change: `, participants)
 
         if (isInc) {
             participants.push(userId)
@@ -351,16 +353,13 @@ const convertRealTimeToVideoTime = (streamId, time) => {
         const history = stream.videoStreamStatusHistory
         if (history.length <= 1) return -1
         if (history[1].statusCode !== StreamVideoStatus.START) return -1
-
         const startTime = history[1].time
-        if (!history[2]) return time - startTime
-
+        if (!history[2]) return (Math.floor((time - startTime)/1000.0))
         if (history[2].statusCode === StreamVideoStatus.END) {
             //if endTime > startTime then it is valid time
-            if (history[2].time > time) return time - startTime
+            if (history[2].time > time) return (Math.floor((time - startTime)/1000.0))
             return -1
         }
-
         let delay = 0
         let eventIndex = 2
         let resumeTime = 0
@@ -371,7 +370,6 @@ const convertRealTimeToVideoTime = (streamId, time) => {
                 interruptTime = h.time
                 resumeTime = 0
             }
-
             if (h.statusCode === StreamVideoStatus.START) {
                 resumeTime = h.time
                 interruptTime !== 0 && (delay += resumeTime - interruptTime)
@@ -379,12 +377,13 @@ const convertRealTimeToVideoTime = (streamId, time) => {
             }
             eventIndex++;
         }
-        return time - startTime - delay
+        return (Math.floor((time - startTime - delay)/1000.0))
     }
     return -1
 }
 
 const endStreamHandler = (streamId, cb) => {
+    console.log(`endStreamHandler started for stream ${streamId}`)
     socketServices.addStreamVideoStatusHistory(streamId, StreamVideoStatus.END)
     const strm = streamSessions.get(streamId)
     const streamStatusObj = toStreamStatusObject(strm)
@@ -392,6 +391,7 @@ const endStreamHandler = (streamId, cb) => {
 
     //find the stream of storeId
     StreamModel.findById(streamId).then(async stream => {
+        console.log(`endStreamHandler: DB saving for stream ${streamId}`)
         if (stream === null) {
             cb({ success: false, message: 'Không tồn tại stream trong db nhưng lại có trong streamSessions', errorCode: 2 })
         } else {
@@ -403,6 +403,9 @@ const endStreamHandler = (streamId, cb) => {
             stream.messages = strm.messages
             stream.endTime = Date.now()
             stream.products = strm.products
+            stream.markModified('messages')
+            stream.markModified('endTime')
+            stream.markModified('products')
             await stream.save()
 
             let productIds = []
@@ -415,12 +418,13 @@ const endStreamHandler = (streamId, cb) => {
             return cb({ success: true })
         }
     }).catch(error => {
-        console.log(error)
+        console.log(`endStreamHandler error: `, error)
         cb({ success: false, message: `Lỗi từ hệ thống: ${error}`, errorCode: 2 })
     })
 }
 
 const sellerInterruptHandler = (streamId, lastVideoStatusTime) => {
+    console.log(`sellerInterruptHandler: caused by stream ${streamId} interrupt timeout`)
     const strm = streamSessions.get(streamId)
     if (strm) {
         const lvst = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].time

@@ -96,7 +96,7 @@ const newStreamSession = streamDbObj => {
     }
     streamSessions.set(_id.toString(), newStreamSS)
     addToProductSessions(productIds, _id.toString())
-    console.log('added stream to mem: ', streamSessions.get(_id.toString()))
+    console.log('newStreamSession: added stream to mem: ' + _id.toString())
     return newStreamSS
 }
 
@@ -109,24 +109,26 @@ const addStreamVideoStatusHistory = (streamId, statusCode) => {
 }
 
 const addToProductSessions = (productIds, streamId) => {
-    console.log(`productSessions: Adding products `, productIds, ` with ${streamId} to prosduct sessions`)
     if (Array.isArray(productIds)) {
         productIds.forEach(id => {
             productSessions.set(id, streamId)
         })
+        console.log(`addToProductSessions: Added products `, productIds.length, ` with ${streamId}`)
         return true
     }
+    console.log(`addToProductSessions: FAILED caused of not-array-productIds with ${streamId}`)
     return false
 }
 
 const removeFromProductSessions = productIds => {
-    console.log(`productSessions: Removing products ${productIds} to products sessions`)
     if (Array.isArray(productIds)) {
         productIds.forEach(id => {
             productSessions.delete(id)
         })
+        console.log(`removeFromProductSessions: Removed ${productIds.length} products to products sessions`)
         return true
     }
+    console.log(`removeFromProductSessions: FAILED caused of not-array-productIds`)
     return false
 }
 
@@ -139,7 +141,7 @@ const getValidLiveStream = (userId, cb, storeId) => {
     }
     let strm = streamSessions.get(streamId)
     if (!strm) {
-        console.log(`error: stream ${streamId} not found in streamSessions (live)`)
+        console.log(`getValidLiveStream error: stream ${streamId} not found in streamSessions (live)`)
         callback({ success: false, message: `StreamID ${streamId} không tồn tại trên trình quản lý phiên stream`, errorCode: 2 })
         return null
     }
