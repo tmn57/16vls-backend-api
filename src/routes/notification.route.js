@@ -27,9 +27,13 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
     const { limit } = req.body
     const { userId } = req.tokenPayload
     const notifs = await NotificationModel.find({ userId }).sort({ createdAt: -1 }).limit(limit || 32)
+    const result = [] 
+    notifs.forEach(notif => {
+        result.push(notif.toObject())
+    })
     res.status(200).json({
         success: true,
-        data: notifs.toObject()
+        data: result
     })
 }))
 
