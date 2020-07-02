@@ -62,8 +62,14 @@ const initIoServer = server => {
                                 streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
                             })
                             cb({ success: true, data: streamObject })
-                            const streamStatusObj = toStreamStatusObject(streamObject)
-                            socket.emit(eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
+                            const strm = getValidLiveStream(userId, cb)
+                            let streamStatusObj = null
+                            if(strm) {
+                                streamStatusObj = toStreamStatusObject(strm)
+                            } else {
+                                streamStatusObj = toStreamStatusObject(streamObject)
+                            }
+                            streamStatusObj && socket.emit(eventKeys.STREAM_STATUS_UPDATE, streamStatusObj)
                         })
                     }
                 })
