@@ -56,7 +56,7 @@ router.post('/seen', isAuthenticated, asyncHandler(async (req, res, next) => {
 
 router.get('/checkNewCount', isAuthenticated, asyncHandler(async (req, res) => {
     const {userId} =req.tokenPayload
-    const notifs = await git.find({userId, status: 1})
+    const notifs = await NotificationModel.find({userId, status: 1})
     res.status(200).json({
         success: true,
         count: notifs.length
