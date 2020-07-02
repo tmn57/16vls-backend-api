@@ -29,7 +29,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
     const notifs = await NotificationModel.find({ userId }).sort({ createdAt: -1 }).limit(limit || 32)
     res.status(200).json({
         success: true,
-        data: notifs
+        data: notifs.toObject()
     })
 }))
 
@@ -52,7 +52,7 @@ router.post('/seen', isAuthenticated, asyncHandler(async (req, res, next) => {
 
 router.get('/checkNewCount', isAuthenticated, asyncHandler(async (req, res) => {
     const {userId} =req.tokenPayload
-    const notifs = await NotificationModel.find({userId, status: 1})
+    const notifs = await git.find({userId, status: 1})
     res.status(200).json({
         success: true,
         count: notifs.length
