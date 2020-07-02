@@ -256,7 +256,7 @@ const initIoServer = server => {
                         setTimeout(() => {
                             sellerInterruptHandler(streamId, lastVideoStatusTime)
                         }, STREAM_INTERRUPT_TIMEOUT_SECS * 1000)
-                    }(streamId, lastVideoStatusTime));
+                    }(strm.streamId, lastVideoStatusTime));
 
             }
 
