@@ -61,6 +61,12 @@ router.post('/delete', isAuthenticated, storeOwnerRequired, asyncHandler(async (
 router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
     const { startTime, title, products } = req.body
 
+    const liveStream = await StreamModel.findOne({storeId: req.storeId, endTime:{$in:[Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]}})
+    
+    if (liveStream) {
+        return next(raiseError(400, `Bạn đang chưa hoàn thành stream ${(liveStream)._id.toString()}`))
+    }
+
     let prodsDbObj = []
 
     products.forEach(product => {
