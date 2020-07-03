@@ -14,6 +14,7 @@ const { streamSessions, getStreamIdByUserId, getValidLiveStream, toStreamStatusO
 const workerServices = require('../workers/services')
 const fb = require('../utils/firebase')
 const { Stream } = require('twilio/lib/twiml/VoiceResponse')
+const stream = require('../models/stream')
 
 const router = express.Router()
 
@@ -167,7 +168,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
 
     let list = []
 
-    streams.forEach(async stream => {
+    await Promise.all(streams.map(async stream => {
         const streamStatusObj = toStreamStatusObject(stream)
         //Get productIds
         let prodIds = []
@@ -178,9 +179,9 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
 
         const store = await StoreModel.findById(streamObject.storeId)
 
-        const prods = await ProductModel.find({'_id': { $in: prodIds }})
+        const prods = await ProductModel.find({ '_id': { $in: prodIds } })
 
-        streamObject['shopName'] = store ? store.name : 'Không tồn tại' 
+        streamObject['shopName'] = store ? store.name : 'Không tồn tại'
 
         prods.forEach((r, idx) => {
             const rObj = r.toObject()
@@ -195,7 +196,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
             }
             list.push(l)
         }
-    })
+    }))
 
     res.status(200).json({
         success: true,
