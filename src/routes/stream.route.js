@@ -60,7 +60,7 @@ router.post('/delete', isAuthenticated, storeOwnerRequired, asyncHandler(async (
     })
 }))
 
-router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
+router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
     const { startTime, title, products } = req.body
 
     const liveStream = await StreamModel.findOne({ storeId: req.storeId, endTime: { $in: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER] } })
@@ -176,18 +176,13 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
             prodIds.push(prod.productId)
         })
         let streamObject = stream.toObject()
-
         const store = await StoreModel.findById(streamObject.storeId)
-
         const prods = await ProductModel.find({ '_id': { $in: prodIds } })
-
         streamObject['shopName'] = store ? store.name : 'Không tồn tại'
-
         prods.forEach((r, idx) => {
             const rObj = r.toObject()
             streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
         })
-
         if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
             if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
             let l = {
