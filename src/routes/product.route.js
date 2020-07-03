@@ -291,12 +291,10 @@ router.post('/search', asyncHandler(async (req, res, next) => {
   // .skip(20)
   // .limit(10)
   // .exec()
-
   return res.status(200).json({
     success: true,
     result: products
   })
-
 }))
 
 router.get('/getProductsOfOwner', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {

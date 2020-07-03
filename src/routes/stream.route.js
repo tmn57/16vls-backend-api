@@ -8,6 +8,7 @@ const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
 const StreamModel = require('../models/stream')
 const StoreModel = require('../models/store')
 const UserModel = require('../models/user')
+const ProductModel = require('../models/product')
 const { raiseError } = require('../utils/common')
 const { streamSessions, getStreamIdByUserId, getValidLiveStream, toStreamStatusObject, signRealtimeToken } = require('../sockets/services')
 const workerServices = require('../workers/services')
@@ -61,8 +62,8 @@ router.post('/delete', isAuthenticated, storeOwnerRequired, asyncHandler(async (
 router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
     const { startTime, title, products } = req.body
 
-    const liveStream = await StreamModel.findOne({storeId: req.storeId, endTime:{$in:[Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]}})
-    
+    const liveStream = await StreamModel.findOne({ storeId: req.storeId, endTime: { $in: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER] } })
+
     if (liveStream) {
         return next(raiseError(400, `Bạn đang chưa hoàn thành stream ${(liveStream)._id.toString()}`))
     }
@@ -166,12 +167,30 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
 
     let list = []
 
-    streams.forEach(stream => {
+    streams.forEach(async stream => {
         const streamStatusObj = toStreamStatusObject(stream)
+        //Get productIds
+        let prodIds = []
+        stream.products.forEach(prod => {
+            prodIds.push(prod.productId)
+        })
+        let streamObject = stream.toObject()
+
+        const store = await StoreModel.findById(streamObject.storeId)
+
+        const prods = await ProductModel.find({'_id': { $in: prodIds }})
+
+        streamObject['shopName'] = store ? store.name : 'Không tồn tại' 
+
+        prods.forEach((r, idx) => {
+            const rObj = r.toObject()
+            streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
+        })
+
         if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
             if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
             let l = {
-                ...stream.toObject(),
+                ...streamObject,
                 ...streamStatusObj
             }
             list.push(l)
