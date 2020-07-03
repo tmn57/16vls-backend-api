@@ -8,6 +8,7 @@ const mongoose = require('mongoose')
 const cors = require('cors')
 const { isAuthenticated } = require('./middlewares/auth')
 const { cryptoExchange } = require('./CryptoJs')
+const StreamModel = require('./models/stream')
 require('express-async-errors')
 
 const socketIoServer = require('./sockets/io')
@@ -101,6 +102,12 @@ const connectDatabase = () => {
 }
 
 connectDatabase()
+
+//Clean non-End stream in DB
+const cleanNotEndStreamDb = async () => {
+  await StreamModel.findByIdAndDelete({ endTime: { $in: [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, 0] } })
+}
+cleanNotEndStreamDb()
 
 //Run cronJob
 require('./workers/cron').init()

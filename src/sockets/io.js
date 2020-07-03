@@ -85,7 +85,7 @@ const initIoServer = server => {
             try {
                 StreamModel.findOne({ storeId, endTime: Number.MIN_SAFE_INTEGER }).then(async stream => {
                     if (stream === null) {
-                        return cb({ success: false, message: 'Bạn không phải là chủ phiên stream này' })
+                        return cb({ success: false, message: 'Bạn không phải là chủ phiên stream này', errorCode: 2 })
                     } else {
                         if (streamId !== stream._id.toString()) {
                             console.log(`SELLER_START_STREAM error: seller ${userId} want to start stream ${streamId} but got ${stream._id.toString()}`)
