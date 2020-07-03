@@ -9,12 +9,12 @@ const StreamModel = require('../models/stream')
 const StoreModel = require('../models/store')
 const UserModel = require('../models/user')
 const ProductModel = require('../models/product')
+const {checkProductLiveStream} = require('../services/product')
 const { raiseError } = require('../utils/common')
 const { streamSessions, getStreamIdByUserId, getValidLiveStream, toStreamStatusObject, signRealtimeToken } = require('../sockets/services')
 const workerServices = require('../workers/services')
 const fb = require('../utils/firebase')
-const { Stream } = require('twilio/lib/twiml/VoiceResponse')
-const stream = require('../models/stream')
+
 
 const router = express.Router()
 
@@ -180,7 +180,13 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
         const prods = await ProductModel.find({ '_id': { $in: prodIds } })
         streamObject['shopName'] = store ? store.name : 'Không tồn tại'
         prods.forEach((r, idx) => {
-            const rObj = r.toObject()
+            const liveRObj = checkProductLiveStream(r)
+            let rObj
+            if (liveRObj){
+                rObj = {...r.toObject(),...liveRObj}
+            } else {
+                rObj = r.toObject()
+            }
             streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
         })
         if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
@@ -211,17 +217,36 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
 
     let list = []
 
-    streams.forEach(stream => {
+    await Promise.all(streams.map(async stream => {
         const streamStatusObj = toStreamStatusObject(stream)
+        //Get productIds
+        let prodIds = []
+        stream.products.forEach(prod => {
+            prodIds.push(prod.productId)
+        })
+        let streamObject = stream.toObject()
+        const store = await StoreModel.findById(streamObject.storeId)
+        const prods = await ProductModel.find({ '_id': { $in: prodIds } })
+        streamObject['shopName'] = store ? store.name : 'Không tồn tại'
+        prods.forEach((r, idx) => {
+            const liveRObj = checkProductLiveStream(r)
+            let rObj
+            if (liveRObj){
+                rObj = {...r.toObject(),...liveRObj}
+            } else {
+                rObj = r.toObject()
+            }
+            streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
+        })
         if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
             if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
             let l = {
-                ...stream.toObject(),
+                ...streamObject,
                 ...streamStatusObj
             }
             list.push(l)
         }
-    })
+    }))
 
     res.status(200).json({
         success: true,
