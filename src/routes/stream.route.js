@@ -132,7 +132,7 @@ router.post('/update', isAuthenticated, storeOwnerRequired, asyncHandler(async (
             await stream.save()
 
             //START updateIncomingStreamNotification()
-            workerServices.updateInStreamTasks(_id.toString(), startTime)
+            workerServices.updateInStreamTasks(streamId, startTime)
             //END
 
         } else {
