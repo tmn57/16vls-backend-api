@@ -216,7 +216,7 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
     }
     
     let streams = await StreamModel.find({ storeId, endTime:{$nin:[Number.MAX_SAFE_INTEGER,Number.MIN_SAFE_INTEGER]}}).sort({ updateAt:-1, endTime: -1})
-    let priorStream = await StoreModel.findOne({storeId, endTime:{$in:[Number.MAX_SAFE_INTEGER,Number.MIN_SAFE_INTEGER]}})
+    let priorStream = await StreamModel.findOne({storeId, endTime:{$in:[Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]}})
     if (priorStream) streams.unshift(priorStream)
 
     console.log(`sellerList prior: `, priorStream, streams)
