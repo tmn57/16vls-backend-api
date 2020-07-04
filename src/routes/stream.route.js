@@ -219,7 +219,6 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
     let priorStream = await StreamModel.findOne({storeId, endTime:{$in:[Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]}})
     if (priorStream) streams.unshift(priorStream)
 
-    console.log(`sellerList prior: `, priorStream, streams)
     let list = []
 
     await Promise.all(streams.map(async stream => {
