@@ -21,9 +21,10 @@ const sendToSingle = async (title, body, userId, itime, metadata) => {
             userId,
             title,
             body,
+            data: metadata ? JSON.stringify(metadata) : "{}",
             status: 1
         })
-        metadata && (newNotification.data = JSON.stringify(metadata))
+        
         newNotification = await newNotification.save()
 
         if (time === -1 || time >= now) {
@@ -64,10 +65,10 @@ const sendToMany = async (title, body, userIds, itime, metadata) => {
                 title,
                 body,
                 status: 1,
+                data: metadata ? JSON.stringify(metadata) : "{}",
                 createdAt: Date.now(),
                 updatedAt: Date.now()
             })
-            metadata && (newNotification.data = JSON.stringify(metadata))
             newNotifications.push(newNotification)
         }
     })

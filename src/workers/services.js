@@ -31,12 +31,11 @@ const removeFromStreamTasks = (streamId) => {
 
 const updateMulticastMessageQueue = () => {
     streamTasks.forEach(async (v, k) => {
-        console.log(v)
         let { startTime, msgObject, storeId } = v
         console.log(`updateMessageQueue called: startTime:`, startTime, typeof (startTime), ` get time in: ${Math.abs(Date.now() - startTime)} secs`)
         if (Math.abs(Date.now() - startTime) < NOF_BEFORE_SECS * 1000) {
             console.log(`updateMessageQueue: storeId ${storeId}`)
-            let users = await UserModel.find({ storeFollowed: storeId})
+            let users = await UserModel.find({ storeFollowed: storeId })
             console.log(`updateMessageQueue: got ${users.length} users:`)
             const dvtoks = []
             const newNotifications = []
@@ -49,6 +48,7 @@ const updateMulticastMessageQueue = () => {
                         title,
                         body,
                         status: 1,
+                        data: JSON.stringify({ target: 'watching', params: { streamId: k } }),
                         createdAt: Date.now(),
                         updatedAt: Date.now(),
                     }))
