@@ -11,8 +11,9 @@ router.post('/device-token', isAuthenticated, asyncHandler(async (req, res, next
     const { userId } = req.tokenPayload
     const { token } = req.body
     const user = await UserModel.findById(userId)
-    if (user) {
-        user.firebaseDeviceToken = token
+    if (user && token) {
+        user.firebaseDeviceToken = (token === 'del' ? '' : token) 
+        user.markModified('firebaseDeviceToken')
         await user.save()
         res.status(200).json({
             success: true,
