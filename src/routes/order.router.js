@@ -83,7 +83,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             await product.save();
         }
 
-        const order = await Order.findOne({ $and: [{ userId: userId }, { storeId: listProducts[i].storeId }, { isCompleted: false }, { status: 'PEDDING' }] })
+        const order = await Order.findOne({ $and: [{ userId: userId }, { storeId: listProducts[i].storeId }, { isCompleted: false }, { status: 'PENDING' }] })
 
         if (order) {
             // order.products.concat(lstProducts)
@@ -139,7 +139,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
 router.get('/info', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
 
-    const orderPendding = await Order.find({ $and: [{ userId: userId }, { isCompleted: false }, { status: 'PEDDING' }] })
+    const orderPendding = await Order.find({ $and: [{ userId: userId }, { isCompleted: false }, { status: 'PENDING' }] })
 
     const orderInTransit = await Order.find({ $and: [{ userId: userId }, { isCompleted: false }, { status: 'APPROVED' }] })
 
@@ -161,7 +161,7 @@ router.get('/info', asyncHandler(async (req, res, next) => {
 
 router.get('/infoOrderPendding', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
-    const orderPendding = await Order.find({ $and: [{ userId: userId }, { isCompleted: false }, { status: 'PEDDING' }] })
+    const orderPendding = await Order.find({ $and: [{ userId: userId }, { isCompleted: false }, { status: 'PENDING' }] })
     let listOrders = []
     const user = await User.findById(userId)
 
@@ -435,7 +435,7 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const { orderId } = req.body
 
-    const order = await Order.findOne({ $and: [{ _id: orderId }, { userId: userId }, { status: 'PEDDING' }] })
+    const order = await Order.findOne({ $and: [{ _id: orderId }, { userId: userId }, { status: 'PENDING' }] })
 
     if (!order) {
         return res.status(400).json({

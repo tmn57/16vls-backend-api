@@ -326,7 +326,7 @@ router.get('/orderOfStore', asyncHandler(async (req, res, next) => {
 
   const store = await Store.findOne({ userId })
 
-  const order = await Order.find({ $and: [{ storeId: store._id }, { isCompleted: false }, { status: 'PEDDING' }] })
+  const order = await Order.find({ $and: [{ storeId: store._id }, { isCompleted: false }, { status: 'PENDING' }] })
 
   let listOrders = []
 
