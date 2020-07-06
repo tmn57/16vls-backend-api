@@ -62,7 +62,7 @@ router.post('/delete', isAuthenticated, storeOwnerRequired, asyncHandler(async (
 }))
 
 router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
-    const { startTime, title, products } = req.body
+    const { startTime, title, products, videoCapture } = req.body
 
     const liveStream = await StreamModel.findOne({ storeId: req.storeId, endTime: { $in: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER] } })
 
@@ -81,7 +81,8 @@ router.post('/create', isAuthenticated, storeOwnerRequired, asyncHandler(async (
         startTime,
         title,
         storeId: req.storeId,
-        products: prodsDbObj
+        products: prodsDbObj,
+        videoCapture
     })
 
     addedStream = await nStream.save()
@@ -113,7 +114,7 @@ router.post('/details', asyncHandler((async (req, res, next) => {
 })))
 
 router.post('/update', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
-    const { streamId, startTime, title, products } = req.body
+    const { streamId, startTime, title, products, videoCapture } = req.body
     let stream = await StreamModel.findOne({ _id: streamId, storeId: req.storeId })
     if (stream) {
         if (stream.endTime === Number.MIN_SAFE_INTEGER) {

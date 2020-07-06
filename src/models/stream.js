@@ -20,7 +20,8 @@ const StreamSchema = new Schema(//_id,newname
       message: { type: String, default: 'text message' },
       inStreamAt: { type: Number, default: 0 }
     }],
-    recordedFileName: {type: String, default:''}
+    recordedFileName: {type: String, default:''},
+    videoCapture: String
   },
   {
     timestamps: true,
