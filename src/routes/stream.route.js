@@ -128,9 +128,11 @@ router.post('/update', isAuthenticated, storeOwnerRequired, asyncHandler(async (
             stream.startTime = startTime
             stream.title = title
             stream.products = prodsDbObj
+            stream.videoCapture = videoCapture
             stream.markModified('startTime')
             stream.markModified('title')
             stream.markModified('products')
+            stream.markModified('videoCapture')
             await stream.save()
 
             //START updateIncomingStreamNotification()

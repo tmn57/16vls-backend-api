@@ -16,9 +16,13 @@ const addToStreamTasks = (streamId, startTime, msgObject, storeId) => {
 
 const updateInStreamTasks = (streamId, startTime) => {
     const st = streamTasks.get(streamId)
-    st.startTime = startTime
-    streamTasks.set(streamId, st)
-    console.log('updateToStreamTask called: updated to streamTasks')
+    if (st) {
+        st.startTime = startTime
+        streamTasks.set(streamId, st)
+        console.log('updateToStreamTask called: updated to streamTasks')
+    } else {
+        console.log(`updateInStreamTasks warning: not found streamTask with ${streamId}`)
+    }
 }
 
 const removeFromStreamTasks = (streamId) => {
