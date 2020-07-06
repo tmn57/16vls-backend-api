@@ -25,7 +25,7 @@ const ProductInCart = {
 
 const OrderSchema = new Schema(
   {
-    status: { type: String, default: 'PEDDING' }, // PEDDING, APPROVED, REJECT
+    status: { type: String, default: 'PENDING' }, // PENDING, APPROVED, REJECT
     // products: {
     //   type: Array, //ProductInCart
     //   default: []

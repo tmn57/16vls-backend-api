@@ -12,6 +12,22 @@ router.post('/create', async (req, res, next) => {
   try {
     const { userId } = req.tokenPayload
     const { name, images, category, variants, storeId, categorySystemId, price } = req.body
+
+    const store = await Store.findOne({ userId })
+    if (store) {
+      if(!store.isApproved)
+      return res.status(400).json({
+        success: false,
+        message: 'Shop của bạn chưa được duyệt, không thể tạo sản phẩm!'
+      })
+    }
+    else{
+      return res.status(400).json({
+        success: false,
+        message: 'Tài khoản của bạn chưa được tạo shop!'
+      })
+    }
+    
     if (!name || !images || !category || !variants || !storeId || !categorySystemId || !price) {
       throw createError(
         400,
