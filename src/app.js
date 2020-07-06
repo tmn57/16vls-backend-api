@@ -105,7 +105,7 @@ connectDatabase()
 
 //Clean non-End stream in DB
 const cleanNotEndStreamDb = async () => {
-  await StreamModel.findByIdAndDelete({ endTime: { $in: [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, 0] } })
+  await StreamModel.deleteMany({ endTime: { $in: [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, 0] } })
 }
 cleanNotEndStreamDb()
 
