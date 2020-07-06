@@ -171,7 +171,7 @@ router.get('/infoOrderPendding', asyncHandler(async (req, res, next) => {
         let listProductsOrder = []
         for (let j = 0; j < orderPendding[i].products.length; j++) {
             const product = await Product.findById(orderPendding[i].products[j].productId)
-
+            
             let checkProductStream = checkProductLiveStream(product)
             let price = product.price
             if (checkProductStream != null) {

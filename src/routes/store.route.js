@@ -12,47 +12,58 @@ const NotificationModel = require('../models/notification')
 const NotificationService = require('../services/notification')
 const { checkProductLiveStream, onChangeQuantityProductVariant } = require('../services/product')
 
-router.post('/create', async (req, res, next) => {
-  try {
-    const { userId } = req.tokenPayload
-    const { name, phone } = req.body
-    if (!phone || !name) {
-      throw createError(400, 'phone and name are required!')
-    } else {
-      if (!phoneNumberVerify.test(phone)) {
+router.post('/create', asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload
+  const { name, phone, email, address, profileLink, ownerName } = req.body
+  if (!phone || !name || !email || !address || !profileLink || !ownerName) {
+    throw createError(400, 'Tên cửa hàng, SĐT, Email, Địa chỉ, Profile Link, Tên chủ cửa hàng là bắt buộc!')
+  }
+  else {
+
+    const store = await Store.findOne({ userId })
+    if (store) {
+      if(store.isApproved)
+      return res.status(400).json({
+        success: false,
+        message: 'Tài khoản của bạn đã có shop!'
+      })
+      else{
         return res.status(400).json({
           success: false,
-          message: 'Số điện thoại không hợp lệ'
-        })
-      }
-      const existedName = await Store.findOne({ name })
-      if (existedName) {
-        return res.status(400).json({
-          success: false,
-          message: "Tên cửa hàng đã tồn tại"
-        })
-      } else {
-        let newStore = new Store({
-          createdBy: userId,
-          userId: userId,
-          ownerId: userId,
-          ...req.body
-        })
-        await newStore.save()
-        return res.status(201).json({
-          success: true,
-          message: 'Đang chờ duyệt',
-          result: newStore
+          message: 'Tài khoản của bạn đã tạo shop và shop chưa được duyệt!'
         })
       }
     }
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.toString()
-    })
+
+    if (!phoneNumberVerify.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Số điện thoại không hợp lệ'
+      })
+    }
+    const existedName = await Store.findOne({ name })
+    if (existedName) {
+      return res.status(400).json({
+        success: false,
+        message: "Tên cửa hàng đã tồn tại"
+      })
+    } else {
+      let newStore = new Store({
+        createdBy: userId,
+        userId: userId,
+        ownerId: userId,
+        ...req.body
+      })
+      await newStore.save()
+      return res.status(201).json({
+        success: true,
+        message: 'Đang chờ duyệt',
+        result: newStore
+      })
+    }
   }
-})
+
+}))
 
 // router.get('/', async (req, res, next) => {
 //   try {
@@ -203,8 +214,9 @@ router.post('/update', async (req, res, next) => {
       if (phone) store.phone = phone
       if (avatar) store.avatar = avatar
       store.updatedAt = +new Date()
+      store.updatedBy = userId
       await store.save()
-      return res.status(201).json({
+      return res.status(200).json({
         success: true,
         result: store
       })
