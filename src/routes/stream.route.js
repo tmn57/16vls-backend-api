@@ -158,7 +158,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
     next(raiseError(500, 'Đã có lỗi xảy ra trong quá trình lấy rttk'))
 }))
 
-router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
+router.post('/list', asyncHandler(async (req, res, next) => {
     let statusCode = -1
     if (typeof req.body['statusCode'] !== 'undefined') {
         if (req.body.statusCode > -1 && req.body.statusCode < 6) {
