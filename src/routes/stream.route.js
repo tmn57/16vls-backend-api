@@ -139,6 +139,11 @@ router.post('/update', isAuthenticated, storeOwnerRequired, asyncHandler(async (
             workerServices.updateInStreamTasks(streamId, startTime)
             //END
 
+            return res.status(200).json({
+                success: true,
+                stream: stream.toObject()
+            })
+
         } else {
             next.raiseError(400, `update information for started stream is not allowed`)
         }
