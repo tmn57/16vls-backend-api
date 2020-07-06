@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
 // Init Upload
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 1000000 },
+  limits: { fileSize: 2000000 },
   fileFilter: function (req, file, cb) {
     checkFileType(file, cb)
   }
@@ -24,7 +24,7 @@ const upload = multer({
 // Check File Type
 function checkFileType(file, cb) {
   // Allowed ext
-  const filetypes = /jpeg|jpg|png|gif/
+  const filetypes = /jpeg|jpg|png/
   // Check ext
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase())
   // Check mime
@@ -33,7 +33,7 @@ function checkFileType(file, cb) {
   if (mimetype && extname) {
     return cb(null, true)
   } else {
-    cb('Error: Images Only!')
+    cb('Lỗi: chỉ hỗ trợ upload JPG và PNG!')
   }
 }
 

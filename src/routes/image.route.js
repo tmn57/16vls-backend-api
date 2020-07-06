@@ -29,7 +29,7 @@ router.post('/upload', async (req, res, next) => {
           })
           res.status(201).json({
             success: true,
-            file: req.files.map((item) => 'images/'.concat(item.filename))
+            file: req.files.map((item) => item.filename)
           })
         }
       }
