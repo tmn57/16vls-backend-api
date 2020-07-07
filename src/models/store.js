@@ -15,7 +15,7 @@ const StoreSchema = new Schema(
     profileLink: String,
     websiteLink: String,
     isApproved: { type: Boolean, default: false },
-    avatar: String,
+    avatar: {type: String, default: ''},
     description: String,
     statusCode: String,
     followers: [String], // listUserId
