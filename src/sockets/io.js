@@ -354,10 +354,10 @@ const convertRealTimeToVideoTime = (streamId, time) => {
         if (history.length <= 1) return -1
         if (history[1].statusCode !== StreamVideoStatus.START) return -1
         const startTime = history[1].time
-        if (!history[2]) return (Math.floor((time - startTime)/1000.0))
+        if (!history[2]) return (Math.floor((time - startTime) / 1000.0))
         if (history[2].statusCode === StreamVideoStatus.END) {
             //if endTime > startTime then it is valid time
-            if (history[2].time > time) return (Math.floor((time - startTime)/1000.0))
+            if (history[2].time > time) return (Math.floor((time - startTime) / 1000.0))
             return -1
         }
         let delay = 0
@@ -377,7 +377,7 @@ const convertRealTimeToVideoTime = (streamId, time) => {
             }
             eventIndex++;
         }
-        return (Math.floor((time - startTime - delay)/1000.0))
+        return (Math.floor((time - startTime - delay) / 1000.0))
     }
     return -1
 }
@@ -412,6 +412,9 @@ const endStreamHandler = (streamId, cb) => {
             strm.products.forEach(p => {
                 productIds.push(p.productId)
             })
+
+            //Add stream to products
+            await ProductModel.updateMany({ _id: { $in: productIds } }, { $push: { inStreams: streamId } })
 
             socketServices.removeFromProductSessions(productIds)
             streamSessions.delete(streamId)
