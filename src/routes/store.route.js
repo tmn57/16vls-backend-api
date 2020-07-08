@@ -111,11 +111,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
       success: true,
       result: {
         isFollowed: check,
-        store: {
-          ...store.toObject(),
-          countOfStreams: streams.length,
-          countOfProducts: products.length
-        }
+        store: store.toObject()
       }
     })
   }
