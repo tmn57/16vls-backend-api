@@ -1,4 +1,6 @@
-const { Schema, model } = require('mongoose')
+const { Schema, model } = require('mongoose');
+const { checkProductLiveStream } = require('../services/product');
+const { NotExtended } = require('http-errors');
 
 const ProductSchema = new Schema(
   {
@@ -40,7 +42,7 @@ const ProductSchema = new Schema(
     createdAt: { type: Number, default: +new Date() },
     createdBy: String,
     updatedAt: { type: Number, default: +new Date() },
-    updatedBy: String
+    updatedBy: String,
   },
   {
     versionKey: false // remove field "__v"
@@ -48,6 +50,6 @@ const ProductSchema = new Schema(
 )
 
 // ProductSchema.index({name: 'text', 'profile.something': 'text'});
-ProductSchema.index({name: 'text'})
+ProductSchema.index({ name: 'text' })
 
 module.exports = model('Product', ProductSchema)

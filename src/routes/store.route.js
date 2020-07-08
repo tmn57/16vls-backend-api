@@ -103,8 +103,6 @@ router.get('/', asyncHandler(async (req, res, next) => {
     })
   }
   else {
-    const streams = await Stream.find({ storeId: store._id.toString() })
-    const products = await Product.find({ storeId: store._id.toString() })
     let listFollowers = store.followers;
     let check = listFollowers.map(val => val).some(el => el == userId)
     return res.status(200).json({
