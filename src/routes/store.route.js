@@ -52,6 +52,9 @@ router.post('/create', asyncHandler(async (req, res, next) => {
         createdBy: userId,
         userId: userId,
         ownerId: userId,
+        categories: [],
+        discounts: [],
+        followers: [],
         ...req.body
       })
       await newStore.save()
