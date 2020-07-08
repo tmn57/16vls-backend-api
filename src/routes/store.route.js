@@ -5,6 +5,7 @@ const Store = require('../models/store')
 const User = require('../models/user')
 const Order = require('../models/order')
 const Product = require('../models/product')
+const Stream = require('../models/stream')
 const asyncHandler = require('express-async-handler')
 const { phoneNumberVerify, isAdmin } = require('../utils/common')
 const { isAuthenticated, storeOwnerRequired, isAdministrator } = require('../middlewares/auth')
@@ -102,13 +103,19 @@ router.get('/', asyncHandler(async (req, res, next) => {
     })
   }
   else {
+    const streams = await Stream.find({ storeId: store._id.toString() })
+    const products = await Product.find({ storeId: store._id.toString() })
     let listFollowers = store.followers;
     let check = listFollowers.map(val => val).some(el => el == userId)
     return res.status(200).json({
       success: true,
       result: {
         isFollowed: check,
-        store: store
+        store: {
+          ...store,
+          countOfStreams: streams.length,
+          countOfProducts: products.length
+        }
       }
     })
   }
