@@ -20,10 +20,10 @@ const UserSchema = new Schema(
       district: { type: String, default: '' },
       city: { type: String, default: '' }
     },
-    avatar: String,
+    avatar: { type: String, default: '' },
     isEnabled: { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },
-    facebookId: String,
+    facebookId: { type: String, default: '' },
     refreshToken: {
       type: String,
       default: randtoken.generate(80)

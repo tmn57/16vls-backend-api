@@ -40,7 +40,7 @@ const OrderSchema = new Schema(
     totalMoney: { type: Number, default: 0 }, // Sum([total per Product])
     description: { type: String, default: 'default' },
     transportationCost: { type: Number, default: 0 },
-    shippingAddress: String,
+    shippingAddress: {type: String, default: ''},
     userId: String,
     createdAt: { type: Number, default: +new Date() },
     createdBy: String, //userID

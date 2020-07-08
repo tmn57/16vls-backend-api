@@ -13,10 +13,10 @@ const StoreSchema = new Schema(
     isActive: Boolean,
     address: String,
     profileLink: String,
-    websiteLink: String,
+    websiteLink: {type: String, default: ''},
     isApproved: { type: Boolean, default: false },
     avatar: {type: String, default: ''},
-    description: String,
+    description: {type: String, default: ''},
     statusCode: String,
     followers: [String], // listUserId
     createdAt: { type: Number, default: +new Date() },
