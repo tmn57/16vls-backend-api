@@ -7,6 +7,8 @@ const CategorySystem = require('../models/categorySystem')
 const { isAdmin } = require('../utils/common')
 const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
 const asyncHandler = require('express-async-handler')
+const { checkProductLiveStream } = require('../services/product')
+const product = require('../services/product')
 
 router.post('/create', async (req, res, next) => {
   try {
@@ -15,19 +17,19 @@ router.post('/create', async (req, res, next) => {
 
     const store = await Store.findOne({ userId })
     if (store) {
-      if(!store.isApproved)
-      return res.status(400).json({
-        success: false,
-        message: 'Shop của bạn chưa được duyệt, không thể tạo sản phẩm!'
-      })
+      if (!store.isApproved)
+        return res.status(400).json({
+          success: false,
+          message: 'Shop của bạn chưa được duyệt, không thể tạo sản phẩm!'
+        })
     }
-    else{
+    else {
       return res.status(400).json({
         success: false,
         message: 'Tài khoản của bạn chưa được tạo shop!'
       })
     }
-    
+
     if (!name || !images || !category || !variants || !storeId || !categorySystemId || !price) {
       throw createError(
         400,
@@ -75,12 +77,14 @@ router.get('/', async (req, res, next) => {
         message: 'Required field: id'
       })
     }
-    const products = await Product.findById(_id)
+    const product = await Product.findById(_id)
 
-    if (products) {
+    if (product) {
+      const productObj = product.toObject()
+      productObj['liveInfo'] = checkProductLiveStream(product)
       return res.status(200).json({
         success: true,
-        result: products
+        result: productObj
       })
     } else {
       return res.status(400).json({
@@ -137,9 +141,15 @@ router.post('/getByConditions', async (req, res, next) => {
       ? await Product.find({ ...conditions })
       : await Product.find({ createdBy: userId, ...conditions })
     if (products && products.length > 0) {
+      let productObjects = []
+      products.forEach(p => {
+        const productObj = p.toObject();
+        productObj['liveInfo'] = checkProductLiveStream(p)
+        productObjects.push(productObj)
+      })
       return res.status(200).json({
         success: true,
-        products
+        products: productObjects
       })
     } else {
       return res.status(400).json({
@@ -228,9 +238,17 @@ router.get('/allByCategorySystem', asyncHandler(async (req, res, next) => {
   }
 
   const products = await Product.find({ categorySystemId })
+
+  let productObjects = []
+  products.forEach(p => {
+    const productObj = p.toObject();
+    productObj['liveInfo'] = checkProductLiveStream(p)
+    productObjects.push(productObj)
+  })
+
   return res.status(200).json({
     success: true,
-    result: products
+    result: productObjects
   })
 }))
 
@@ -240,10 +258,16 @@ router.get('/allByCategoriesSystem', asyncHandler(async (req, res, next) => {
   let listProducts = []
   for (let i = 0; i < categoriesSystem.length; i++) {
     const products = await Product.find({ categorySystemId: categoriesSystem[i].id }).limit(10)
+    const productObjects = []
+    products.forEach(p => {
+      const productObj = p.toObject();
+      productObj['liveInfo'] = checkProductLiveStream(p)
+      productObjects.push(productObj)
+    })
     listProducts.push({
       _id: categoriesSystem[i].id,
       systemCateName: categoriesSystem[i].name,
-      products: products
+      products: productObjects
     })
   }
   return res.status(200).json({
@@ -268,9 +292,15 @@ router.get('/allByStore', asyncHandler(async (req, res, next) => {
 
   for (let i = 0; i < categories.length; i++) {
     const products = await Product.find({ storeId, category: categories[i] }).limit(10)
+    let productObjects = []
+    products.forEach(p => {
+      const productObj = p.toObject();
+      productObj['liveInfo'] = checkProductLiveStream(p)
+      productObjects.push(productObj)
+    })
     result.push({
       categoryName: categories[i],
-      listProducts: products
+      listProducts: productObjects
     })
   }
 
@@ -293,9 +323,15 @@ router.get('/allByCategoryStore', asyncHandler(async (req, res, next) => {
   }
 
   const products = await Product.find({ storeId, category })
+  let productObjects = []
+  products.forEach(p => {
+    const productObj = p.toObject();
+    productObj['liveInfo'] = checkProductLiveStream(p)
+    productObjects.push(productObj)
+  })
   return res.status(200).json({
     success: true,
-    result: products
+    result: productObjects
   })
 
 }))
@@ -307,18 +343,30 @@ router.post('/search', asyncHandler(async (req, res, next) => {
   // .skip(20)
   // .limit(10)
   // .exec()
+  let productObjects = []
+  products.forEach(p => {
+    const productObj = p.toObject();
+    productObj['liveInfo'] = checkProductLiveStream(p)
+    productObjects.push(productObj)
+  })
   return res.status(200).json({
     success: true,
-    result: products
+    result: productObjects
   })
 }))
 
 router.get('/getProductsOfOwner', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
   const storeId = req.storeId
-  const data = await Product.find({ storeId })
+  const products = await Product.find({ storeId })
+  let productObjects = []
+  products.forEach(p => {
+    const productObj = p.toObject();
+    productObj['liveInfo'] = checkProductLiveStream(p)
+    productObjects.push(productObj)
+  })
   res.status(200).json({
     success: true,
-    data
+    data: productObjects
   })
 }))
 

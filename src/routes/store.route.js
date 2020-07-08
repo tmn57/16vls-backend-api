@@ -5,6 +5,7 @@ const Store = require('../models/store')
 const User = require('../models/user')
 const Order = require('../models/order')
 const Product = require('../models/product')
+const Stream = require('../models/stream')
 const asyncHandler = require('express-async-handler')
 const { phoneNumberVerify, isAdmin } = require('../utils/common')
 const { isAuthenticated, storeOwnerRequired, isAdministrator } = require('../middlewares/auth')
@@ -111,7 +112,7 @@ router.get('/', asyncHandler(async (req, res, next) => {
       success: true,
       result: {
         isFollowed: check,
-        store: store
+        store: store.toObject()
       }
     })
   }
