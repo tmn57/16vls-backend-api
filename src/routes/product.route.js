@@ -4,11 +4,12 @@ const createError = require('http-errors')
 const Product = require('../models/product')
 const Store = require('../models/store')
 const CategorySystem = require('../models/categorySystem')
-const { isAdmin } = require('../utils/common')
-const { isAuthenticated, storeOwnerRequired } = require('../middlewares/auth')
+const User = require('../models/user')
+const { isAdmin, raiseError } = require('../utils/common')
+const { storeOwnerRequired } = require('../middlewares/auth')
 const asyncHandler = require('express-async-handler')
 const { checkProductLiveStream } = require('../services/product')
-const product = require('../services/product')
+const mongoose = require('mongoose')
 
 router.post('/create', async (req, res, next) => {
   try {
@@ -46,7 +47,8 @@ router.post('/create', async (req, res, next) => {
         let newProduct = new Product({
           createdBy: userId,
           storeId,
-          ...req.body
+          ...req.body,
+          reviews: []
         })
         await newProduct.save()
         return res.status(201).json({
@@ -355,7 +357,7 @@ router.post('/search', asyncHandler(async (req, res, next) => {
   })
 }))
 
-router.get('/getProductsOfOwner', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res) => {
+router.get('/getProductsOfOwner', storeOwnerRequired, asyncHandler(async (req, res) => {
   const storeId = req.storeId
   const products = await Product.find({ storeId })
   let productObjects = []
@@ -370,11 +372,72 @@ router.get('/getProductsOfOwner', isAuthenticated, storeOwnerRequired, asyncHand
   })
 }))
 
-router.post('/review', isAuthenticated, asyncHandler(async (req, res, next) => {
+router.post('/review', asyncHandler(async (req, res, next) => {
   const { userId } = req.tokenPayload;
-  const { rate, comment } = req.body
+  const { productId, rate } = req.body
+  let { comment } = req.body
 
+  if (rate < 1 || rate > 5) return next(raiseError(400, `Chỉ cho phép thang điểm từ 1 đến 5`))
 
+  if (!comment) comment = 'Không có bình luận'
+
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    return next(raiseError(400, `productId không hợp lệ`))
+  }
+
+  const product = await Product.findById(productId)
+
+  if (!product) return next(raiseError(400, `Không tìm thấy sản phẩm`))
+
+  const foundUserId = ''
+
+  Array.isArray(product.reviews) && product.reviews.length && product.reviews.forEach(review => {
+    userId === review.userId && (foundUserId = userId)
+  });
+
+  if (userId) return next(raiseError(400, `Bạn đã đánh giá rồi`))
+
+  let { reviews } = product
+  reviews.push({ userId, rate, comment })
+  product.reviews = reviews
+  product.markModified('reviews')
+  await product.save()
+  return res.status(200).json({
+    success: true,
+    reviews
+  })
+}))
+
+router.get('/getReviews', asyncHandler(async (req, res, next) => {
+  const { productId } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    return next(raiseError(400, `productId không hợp lệ`))
+  }
+
+  const product = await Product.findById(productId);
+
+  if (!product) return next(raiseError(400, `Không tìm thấy sản phẩm`))
+
+  let result = [];
+
+  const { reviews } = product
+
+  if (Array.isArray(reviews) && reviews.length) {
+    await Promise.all(reviews.map(async review => {
+      const user = await User.findById(review.userId)
+      if (user) {
+        review['userName'] = user.name;
+        review['userAvatar'] = user.avatar;
+      }
+      result.push(review)
+    }))
+  }
+
+  return res.status(200).json({
+    success: true,
+    reviews: result
+  })
 }))
 
 module.exports = router

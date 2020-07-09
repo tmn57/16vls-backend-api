@@ -7,9 +7,9 @@ const dotenv = require('dotenv')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const { isAuthenticated } = require('./middlewares/auth')
-const { cryptoExchange } = require('./CryptoJs')
 const StreamModel = require('./models/stream')
-require('express-async-errors')
+
+//require('express-async-errors')
 
 const socketIoServer = require('./sockets/io')
 //Init Express App
@@ -34,9 +34,6 @@ app.use(cookieParser())
 // Some route
 app.get('/', (req, res) => {
   res.send('16vls web API')
-})
-app.get('/cryptoJS', (req, res) => {
-  res.send(cryptoExchange)
 })
 app.use('/static', express.static(path.join(__dirname, 'public')))
 app.use('/', require('./routes/common.route'))

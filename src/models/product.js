@@ -31,7 +31,7 @@ const ProductSchema = new Schema(
     promotionPrice: { type: Number, default: 0 },
     storeId: String,
     code: String,
-    description: {type: String, default: ''},
+    description: { type: String, default: '' },
     images: [String],
     tags: [String], //tag.key
     inStreams: [String], //streamId 
@@ -43,6 +43,11 @@ const ProductSchema = new Schema(
     createdBy: String,
     updatedAt: { type: Number, default: +new Date() },
     updatedBy: String,
+    reviews: [{
+      userId: String,
+      rate: { type: Number, default: 5 },
+      comment: { type: String, default: "" }
+    }]
   },
   {
     versionKey: false // remove field "__v"

@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 const User = require('../models/user')
 const bcrypt = require('bcryptjs')
-const CryptoJS = require('crypto-js')
 const { PASSWORD_KEY } = require('../config')
 const randtoken = require('rand-token')
 const Store = require('../models/store')
@@ -49,8 +48,8 @@ router.post('/changePassword', asyncHandler(async (req, res, next) => {
     refreshToken: false
   })
   if (user) {
-    let decodedCurPassword = CryptoJS.AES.decrypt(curPassword, PASSWORD_KEY).toString(CryptoJS.enc.Utf8)
-    const matched = await bcrypt.compare(decodedCurPassword, user.password)
+    //let decodedCurPassword = CryptoJS.AES.decrypt(curPassword, PASSWORD_KEY).toString(CryptoJS.enc.Utf8)
+    const matched = await bcrypt.compare(curPassword, user.password)
     if (!matched) {
       return res.status(400).json({
         success: false,
@@ -58,8 +57,8 @@ router.post('/changePassword', asyncHandler(async (req, res, next) => {
       })
     }
 
-    let decodedPassword = CryptoJS.AES.decrypt(newPassword, PASSWORD_KEY).toString(CryptoJS.enc.Utf8)
-    user.password = await bcrypt.hash(decodedPassword, 10)
+    //let decodedPassword = CryptoJS.AES.decrypt(newPassword, PASSWORD_KEY).toString(CryptoJS.enc.Utf8)
+    user.password = await bcrypt.hash(newPassword, 10)
     user.refreshToken = randtoken.generate(80)
     user.updatedBy = userId
     user.updatedAt = +new Date()

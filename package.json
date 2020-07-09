@@ -12,7 +12,6 @@
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
-    "crypto-js": "^4.0.0",
     "dayjs": "^1.8.28",
     "dotenv": "^8.2.0",
     "express": "~4.16.1",
