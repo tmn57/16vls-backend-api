@@ -266,7 +266,7 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
     })
 }))
 
-router.post('/getByIds', isAuthenticated, asyncHandler((req,res,next)=>{
+router.post('/getByIds', isAuthenticated, asyncHandler(async (req,res,next)=>{
     const {streamIds} = req.body
     if (!Array.isArray(streamIds)) return next(raiseError(400, 'array is required'))
     const streams = await StreamModel.find({_id:{$in:streamIds}})
