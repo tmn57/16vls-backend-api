@@ -38,16 +38,6 @@ router.post('/login', asyncHandler(async (req, res, next) => {
     })
   }
 
-  // Encrypt password
-  // CryptoJS.AES.encrypt('0985002876', PASSWORD_KEY).toString()
-  // Test case :(phone: 0985002876, password: U2FsdGVkX19quFiQBuy4OzKtEAg0TTNkt/zzmg/hgAs=)
-
-  // Decrypt password
-  // let hash = CryptoJS.AES.decrypt(password, PASSWORD_KEY).toString(
-  //   CryptoJS.enc.Utf8
-  // )
-  // console.log(hash)
-
   const matched = bcrypt.compareSync(password, user.password)
 
   if (!matched) {
@@ -101,14 +91,6 @@ router.post('/register', asyncHandler(async (req, res, next) => {
     storeFollowed: [],
     password: await bcrypt.hash(password, 10)
   })
-  // newUser.phone = phone
-  // newUser.name = name.trim()
-  // newUser.email = email
-  // newUser.storeFollowed = []
-  // let decodedPassword = CryptoJS.AES.decrypt(
-  //   password,
-  //   PASSWORD_KEY
-  // ).toString(CryptoJS.enc.Utf8)
 
   await newUser.save()
 
@@ -196,118 +178,6 @@ router.post('/verify', asyncHandler(async (req, res, next) => {
 
   return next(raiseError(403, `Số điện thoại này chưa đăng ký!`))
 }))
-
-// router.post('/checkCode', async (req, res, next) => {
-//   try {
-//     const { code, phone } = req.body
-//     if (!phone || !code) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'phone, code are required!',
-//       })
-//     }
-//     if (!phoneNumberVerify.test(phone)) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'invalid phone number!',
-//       })
-//     } else {
-//       const userFound = await User.findOne({
-//         phone,
-//         isEnabled: true,
-//       })
-//       if (userFound) {
-//         const verification = await checkSmsOtpCode({
-//           phone: userFound.phone,
-//           code,
-//         })
-//         if (verification && verification.valid) {
-//           const token = jwt.sign(
-//             { userId: userFound._id, type: userFound.type },
-//             JWT_KEY,
-//             {
-//               expiresIn: 5,
-//             }
-//           )
-//           return res.json({
-//             success: true,
-//             message: 'This token is available in 5 minutes!',
-//             token,
-//           })
-//         } else {
-//           return res.status(400).json({
-//             success: false,
-//             message: 'This code is incorrect or expired!',
-//           })
-//         }
-//       } else {
-//         return res.status(403).json({
-//           success: false,
-//           message: 'This phone number has not been registered before!',
-//         })
-//       }
-//     }
-//   } catch (error) {
-//     return res.status(500).json(error.toString())
-//   }
-// })
-
-// router.post('/refreshToken', async (req, res) => {
-//   try {
-//     const { accessToken, refreshToken } = req.body
-//     if (!accessToken || !refreshToken) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'accessToken, refreshToken are required!',
-//       })
-//     }
-//     jwt.verify(
-//       accessToken,
-//       JWT_KEY,
-//       {
-//         ignoreExpiration: true,
-//       },
-//       async (err, payload) => {
-//         if (err) {
-//           return res.status(400).json({
-//             success: false,
-//             message: err,
-//           })
-//         }
-//         const { userId } = payload
-//         const user = await User.findById(userId)
-//         if (!user || !user.isEnabled) {
-//           return res.status(400).json({
-//             success: false,
-//             message: 'this account not found or was blocked!',
-//           })
-//         }
-//         if (user.refreshToken !== refreshToken) {
-//           return res.status(400).json({
-//             success: false,
-//             message: 'refreshToken is incorrect!',
-//           })
-//         }
-//         const newAccessToken = jwt.sign(
-//           { userId: user._id, type: user.type },
-//           JWT_KEY,
-//           {
-//             expiresIn: '24h',
-//           }
-//         )
-//         return res.json({
-//           success: true,
-//           newAccessToken,
-//         })
-//       }
-//     )
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.toString(),
-//     })
-//   }
-// })
 
 router.get('/sysCategories', isAuthenticated, asyncHandler(async (req, res) => {
   const data = SYS_CATEGORY.get('sysCategories').value()
