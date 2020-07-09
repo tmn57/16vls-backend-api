@@ -1,17 +1,12 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../models/user')
-const { PASSWORD_KEY, JWT_KEY } = require('../config')
+const { JWT_KEY } = require('../config')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
-const { phoneNumberVerify, getRandomCode, raiseError } = require('../utils/common')
+const { phoneNumberVerify, raiseError } = require('../utils/common')
 const { sendSmsOtpCode, checkSmsOtpCode } = require('../middlewares/twilio.sms')
 const Store = require('../models/store')
-const { isAuthenticated } = require('../middlewares/auth')
-const low = require('lowdb')
-const FileSync = require('lowdb/adapters/FileSync')
-const adapter = new FileSync('./public/common/sysCategory.json')
-const SYS_CATEGORY = low(adapter)
 const Cart = require('../models/cart')
 const asyncHandler = require('express-async-handler')
 
@@ -168,60 +163,6 @@ router.post('/verify', asyncHandler(async (req, res, next) => {
 
   return next(raiseError(403, `Số điện thoại này chưa đăng ký!`))
 }))
-
-router.get('/sysCategories', isAuthenticated, asyncHandler(async (req, res) => {
-  const data = SYS_CATEGORY.get('sysCategories').value()
-  return res.status(200).json({
-    success: true,
-    sysCategories: data || [],
-  })
-}))
-
-router.get('/sysCategories/restore', isAuthenticated, asyncHandler(async (req, res) => {
-
-  if (req.tokenPayload.type !== 'admin') {
-    res.status(403).json({
-      success: false,
-      message: 'only administrator can access this api!',
-    })
-  }
-  const original = SYS_CATEGORY.get('originalSysCategories').value()
-  SYS_CATEGORY.set('sysCategories', [...original]).write()
-  return res.status(200).json({
-    success: true,
-    sysCategories: original || [],
-  })
-}))
-
-router.post('/sysCategories/replace', isAuthenticated, async (req, res) => {
-  try {
-    if (req.tokenPayload.type !== 'admin') {
-      res.status(403).json({
-        success: false,
-        message: 'only administrator can access this api!',
-      })
-    }
-    const { sysCategories } = req.body
-    if (sysCategories && sysCategories.length > 0) {
-      SYS_CATEGORY.set('sysCategories', [...sysCategories]).write()
-      const data = SYS_CATEGORY.get('sysCategories').value()
-      return res.json({
-        success: true,
-        sysCategories: data || [],
-      })
-    } else {
-      return res.json({
-        success: true,
-        message: 'sysCategories is required!',
-      })
-    }
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.toString(),
-    })
-  }
-})
 
 // api reset password
 router.post('/checkPhoneNumber', asyncHandler(async (req, res, next) => {
