@@ -17,12 +17,7 @@ const asyncHandler = require('express-async-handler')
 
 router.post('/login', asyncHandler(async (req, res, next) => {
   const { phone, password } = req.body
-  if (!phone || !password) {
-    return res.status(400).json({
-      success: false,
-      message: 'Thiếu số điện thoại hoặc mật khẩu',
-    })
-  }
+  if (!phone || !password) return next(raiseError(400, 'Thiếu số điện thoại hoặc mật khẩu')) 
 
   const user = await User.findOne({ phone })
 
@@ -40,12 +35,7 @@ router.post('/login', asyncHandler(async (req, res, next) => {
 
   const matched = bcrypt.compareSync(password, user.password)
 
-  if (!matched) {
-    return res.status(400).json({
-      success: false,
-      message: 'Sai mật khẩu',
-    })
-  }
+  if (!matched) return next(raiseError(400, 'Sai mật khẩu'))
 
   const token = jwt.sign({ userId: user._id, type: user.type }, JWT_KEY)
   const store = await Store.findOne({ userId: user._id })
