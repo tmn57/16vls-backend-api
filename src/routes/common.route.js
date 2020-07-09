@@ -159,7 +159,7 @@ router.post('/verify', asyncHandler(async (req, res, next) => {
       return res.status(403).json({
         success: false,
         verifyRequired: true,
-        message: `Mã SMS đã hết hạn, vui lòng kích hoạt lại`
+        message: `Mã OTP bị sai hoặc đã hết hạn, vui lòng kích hoạt lại`
       })
     }
 
@@ -305,7 +305,7 @@ router.post('/verifyResetPassword', asyncHandler(async (req, res, next) => {
       return res.status(403).json({
         success: false,
         verifyRequired: true,
-        message: `Mã SMS đã hết hạn, vui lòng kích hoạt lại`
+        message: `Mã OTP bị sai hoặc đã hết hạn, vui lòng kích hoạt lại`
       })
 
     }
