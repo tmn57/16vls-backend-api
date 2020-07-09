@@ -73,7 +73,7 @@ router.post('/register', asyncHandler(async (req, res, next) => {
   if (userExisted) {
     if (!userExisted.isEnabled) return next(raiseError(403, 'Tài khoản đã bị khóa, vui lòng liên hệ với admin'))
 
-    if (!user.isVerified) {
+    if (!userExisted.isVerified) {
       return res.status(403).json({
         success: false,
         verifyRequired: true,
@@ -241,7 +241,7 @@ router.post('/checkPhoneNumber', asyncHandler(async (req, res, next) => {
   const userExisted = await User.findOne({ phone })
   if (userExisted) {
     if (!userExisted.isEnabled) return next(raiseError(403, 'Tài khoản đã bị khóa, vui lòng liên hệ với admin'))
-    if (!user.isVerified) {
+    if (!userExisted.isVerified) {
       return res.status(403).json({
         success: false,
         verifyRequired: true,
@@ -266,7 +266,7 @@ router.post('/resetPassword', asyncHandler(async (req, res, next) => {
   if (userExisted) {
     if (!userExisted.isEnabled) return next(raiseError(403, 'Tài khoản đã bị khóa, vui lòng liên hệ với admin'))
 
-    if (!user.isVerified) {
+    if (!userExisted.isVerified) {
       return res.status(403).json({
         success: false,
         verifyRequired: true,
@@ -274,8 +274,7 @@ router.post('/resetPassword', asyncHandler(async (req, res, next) => {
       })
     }
 
-    let decodedPassword = CryptoJS.AES.decrypt(passwordNew, PASSWORD_KEY).toString(CryptoJS.enc.Utf8)
-    userExisted.password = await bcrypt.hash(decodedPassword, 10)
+    userExisted.password = passwordNew
     userExisted.updatedAt = +new Date()
     userExisted.updatedBy = userExisted._id
     await userExisted.save()
