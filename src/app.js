@@ -53,10 +53,11 @@ app.use('/notifications', require('./routes/notification.route'))
 
 //handle error
 app.use((err, req, res, next) => {
-  console.log(err)
+  console.log(`Request err: `, err)
   res.status(err.status || 500)
   res.json({
     success: false,
+    message: err.message || err.toString(),
     error: err.toString()
   })
 })
