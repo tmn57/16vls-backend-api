@@ -165,7 +165,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
     next(raiseError(500, 'Đã có lỗi xảy ra trong quá trình lấy rttk'))
 }))
 
-router.post('/list', asyncHandler(async (req, res, next) => {
+router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
     let statusCode = -1
     if (typeof req.body['statusCode'] !== 'undefined') {
         if (req.body.statusCode > -1 && req.body.statusCode < 6) {
@@ -263,6 +263,18 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
     res.status(200).json({
         success: true,
         data: list
+    })
+}))
+
+router.post('/getByIds', isAuthenticated, asyncHandler((req,res,next)=>{
+    const {streamIds} = req.body
+    if (!Array.isArray(streamIds)) return next(raiseError(400, 'array is required'))
+    const streams = await StreamModel.find({_id:{$in:streamIds}})
+    const streamObjects = []
+    streams.forEach(s=> streamObjects.push(s.toObject()))
+    return res.status(200).json({
+        success:true,
+        streams: streamObjects
     })
 }))
 
