@@ -370,4 +370,11 @@ router.get('/getProductsOfOwner', isAuthenticated, storeOwnerRequired, asyncHand
   })
 }))
 
+router.post('/review', isAuthenticated, asyncHandler(async (req, res, next) => {
+  const { userId } = req.tokenPayload;
+  const { rate, comment } = req.body
+
+
+}))
+
 module.exports = router
