@@ -263,8 +263,8 @@ router.post('/resetPassword', asyncHandler(async (req, res, next) => {
         message: `Bạn cần kích hoạt tài khoản thông qua SMS`
       })
     }
-
-    userExisted.password = passwordNew
+    
+    userExisted.password = await bcrypt.hash(passwordNew, 10)
     userExisted.updatedAt = +new Date()
     userExisted.updatedBy = userExisted._id
     await userExisted.save()
