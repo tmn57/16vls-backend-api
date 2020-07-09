@@ -41,7 +41,7 @@ router.post('/login', asyncHandler(async (req, res, next) => {
     token,
     result: {
       user: user.toObject(),
-      store: store.toObject() || null,
+      store: store ? store.toObject() : null,
     },
   })
 }))
