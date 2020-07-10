@@ -408,7 +408,7 @@ router.post('/review', asyncHandler(async (req, res, next) => {
   })
 }))
 
-router.get('/getReviews', asyncHandler(async (req, res, next) => {
+router.post('/getReviews', asyncHandler(async (req, res, next) => {
   const { productId } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(productId)) {

@@ -1,6 +1,4 @@
 const { Schema, model } = require('mongoose');
-const { checkProductLiveStream } = require('../services/product');
-const { NotExtended } = require('http-errors');
 
 const ProductSchema = new Schema(
   {

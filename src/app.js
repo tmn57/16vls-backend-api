@@ -6,6 +6,7 @@ const logger = require('morgan')
 const dotenv = require('dotenv')
 const mongoose = require('mongoose')
 const cors = require('cors')
+const serveStatic = require('serve-static')
 const { isAuthenticated } = require('./middlewares/auth')
 const StreamModel = require('./models/stream')
 
@@ -35,7 +36,9 @@ app.use(cookieParser())
 app.get('/', (req, res) => {
   res.send('16vls web API')
 })
-app.use('/static', express.static(path.join(__dirname, 'public')))
+app.use('/static', express.static(path.join(__dirname, 'public')));
+app.use('/static-sm', serveStatic(path.join(__dirname, 'public_sm')));
+app.use('/static-sm', serveStatic(path.join(__dirname, 'public')));
 app.use('/', require('./routes/common.route'))
 app.use('/stores', isAuthenticated, require('./routes/store.route'))
 app.use('/products', isAuthenticated, require('./routes/product.route'))
