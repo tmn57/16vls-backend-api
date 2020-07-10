@@ -1,15 +1,14 @@
 # 16vls-backend
 API server:
-http://13.250.161.81:3000
+http://ec2-13-250-161-81.ap-southeast-1.compute.amazonaws.com:3000
+hoac
+http://ec2-13-250-161-81.ap-southeast-1.compute.amazonaws.com/api/
+
+Dashboard server:
+http://ec2-13-250-161-81.ap-southeast-1.compute.amazonaws.com:3456
 
 Socket server:
-http://13.250.161.81:5000
-
-Unstable API server:
-http://13.250.161.81:4000
-
-Unstable Socket server:
-http://13.250.161.81:6000
+http://ec2-13-250-161-81.ap-southeast-1.compute.amazonaws.com:5000
 
 Video Stream Server IP: 52.220.101.125
 
