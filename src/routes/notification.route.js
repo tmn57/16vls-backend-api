@@ -12,7 +12,7 @@ router.post('/device-token', isAuthenticated, asyncHandler(async (req, res, next
     const { token } = req.body
     const user = await UserModel.findById(userId)
     if (user && token) {
-        user.firebaseDeviceToken = (token === 'del' ? '' : token) 
+        user.firebaseDeviceToken = (token === 'del' ? '' : token)
         user.markModified('firebaseDeviceToken')
         await user.save()
         res.status(200).json({
@@ -28,7 +28,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res) => {
     const { limit } = req.body
     const { userId } = req.tokenPayload
     const notifs = await NotificationModel.find({ userId }).sort({ createdAt: -1 }).limit(limit || 32)
-    const result = [] 
+    const result = []
     notifs.forEach(notif => {
         result.push(notif.toObject())
     })
@@ -56,8 +56,8 @@ router.post('/seen', isAuthenticated, asyncHandler(async (req, res, next) => {
 }))
 
 router.get('/checkNewCount', isAuthenticated, asyncHandler(async (req, res) => {
-    const {userId} =req.tokenPayload
-    const notifs = await NotificationModel.find({userId, status: 1})
+    const { userId } = req.tokenPayload
+    const notifs = await NotificationModel.find({ userId, status: 1 })
     res.status(200).json({
         success: true,
         count: notifs.length
@@ -70,6 +70,19 @@ router.get('/test', asyncHandler(async (req, res) => {
     users.forEach(u => { uids.push(u._id.toString()) })
     await NotificationService.sendToMany('Thông điệp thử nghiệm của 16VLS', 'Đây là thông điệp thử nghiệm lúc: ' + Date.now().toString(), uids, -1)
     res.status(200).send('sent')
+}))
+
+
+router.post('/dashboard-send-notification-to-single', asyncHandler(async (req, res, next) => {
+
+    //TODO: only allow dashboard server ip
+
+    const { title, body, userId, itime, metadata } = req.body
+    if (!title || !body || !userId || !itime) {
+        return next(raiseError(400, `not enough field being provided`))
+    }
+    await NotificationService.sendToSingle(title, body, userId, itime, metadata);
+    res.sendStatus(200)
 }))
 
 module.exports = router
