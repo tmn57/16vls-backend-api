@@ -11,7 +11,7 @@ admin.initializeApp({
 const sendSingle = async (registrationToken, messageObject) => {
     let msgObj = messageObject
     msgObj['token'] = registrationToken
-    await admin.messaging().send(message)
+    await admin.messaging().send(msgObj)
         .then((response) => {
             // Response is a message ID string.
             console.log('FCM Service: Successfully sent message:', response);
