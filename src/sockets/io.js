@@ -237,15 +237,15 @@ const initIoServer = server => {
         socket.on('disconnect', reason => {
             console.log(`Socket: user ${userId} disconnected with reason ${reason}`)
             //check for store owner behavior
-            let strm = getValidLiveStream(userId, 'naf', storeId)
-            if (strm) {
-                const lastVideoStatusCode = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].statusCode
+            const storeStrm = getValidLiveStream(userId, 'naf', storeId)
+            if (storeStrm) {
+                const lastVideoStatusCode = storeStrm.videoStreamStatusHistory[storeStrm.videoStreamStatusHistory.length - 1].statusCode
                 if (lastVideoStatusCode === StreamVideoStatus.START) {
-                    addStreamVideoStatusHistory(strm.streamId, StreamVideoStatus.INTERRUPT)
-                    emitToStream(strm.streamId, eventKeys.STREAM_STATUS_UPDATE, toStreamStatusObject(strm))
+                    addStreamVideoStatusHistory(storeStrm.streamId, StreamVideoStatus.INTERRUPT)
+                    emitToStream(storeStrm.streamId, eventKeys.STREAM_STATUS_UPDATE, toStreamStatusObject(storeStrm))
                 }
 
-                const lastVideoStatusTime = strm.videoStreamStatusHistory[strm.videoStreamStatusHistory.length - 1].time
+                const lastVideoStatusTime = storeStrm.videoStreamStatusHistory[storeStrm.videoStreamStatusHistory.length - 1].time
 
                 //"freeze" the input to timeout function handling
                 const triggerTimeout = function (streamId, lastVideoStatusTime) {
@@ -254,12 +254,12 @@ const initIoServer = server => {
                     }, STREAM_INTERRUPT_TIMEOUT_SECS * 1000)
                 }
 
-                triggerTimeout(strm.streamId, lastVideoStatusTime)
+                triggerTimeout(storeStrm.streamId, lastVideoStatusTime)
 
             }
 
             //check for normal user behavior
-            strm = getValidLiveStream(userId, 'naf')
+            const strm = getValidLiveStream(userId, 'naf')
             if (strm) {
                 socket.leave(strm.streamId)
                 socketServices.removeStreamWithUserId(userId)

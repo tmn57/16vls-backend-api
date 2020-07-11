@@ -145,8 +145,8 @@ const getValidLiveStream = (userId, cb, storeId) => {
         callback({ success: false, message: `StreamID ${streamId} không tồn tại trên trình quản lý phiên stream`, errorCode: 2 })
         return null
     }
-    if (storeId && (strm.storeId !== storeId)) {
-        callback({ success: false, message: `Bạn đang cố thao tác trên shop của ShopID: ${strm.storeId}`, errorCode: 0 })
+    if (storeId) {
+        if (strm.storeId === storeId) return strm
         return null
     }
     return strm
