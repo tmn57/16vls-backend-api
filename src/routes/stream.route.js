@@ -313,7 +313,7 @@ const getStreamList = async (limit, statusCode, storeId) => {
     })
 
     let streamList = [...liveStreams, ...incomingStreams, ...doneStreams].slice(0, limit);
-    streamList = [];
+    //streamList = [];
     
     await Promise.all(streamList.map(async (stream, idx) => {
         streamList[idx] = await convertStreamToStreamObjectWithMeta(stream)
