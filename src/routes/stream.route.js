@@ -14,7 +14,6 @@ const { raiseError } = require('../utils/common')
 const { streamSessions, getStreamIdByUserId, getValidLiveStream, toStreamStatusObject, signRealtimeToken } = require('../sockets/services')
 const workerServices = require('../workers/services')
 const fb = require('../utils/firebase')
-const stream = require('../models/stream')
 
 
 const router = express.Router()
@@ -166,60 +165,6 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
 }))
 
 router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
-    let limit = (req.body.moreLevel || 1) * 10
-    let count = 0
-
-    let statusCode = -1
-    if (typeof req.body['statusCode'] !== 'undefined') {
-        if (req.body.statusCode > -1 && req.body.statusCode < 6) {
-            statusCode = req.body.statusCode
-        }
-    }
-
-    let streams = await StreamModel.find({}).sort({ endTime: -1 })
-
-    let list = []
-
-    await Promise.all(streams.map(async (stream) => {
-        const streamStatusObj = toStreamStatusObject(stream)
-        //Get productIds
-        let prodIds = []
-        stream.products.forEach(prod => {
-            prodIds.push(prod.productId)
-        })
-        let streamObject = stream.toObject()
-        const store = await StoreModel.findById(streamObject.storeId)
-        const prods = await ProductModel.find({ '_id': { $in: prodIds } })
-        streamObject['shopName'] = store ? store.name : 'Không tồn tại'
-        prods.forEach((r, idx) => {
-            const liveRObj = checkProductLiveStream(r)
-            let rObj
-            if (liveRObj) {
-                rObj = { ...r.toObject(), ...liveRObj }
-            } else {
-                rObj = r.toObject()
-            }
-            streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
-        })
-        if (count <= limit && ((streamStatusObj.statusCode === statusCode) || statusCode === -1)) {
-            if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
-            let l = {
-                ...streamObject,
-                ...streamStatusObj
-            }
-            list[count] = l
-            count++
-        }
-    }))
-
-    res.status(200).json({
-        success: true,
-        data: list
-    })
-}))
-
-router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
-    const { storeId } = req;
     let limit = (req.body.moreLevel || 1) * 10;
     let count = 0;
     let statusCode = -1;
@@ -228,48 +173,25 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
             statusCode = req.body.statusCode
         }
     }
+    res.status(200).json({
+        success: true,
+        data: await getStreamList(limit, statusCode, false)
+    })
+}))
 
-    let streams = await StreamModel.find({ storeId, endTime: { $nin: [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER] } }).sort({ updateAt: -1, endTime: -1 }).limit(limit)
-    let priorStream = await StreamModel.findOne({ storeId, endTime: { $in: [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER] } })
-    if (priorStream) streams.unshift(priorStream)
-
-    let list = []
-
-    await Promise.all(streams.map(async (stream) => {
-        const streamStatusObj = toStreamStatusObject(stream)
-        //Get productIds
-        let prodIds = []
-        stream.products.forEach(prod => {
-            prodIds.push(prod.productId)
-        })
-        let streamObject = stream.toObject()
-        const store = await StoreModel.findById(streamObject.storeId)
-        const prods = await ProductModel.find({ '_id': { $in: prodIds } })
-        streamObject['shopName'] = store ? store.name : 'Không tồn tại'
-        prods.forEach((r, idx) => {
-            const liveRObj = checkProductLiveStream(r)
-            let rObj
-            if (liveRObj) {
-                rObj = { ...r.toObject(), ...liveRObj }
-            } else {
-                rObj = r.toObject()
-            }
-            streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
-        })
-        if (count <= limit && ((streamStatusObj.statusCode === statusCode) || statusCode === -1)) {
-            if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
-            let l = {
-                ...streamObject,
-                ...streamStatusObj
-            }
-            list[count] = l
-            count++
+router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
+    const { storeId } = req;
+    let limit = (req.body.moreLevel || 1) * 10;
+    let statusCode = -1;
+    if (typeof req.body['statusCode'] !== 'undefined') {
+        if (req.body.statusCode > -1 && req.body.statusCode < 6) {
+            statusCode = req.body.statusCode
         }
-    }))
+    }
 
     res.status(200).json({
         success: true,
-        data: list
+        data: await getStreamList(limit, statusCode, storeId)
     })
 }))
 
@@ -365,5 +287,73 @@ router.post('/rtmp-record-join-done', async (req, res) => {
     return res.status(400).send(`invalid request`)
 })
 
+const getStreamList = async (limit, statusCode, storeId) => {
+    let liveStreams = [];
+    let incomingStreams = [];
+    let doneStreams = [];
+
+    const allowLive = (statusCode === 1) || (statusCode === - 1)
+    const allowIncoming = (statusCode === 0) || (statusCode === - 1)
+    const allowDone = (statusCode === 0) || (statusCode === - 1)
+
+    let cond = {};
+    if (storeId) cond = { storeId };
+    const streams = await StreamModel.find(cond).sort({ updatedAt: -1 });
+
+    streams.map(s => {
+        if (s.endTime === Number.MAX_SAFE_INTEGER) {
+            allowLive && liveStreams.push(s);
+            return;
+        }
+        if (s.endTime === Number.MIN_SAFE_INTEGER) {
+            allowIncoming && incomingStreams.push(s);
+            return;
+        }
+        allowDone && doneStreams.push(s);
+    })
+
+    let streamList = [...liveStreams, ...incomingStreams, ...doneStreams].slice(0, limit);
+    streamList = [];
+    
+    await Promise.all(streamList.map(async (stream, idx) => {
+        streamList[idx] = await convertStreamToStreamObjectWithMeta(stream)
+    }))
+    
+    console.log(streamList);
+
+    return streamList;
+}
+
+const convertStreamToStreamObjectWithMeta = async (stream) => {
+    const streamStatusObj = toStreamStatusObject(stream)
+    let prodIds = []
+    stream.products.forEach(prod => {
+        prodIds.push(prod.productId)
+    })
+    let streamObject = stream.toObject()
+    const store = await StoreModel.findById(streamObject.storeId)
+    const prods = await ProductModel.find({ '_id': { $in: prodIds } })
+    streamObject['shopName'] = store ? store.name : 'Không tồn tại'
+
+    prods.forEach((r, idx) => {
+        const liveRObj = checkProductLiveStream(r)
+        let rObj
+        if (liveRObj) {
+            rObj = { ...r.toObject(), ...liveRObj }
+        } else {
+            rObj = r.toObject()
+        }
+        streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
+    })
+
+    if (typeof streamStatusObj['message'] !== 'undefined') {
+        delete streamStatusObj['message']
+    }
+
+    return {
+        ...streamObject,
+        ...streamStatusObj
+    }
+}
 
 module.exports = router
