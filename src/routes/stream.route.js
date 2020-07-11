@@ -294,7 +294,7 @@ const getStreamList = async (limit, statusCode, storeId) => {
 
     const allowLive = (statusCode === 1) || (statusCode === - 1)
     const allowIncoming = (statusCode === 0) || (statusCode === - 1)
-    const allowDone = (statusCode === 0) || (statusCode === - 1)
+    const allowDone = (statusCode === 5) || (statusCode === - 1)
 
     let cond = {};
     if (storeId) cond = { storeId };
