@@ -180,7 +180,7 @@ const initIoServer = server => {
                 if (statusCode === 2001) {
                     if (lastVideoStatusCode === StreamVideoStatus.WAIT || lastVideoStatusCode === StreamVideoStatus.INTERRUPT) {
                         addStreamVideoStatusHistory(strm.streamId, StreamVideoStatus.START)
-                        return setTimeout(()=>{
+                        return setTimeout(() => {
                             emitToStream(strm.streamId, eventKeys.STREAM_STATUS_UPDATE, toStreamStatusObject(strm))
                         }, 5000)
                     }
