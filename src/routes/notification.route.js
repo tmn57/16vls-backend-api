@@ -78,7 +78,7 @@ router.post('/dashboard-send-notification-to-single', asyncHandler(async (req, r
     //TODO: only allow dashboard server ip
 
     const { title, body, userId, itime, metadata } = req.body
-    if (!title || !body || !userId || !itime) {
+    if (!title || !body || !userId) {
         return next(raiseError(400, `not enough field being provided`))
     }
     await NotificationService.sendToSingle(title, body, userId, itime, metadata);
