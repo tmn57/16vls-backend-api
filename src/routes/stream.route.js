@@ -9,7 +9,7 @@ const StreamModel = require('../models/stream')
 const StoreModel = require('../models/store')
 const UserModel = require('../models/user')
 const ProductModel = require('../models/product')
-const {checkProductLiveStream} = require('../services/product')
+const { checkProductLiveStream } = require('../services/product')
 const { raiseError } = require('../utils/common')
 const { streamSessions, getStreamIdByUserId, getValidLiveStream, toStreamStatusObject, signRealtimeToken } = require('../sockets/services')
 const workerServices = require('../workers/services')
@@ -166,6 +166,8 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
 }))
 
 router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
+    let limit = (req.body.moreLevel || 1) * 10
+
     let statusCode = -1
     if (typeof req.body['statusCode'] !== 'undefined') {
         if (req.body.statusCode > -1 && req.body.statusCode < 6) {
@@ -173,11 +175,11 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
         }
     }
 
-    let streams = await StreamModel.find({}).sort({endTime: -1})
+    let streams = await StreamModel.find({}).sort({ endTime: -1 }).limit(limit)
 
     let list = []
 
-    await Promise.all(streams.map(async stream => {
+    await Promise.all(streams.map(async (stream, idx) => {
         const streamStatusObj = toStreamStatusObject(stream)
         //Get productIds
         let prodIds = []
@@ -191,8 +193,8 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
         prods.forEach((r, idx) => {
             const liveRObj = checkProductLiveStream(r)
             let rObj
-            if (liveRObj){
-                rObj = {...r.toObject(),...liveRObj}
+            if (liveRObj) {
+                rObj = { ...r.toObject(), ...liveRObj }
             } else {
                 rObj = r.toObject()
             }
@@ -204,7 +206,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
                 ...streamObject,
                 ...streamStatusObj
             }
-            list.push(l)
+            list[idx] = l
         }
     }))
 
@@ -216,6 +218,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
 
 router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
     const { storeId } = req
+    let limit = (req.body.moreLevel || 1) * 10
     let statusCode = -1
     if (typeof req.body['statusCode'] !== 'undefined') {
         if (req.body.statusCode > -1 && req.body.statusCode < 6) {
@@ -223,13 +226,13 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
         }
     }
 
-    let streams = await StreamModel.find({ storeId, endTime:{$nin:[Number.MAX_SAFE_INTEGER,Number.MIN_SAFE_INTEGER]}}).sort({ updateAt:-1, endTime: -1})
-    let priorStream = await StreamModel.findOne({storeId, endTime:{$in:[Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]}})
+    let streams = await StreamModel.find({ storeId, endTime: { $nin: [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER] } }).sort({ updateAt: -1, endTime: -1 }).limit(limit)
+    let priorStream = await StreamModel.findOne({ storeId, endTime: { $in: [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER] } })
     if (priorStream) streams.unshift(priorStream)
 
     let list = []
 
-    await Promise.all(streams.map(async stream => {
+    await Promise.all(streams.map(async (stream, idx) => {
         const streamStatusObj = toStreamStatusObject(stream)
         //Get productIds
         let prodIds = []
@@ -243,8 +246,8 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
         prods.forEach((r, idx) => {
             const liveRObj = checkProductLiveStream(r)
             let rObj
-            if (liveRObj){
-                rObj = {...r.toObject(),...liveRObj}
+            if (liveRObj) {
+                rObj = { ...r.toObject(), ...liveRObj }
             } else {
                 rObj = r.toObject()
             }
@@ -256,7 +259,7 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
                 ...streamObject,
                 ...streamStatusObj
             }
-            list.push(l)
+            list[idx] = l
         }
     }))
 
@@ -266,14 +269,14 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
     })
 }))
 
-router.post('/getByIds', isAuthenticated, asyncHandler(async (req,res,next)=>{
-    const {streamIds} = req.body
+router.post('/getByIds', isAuthenticated, asyncHandler(async (req, res, next) => {
+    const { streamIds } = req.body
     if (!Array.isArray(streamIds)) return next(raiseError(400, 'array is required'))
-    const streams = await StreamModel.find({_id:{$in:streamIds}})
+    const streams = await StreamModel.find({ _id: { $in: streamIds } })
     const streamObjects = []
-    streams.forEach(s=> streamObjects.push(s.toObject()))
+    streams.forEach(s => streamObjects.push(s.toObject()))
     return res.status(200).json({
-        success:true,
+        success: true,
         streams: streamObjects
     })
 }))
