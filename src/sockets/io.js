@@ -27,7 +27,7 @@ const initIoServer = server => {
             socket.user_payload = realtimeUserPayload
             return next();
         }
-        return next();
+        return next(new Error('unauthorized'));
     });
 
     io.on('connection', socket => {
@@ -366,7 +366,7 @@ const convertRealTimeToVideoTime = (streamId, time) => {
         let eventIndex = 2
         let resumeTime = 0
         let interruptTime = 0
-        while (history[eventIndex].time <= time) {
+        while (history[eventIndex] && history[eventIndex].time <= time) {
             const h = history[eventIndex]
             if (h.statusCode === StreamVideoStatus.INTERRUPT) {
                 interruptTime = h.time
