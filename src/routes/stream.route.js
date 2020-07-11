@@ -180,7 +180,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
 
     let list = []
 
-    await Promise.all(streams.map(async (stream, idx) => {
+    await Promise.all(streams.map(async (stream) => {
         const streamStatusObj = toStreamStatusObject(stream)
         //Get productIds
         let prodIds = []
@@ -207,7 +207,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
                 ...streamObject,
                 ...streamStatusObj
             }
-            list[idx] = l
+            list[count] = l
             count++
         }
     }))
@@ -235,7 +235,7 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
 
     let list = []
 
-    await Promise.all(streams.map(async (stream, idx) => {
+    await Promise.all(streams.map(async (stream) => {
         const streamStatusObj = toStreamStatusObject(stream)
         //Get productIds
         let prodIds = []
@@ -262,7 +262,7 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
                 ...streamObject,
                 ...streamStatusObj
             }
-            list[idx] = l
+            list[count] = l
             count++
         }
     }))
