@@ -167,6 +167,7 @@ router.get('/rttk', isAuthenticated, asyncHandler(async (req, res) => {
 
 router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
     let limit = (req.body.moreLevel || 1) * 10
+    let count = 0
 
     let statusCode = -1
     if (typeof req.body['statusCode'] !== 'undefined') {
@@ -175,7 +176,7 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
         }
     }
 
-    let streams = await StreamModel.find({}).sort({ endTime: -1 }).limit(limit)
+    let streams = await StreamModel.find({}).sort({ endTime: -1 })
 
     let list = []
 
@@ -200,13 +201,14 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
             }
             streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
         })
-        if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
+        if (count <= limit && ((streamStatusObj.statusCode === statusCode) || statusCode === -1)) {
             if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
             let l = {
                 ...streamObject,
                 ...streamStatusObj
             }
             list[idx] = l
+            count++
         }
     }))
 
@@ -217,9 +219,10 @@ router.post('/list', isAuthenticated, asyncHandler(async (req, res, next) => {
 }))
 
 router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(async (req, res, next) => {
-    const { storeId } = req
-    let limit = (req.body.moreLevel || 1) * 10
-    let statusCode = -1
+    const { storeId } = req;
+    let limit = (req.body.moreLevel || 1) * 10;
+    let count = 0;
+    let statusCode = -1;
     if (typeof req.body['statusCode'] !== 'undefined') {
         if (req.body.statusCode > -1 && req.body.statusCode < 6) {
             statusCode = req.body.statusCode
@@ -253,13 +256,14 @@ router.post('/sellerList', isAuthenticated, storeOwnerRequired, asyncHandler(asy
             }
             streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
         })
-        if ((streamStatusObj.statusCode === statusCode) || statusCode === -1) {
+        if (count <= limit && ((streamStatusObj.statusCode === statusCode) || statusCode === -1)) {
             if (typeof streamStatusObj['message'] !== 'undefined') delete streamStatusObj['message']
             let l = {
                 ...streamObject,
                 ...streamStatusObj
             }
             list[idx] = l
+            count++
         }
     }))
 
