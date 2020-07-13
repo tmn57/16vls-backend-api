@@ -353,7 +353,7 @@ const updateLikedUsers = (streamId, userId, isUnlike) => {
 const convertRealTimeToVideoTime = (streamId, time) => {
     const stream = streamSessions.get(streamId)
     if (stream) {
-        console.log(`convertRealTimeToVideoTime called; videoStreamStatusHistory:`, videoStreamStatusHistory);
+        console.log(`convertRealTimeToVideoTime called; videoStreamStatusHistory:`, stream.videoStreamStatusHistory);
         const history = stream.videoStreamStatusHistory
         if (history.length <= 1) return -1
         if (history[1].statusCode !== StreamVideoStatus.START) return -1
