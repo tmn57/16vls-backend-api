@@ -102,6 +102,8 @@ const connectDatabase = () => {
   )
 }
 
+mongoose.set("useCreateIndex", true);
+
 connectDatabase()
 
 //Clean non-End stream in DB

@@ -372,72 +372,72 @@ router.get('/getProductsOfOwner', storeOwnerRequired, asyncHandler(async (req, r
   })
 }))
 
-router.post('/review', asyncHandler(async (req, res, next) => {
-  const { userId } = req.tokenPayload;
-  const { productId, rate } = req.body
-  let { comment } = req.body
+// router.post('/review', asyncHandler(async (req, res, next) => {
+//   const { userId } = req.tokenPayload;
+//   const { productId, rate } = req.body
+//   let { comment } = req.body
 
-  if (rate < 1 || rate > 5) return next(raiseError(400, `Chỉ cho phép thang điểm từ 1 đến 5`))
+//   if (rate < 1 || rate > 5) return next(raiseError(400, `Chỉ cho phép thang điểm từ 1 đến 5`))
 
-  if (!comment) comment = 'Không có bình luận'
+//   if (!comment) comment = 'Không có bình luận'
 
-  if (!mongoose.Types.ObjectId.isValid(productId)) {
-    return next(raiseError(400, `productId không hợp lệ`))
-  }
+//   if (!mongoose.Types.ObjectId.isValid(productId)) {
+//     return next(raiseError(400, `productId không hợp lệ`))
+//   }
 
-  const product = await Product.findById(productId)
+//   const product = await Product.findById(productId)
 
-  if (!product) return next(raiseError(400, `Không tìm thấy sản phẩm`))
+//   if (!product) return next(raiseError(400, `Không tìm thấy sản phẩm`))
 
-  const foundUserId = ''
+//   const foundUserId = ''
 
-  Array.isArray(product.reviews) && product.reviews.length && product.reviews.forEach(review => {
-    userId === review.userId && (foundUserId = userId)
-  });
+//   Array.isArray(product.reviews) && product.reviews.length && product.reviews.forEach(review => {
+//     userId === review.userId && (foundUserId = userId)
+//   });
 
-  if (userId) return next(raiseError(400, `Bạn đã đánh giá rồi`))
+//   if (userId) return next(raiseError(400, `Bạn đã đánh giá rồi`))
 
-  let { reviews } = product
-  reviews.push({ userId, rate, comment })
-  product.reviews = reviews
-  product.markModified('reviews')
-  await product.save()
-  return res.status(200).json({
-    success: true,
-    reviews
-  })
-}))
+//   let { reviews } = product
+//   reviews.push({ userId, rate, comment })
+//   product.reviews = reviews
+//   product.markModified('reviews')
+//   await product.save()
+//   return res.status(200).json({
+//     success: true,
+//     reviews
+//   })
+// }))
 
-router.post('/getReviews', asyncHandler(async (req, res, next) => {
-  const { productId } = req.body;
+// router.post('/getReviews', asyncHandler(async (req, res, next) => {
+//   const { productId } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(productId)) {
-    return next(raiseError(400, `productId không hợp lệ`))
-  }
+//   if (!mongoose.Types.ObjectId.isValid(productId)) {
+//     return next(raiseError(400, `productId không hợp lệ`))
+//   }
 
-  const product = await Product.findById(productId);
+//   const product = await Product.findById(productId);
 
-  if (!product) return next(raiseError(400, `Không tìm thấy sản phẩm`))
+//   if (!product) return next(raiseError(400, `Không tìm thấy sản phẩm`))
 
-  let result = [];
+//   let result = [];
 
-  const { reviews } = product
+//   const { reviews } = product
 
-  if (Array.isArray(reviews) && reviews.length) {
-    await Promise.all(reviews.map(async review => {
-      const user = await User.findById(review.userId)
-      if (user) {
-        review['userName'] = user.name;
-        review['userAvatar'] = user.avatar;
-      }
-      result.push(review)
-    }))
-  }
+//   if (Array.isArray(reviews) && reviews.length) {
+//     await Promise.all(reviews.map(async review => {
+//       const user = await User.findById(review.userId)
+//       if (user) {
+//         review['userName'] = user.name;
+//         review['userAvatar'] = user.avatar;
+//       }
+//       result.push(review)
+//     }))
+//   }
 
-  return res.status(200).json({
-    success: true,
-    reviews: result
-  })
-}))
+//   return res.status(200).json({
+//     success: true,
+//     reviews: result
+//   })
+// }))
 
 module.exports = router

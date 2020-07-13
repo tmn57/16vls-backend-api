@@ -41,11 +41,6 @@ const ProductSchema = new Schema(
     createdBy: String,
     updatedAt: { type: Number, default: +new Date() },
     updatedBy: String,
-    reviews: [{
-      userId: String,
-      rate: { type: Number, default: 5 },
-      comment: { type: String, default: "" }
-    }]
   },
   {
     versionKey: false // remove field "__v"
