@@ -319,7 +319,7 @@ const getStreamList = async (limit, statusCode, storeId) => {
         streamList[idx] = await convertStreamToStreamObjectWithMeta(stream)
     }))
     
-    console.log(streamList);
+    //console.log(streamList);
 
     return streamList;
 }
