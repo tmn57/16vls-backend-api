@@ -12,6 +12,7 @@ const { isAuthenticated, storeOwnerRequired, isAdministrator } = require('../mid
 const NotificationModel = require('../models/notification')
 const NotificationService = require('../services/notification')
 const { checkProductLiveStream, onChangeQuantityProductVariant } = require('../services/product')
+const dayjs = require('dayjs')
 
 router.post('/create', asyncHandler(async (req, res, next) => {
   const { userId } = req.tokenPayload
@@ -23,12 +24,12 @@ router.post('/create', asyncHandler(async (req, res, next) => {
 
     const store = await Store.findOne({ userId })
     if (store) {
-      if(store.isApproved)
-      return res.status(400).json({
-        success: false,
-        message: 'Tài khoản của bạn đã có shop!'
-      })
-      else{
+      if (store.isApproved)
+        return res.status(400).json({
+          success: false,
+          message: 'Tài khoản của bạn đã có shop!'
+        })
+      else {
         return res.status(400).json({
           success: false,
           message: 'Tài khoản của bạn đã tạo shop và shop chưa được duyệt!'
@@ -418,7 +419,7 @@ router.post('/approve', asyncHandler(async (req, res, next) => {
 
   await NotificationService.sendToSingle(
     'Đơn hàng đã được duyệt',
-    'Đơn hàng ' + order._id.toString() + ' đã được shop duyệt thành công',
+    'Đơn hàng ' + order._id.toString() + ' đã được shop duyệt thành công lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY'),
     order.userId,
     -1
   )
@@ -476,7 +477,7 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
 
   await NotificationService.sendToSingle(
     'Đơn hàng đã hủy',
-    'Đơn hàng ' + order._id.toString() + ' đã bị shop hủy, vui lòng đặt lại đơn hàng khác',
+    'Đơn hàng ' + order._id.toString() + ' đã bị shop hủy lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY') + ', vui lòng đặt lại đơn hàng khác',
     order.userId,
     -1
   )
