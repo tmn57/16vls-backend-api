@@ -210,6 +210,13 @@ router.post('/update', async (req, res, next) => {
       })
     }
 
+    if (images.length == 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Sản phẩm bắt buộc phải có ảnh"
+      })
+    }
+
     const { userId } = req.tokenPayload
     const product = await Product.findOne({ _id, createdBy: userId })
     if (product) {
