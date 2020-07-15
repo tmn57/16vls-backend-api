@@ -2,7 +2,9 @@ var CronJob = require('cron').CronJob;
 const fb = require('../utils/firebase');
 const NotificationServices = require('../services/notification')
 const { multicastMessageQueue, updateMulticastMessageQueue } = require('./services')
-const MAX_NOTIFICATIONS_PER_REQUEST = 10
+const MAX_NOTIFICATIONS_PER_REQUEST = 10;
+const OrderModel = require('../models/order');
+const ReviewModel = require('../models/review');
 
 let isPushing = false
 
@@ -26,7 +28,7 @@ var pushMulticastNotificationJob = new CronJob('10 * * * * *', async () => {
     if (!multicastMessageQueue.length) return;
     isPushing = true
     const { messageObject, tokens } = multicastMessageQueue.shift()
-    console.log(`pushMulticastNotificationJob: sending `, messageObject,`for ${tokens.length} tokens`)
+    console.log(`pushMulticastNotificationJob: sending `, messageObject, `for ${tokens.length} tokens`)
     const failedTokens = await fb.sendMulticast(tokens, messageObject)
     if (failedTokens && Array.isArray(failedTokens)) {
         console.log(`pushMulticastNotificationJob: sent got ${failedTokens.length} failed tokens`)
@@ -38,6 +40,26 @@ var updateMessageQJob = new CronJob('5 * * * * *', () => {
     if (isPushing) return;
     updateMulticastMessageQueue()
 })
+
+var orderCompletedMockupJob = new CronJob('* 5 * * * *', async () => {
+    const orders = await OrderModel.find({ status: 'APPROVED', isCompleted: false });
+    orders.map(async order => {
+        const { userId } = order
+        const newReviews = []
+        order.products.map(product => {
+            newReviews.push(new ReviewModel({
+                userId,
+                productId: product.productId,
+            }))
+        })
+
+        await ReviewModel.insertMany(newReviews).catch(err => console.log(`orderCompletedMockupJob insert many reviews Error: `, err));
+
+        order.isCompleted = true;
+        order.markModified('isCompleted');
+        await order.save();
+    })
+});
 
 const init = () => {
     //pushNotificationJob.start()
