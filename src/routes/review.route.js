@@ -47,7 +47,7 @@ router.post('/review', asyncHandler(async (req, res, next) => {
         return next(raiseError(400, 'review id is invalid'));
     }
 
-    const review = await ReviewModel.findById({ reviewId });
+    const review = await ReviewModel.findById(reviewId);
 
     if (!review || review.userId !== userId || ![1, 2, 3, 4, 5].includes(point)) {
         return next(raiseError(400, 'yeu cau danh gia khong hop le'));
@@ -61,7 +61,7 @@ router.post('/review', asyncHandler(async (req, res, next) => {
     }
     await review.save();
 
-    const reviews = await ReviewModel.findById({ userId, productId, point: { $gte: 0 } });
+    const reviews = await ReviewModel.find({ userId, productId: review.productId, point: { $gte: 0 } });
     if (reviews.length > 4) {
         const { productId } = review
         const product = ProductModel.findById(productId);
