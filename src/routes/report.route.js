@@ -20,7 +20,7 @@ router.post('/report', asyncHandler(async (req, res, next) => {
         return next(raiseError(400, `Invalid objectType`))
     }
 
-    const existedReport = ReportModel.findOne({
+    const existedReport = await ReportModel.findOne({
         userId,
         objectId,
         objectType
