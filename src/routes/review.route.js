@@ -73,7 +73,7 @@ router.post('/review', asyncHandler(async (req, res, next) => {
 
     return res.status(200).json({
         success: true,
-        review
+        review: review.toObject()
     })
 }))
 

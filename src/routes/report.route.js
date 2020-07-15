@@ -41,7 +41,7 @@ router.post('/report', asyncHandler(async (req, res, next) => {
 
     return res.status(200).json({
         success: true,
-        report: newReport
+        report: newReport.toObject()
     })
 }))
 
