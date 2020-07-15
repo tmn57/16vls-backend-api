@@ -51,6 +51,7 @@ app.use('/carts', isAuthenticated, require('./routes/cart.router'))
 app.use('/orders', isAuthenticated, require('./routes/order.router'))
 app.use('/notifications', require('./routes/notification.route'))
 app.use('/reviews', isAuthenticated, require('./routes/review.route'))
+app.use('/reports', isAuthenticated, require('./routes/report.route'))
 
 //handle error
 app.use((err, req, res, next) => {
