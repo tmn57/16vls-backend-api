@@ -34,7 +34,7 @@ router.post('/create', async (req, res, next) => {
     if (!name || !images || !category || !variants || !storeId || !categorySystemId || !price) {
       throw createError(
         400,
-        'Required field: name, images, category, variants, storeId, categorySystemId, price'
+        'Ảnh, Tên sản phẩm, Danh mục, Giá, Kích thước, Màu sắc, Số lượng là bắt buộc'
       )
     }
     else if (variants.length == 0) {
