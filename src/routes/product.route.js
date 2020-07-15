@@ -36,7 +36,14 @@ router.post('/create', async (req, res, next) => {
         400,
         'Required field: name, images, category, variants, storeId, categorySystemId, price'
       )
-    } else {
+    }
+    else if (variants.length == 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Bạn chưa nhập Kích thước/Màu sắc/Số lượng"
+      })
+    }
+    else {
       const existedName = await Product.findOne({ name })
       if (existedName) {
         return res.status(400).json({
@@ -182,6 +189,7 @@ router.post('/update', async (req, res, next) => {
         message: '_id, content are required!'
       })
     }
+
     const {
       name,
       variants,
@@ -194,6 +202,14 @@ router.post('/update', async (req, res, next) => {
       price,
       promotionPrice
     } = content
+
+    if (variants.length == 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Bạn chưa nhập Kích thước/Màu sắc/Số lượng"
+      })
+    }
+
     const { userId } = req.tokenPayload
     const product = await Product.findOne({ _id, createdBy: userId })
     if (product) {
