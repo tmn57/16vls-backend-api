@@ -21,7 +21,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     const product = await Product.findById(productId)
 
     const store = await Store.findOne({ userId })
-    if (product.storeId == store._id) {
+    if (store && product.storeId == store._id) {
         return res.status(400).json({
             success: false,
             message: "Không thể đặt sản phẩm của chính cửa hàng mình"
