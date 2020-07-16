@@ -428,7 +428,8 @@ router.post('/approve', asyncHandler(async (req, res, next) => {
     'Đơn hàng đã được duyệt',
     'Đơn hàng ' + order._id.toString() + ' đã được shop duyệt thành công lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY'),
     order.userId,
-    -1
+    -1,
+    { target: 'managerOrder', params: { tabIndex: 1 } }
   )
 
 
@@ -486,7 +487,8 @@ router.post('/reject', asyncHandler(async (req, res, next) => {
     'Đơn hàng đã hủy',
     'Đơn hàng ' + order._id.toString() + ' đã bị shop hủy lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY') + ', vui lòng đặt lại đơn hàng khác',
     order.userId,
-    -1
+    -1,
+    { target: 'managerOrder', params: { tabIndex: 3 } }
   )
 
   return res.status(200).json({
