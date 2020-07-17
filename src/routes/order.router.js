@@ -8,6 +8,7 @@ const Order = require('../models/order')
 const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
 const { checkProductLiveStream, onChangeQuantityProductVariant } = require('../services/product')
+const NotificationService = require('../services/notification')
 
 router.post('/create', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
@@ -115,6 +116,17 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             newOrder.totalMoney = total
             // newOrder.transportationCost = listProducts[i].transportationCost
             await newOrder.save()
+
+            const store = await Store.findById(listProducts[i].storeId)
+            if (store) {
+                await NotificationService.sendToSingle(
+                    'Khách đặt đơn hàng',
+                    'Có một khách hàng vừa đặt đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY'),
+                    store.userId,
+                    -1,
+                    // { target: 'managerOrder', params: { tabIndex: 1 } }
+                )
+            }
         }
     }
     // remove Cart
@@ -122,6 +134,8 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     cart.products = cart.products.splice(0, cart.products.length)
     cart.products = []
     await cart.save()
+
+
 
 
     return res.status(200).json({
@@ -171,7 +185,7 @@ router.get('/infoOrderPendding', asyncHandler(async (req, res, next) => {
         let listProductsOrder = []
         for (let j = 0; j < orderPendding[i].products.length; j++) {
             const product = await Product.findById(orderPendding[i].products[j].productId)
-            
+
             let checkProductStream = checkProductLiveStream(product)
             let price = product.price
             if (checkProductStream != null) {
@@ -468,6 +482,18 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
         }
         product.variants = listVariantsProduct
         await product.save()
+    }
+
+
+    const store = await Store.findById(order.storeId)
+    if (store) {
+        await NotificationService.sendToSingle(
+            'Khách hủy đơn hàng',
+            'Có một khách hàng vừa hủy đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY'),
+            store.userId,
+            -1,
+            // { target: 'managerOrder', params: { tabIndex: 1 } }
+        )
     }
 
     return res.status(200).json({
