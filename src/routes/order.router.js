@@ -122,7 +122,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             if (store) {
                 await NotificationService.sendToSingle(
                     'Khách đặt đơn hàng',
-                    'Có một khách hàng vừa đặt đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY'),
+                    'Có một khách hàng vừa đặt đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YYYY'),
                     store.userId,
                     -1,
                     // { target: 'managerOrder', params: { tabIndex: 1 } }
@@ -490,7 +490,7 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
     if (store) {
         await NotificationService.sendToSingle(
             'Khách hủy đơn hàng',
-            'Có một khách hàng vừa hủy đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY'),
+            'Có một khách hàng vừa hủy đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YYYY'),
             store.userId,
             -1,
             // { target: 'managerOrder', params: { tabIndex: 1 } }
