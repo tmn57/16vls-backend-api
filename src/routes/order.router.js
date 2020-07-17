@@ -125,7 +125,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
                     'Có một khách hàng vừa đặt đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY'),
                     store.userId,
                     -1,
-                    // { target: 'managerOrder', params: { tabIndex: 1 } }
+                    { target: 'listOrder', params: { tabIndex: 0 } }
                 )
             }
         }
@@ -493,7 +493,7 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
             'Có một khách hàng vừa hủy đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY'),
             store.userId,
             -1,
-            // { target: 'managerOrder', params: { tabIndex: 1 } }
+            { target: 'listOrder', params: { tabIndex: 2 } }
         )
     }
 
