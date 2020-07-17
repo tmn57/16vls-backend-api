@@ -171,7 +171,8 @@ const toStreamStatusObject = (streamObject) => {
         }
         if (endTime === Number.MAX_SAFE_INTEGER) {
             statusCode = 1
-            videoUri = `http://${videoServerAddr}/hls/${streamId.toString()}/index.m3u8`
+            //videoUri = `http://${videoServerAddr}/hls/${streamId.toString()}/index.m3u8`;
+            //videoUri = `rtmp://${videoServerAddr}/live/${streamId.toString()}`;
         }
         if (endTime > STREAM_ENDTIME_MINIMUM_TIMESTAMP && endTime < Number.MAX_SAFE_INTEGER) {
             statusCode = 4;
@@ -188,11 +189,11 @@ const toStreamStatusObject = (streamObject) => {
             return { statusCode: 1, videoUri, message }
         }
         if (vsh.length === 2) {
-            return { statusCode: 2, videoUri: `http://${videoServerAddr}/hls/${streamId.toString()}/index.m3u8`, message }
+            return { statusCode: 2, videoUri: `rtmp://${videoServerAddr}/live/${streamId.toString()}`, message }
         }
         const lastStatusCode = vsh[vsh.length - 1].statusCode
         if (lastStatusCode === StreamVideoStatus.START) {
-            return { statusCode: 2, videoUri: `http://${videoServerAddr}/hls/${streamId.toString()}/index.m3u8`, message }
+            return { statusCode: 2, videoUri: `rtmp://${videoServerAddr}/live/${streamId.toString()}`, message }
         }
         if (lastStatusCode === StreamVideoStatus.INTERRUPT) {
             return { statusCode: 3, videoUri, message: 'Stream từ người bán đang bị gián đoạn' }

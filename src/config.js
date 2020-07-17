@@ -3,5 +3,5 @@ module.exports = {
   PHONE_CODE_KEY: '16vls-s3cr3t-phone-code', //(CryptoJS.AES.decrypt/decrypt)
   JWT_KEY: '16vls-s3cr3t-jwt-login',
   STREAM_ENDTIME_MINIMUM_TIMESTAMP: 1592457623,
-  STREAM_INTERRUPT_TIMEOUT_SECS: 300 //5 mins
+  STREAM_INTERRUPT_TIMEOUT_SECS: 9999 //5 mins
 }
