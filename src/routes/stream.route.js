@@ -217,7 +217,7 @@ router.post('/rtmp-pub-auth', (req, res) => {
         const streamKey = req.query.sk || ''
         const token = req.query.st || ''
         console.log(`rtmp auth request with token ${streamKey} for stream ${token}`)
-        //return res.sendStatus(200)
+        return res.sendStatus(200)
         if (streamKey !== '' && token !== '') {
             if (streamHandler.isValidStreamToken(streamKey, true, token)) {
                 return res.sendStatus(200)

@@ -5,7 +5,7 @@ const { StreamVideoStatus } = require('./constants')
 const { STREAM_ENDTIME_MINIMUM_TIMESTAMP } = require('../config');
 
 const generateStreamToken = (streamKey, isHost) => {
-    const token = uuid().split('-').join();
+    const token = uuid().split('-').join('');
     streamTokens.set(streamKey, { token, isHost, createdAt: Date.now() })
     return token
 }
