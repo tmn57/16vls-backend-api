@@ -41,7 +41,7 @@ var updateMessageQJob = new CronJob('5 * * * * *', () => {
     updateMulticastMessageQueue()
 })
 
-var orderCompletedMockupJob = new CronJob('* 5 * * * *', async () => {
+var orderCompletedMockupJob = new CronJob('10 * * * * *', async () => {
     const orders = await OrderModel.find({ status: 'APPROVED', isCompleted: false });
     orders.map(async order => {
         const { userId } = order
@@ -65,6 +65,8 @@ const init = () => {
     //pushNotificationJob.start()
     updateMessageQJob.start()
     pushMulticastNotificationJob.start()
+
+    orderCompletedMockupJob.start();
 }
 
 module.exports = {
