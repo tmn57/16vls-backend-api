@@ -2,6 +2,7 @@ const express = require('express');
 const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 
+const { NotificationService } = require('../services/notification');
 const ProductModel = require('../models/product');
 const UserModel = require('../models/user');
 const ReviewModel = require('../models/review');
@@ -20,7 +21,7 @@ router.post('/', asyncHandler(async (req, res, next) => {
         return next(raiseError(400, 'Khong tim thay san pham'))
     }
 
-    const reviews = await ReviewModel.find({ productId })
+    const reviews = await ReviewModel.find({ productId, point: { $gte: 1 } })
 
     let list = []
 
@@ -62,13 +63,18 @@ router.post('/review', asyncHandler(async (req, res, next) => {
     await review.save();
 
     const reviews = await ReviewModel.find({ userId, productId: review.productId, point: { $gte: 0 } });
+    const { productId } = review
+    const product = ProductModel.findById(productId);
+
     if (reviews.length > 4) {
-        const { productId } = review
-        const product = ProductModel.findById(productId);
         if (product) {
             const sumPoints = reviews.reduce((total, r) => total + r.point, 0);
             product.reviewRate = sumPoints / reviews.length;
         }
+    }
+
+    if (product && product.createdBy) {
+        NotificationService.sendToSingle(`Một khách hàng đã đánh giá sản phẩm của bạn`, `Điểm: ${point}. Nội dung: ${content}`, product.createdBy, {target: 'ratingList'});
     }
 
     return res.status(200).json({
