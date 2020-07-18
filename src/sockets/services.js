@@ -4,10 +4,8 @@ const { userSessions, streamSessions, streamTokens, productSessions, userTokens 
 const { StreamVideoStatus } = require('./constants')
 const { STREAM_ENDTIME_MINIMUM_TIMESTAMP } = require('../config');
 
-var count = 0
 const generateStreamToken = (streamKey, isHost) => {
-    //TODO: generate a simple token
-    const token = '123' + count++
+    const token = uuid().split('-').join();
     streamTokens.set(streamKey, { token, isHost, createdAt: Date.now() })
     return token
 }
@@ -15,21 +13,27 @@ const generateStreamToken = (streamKey, isHost) => {
 const isValidStreamToken = (streamKey, isHost, token) => {
     if (streamTokens.has(streamKey)) {
         let result = false
-        const timeout = (process.env.RTMP_AUTH_TIMEOUT_SECS || 300) * 1000
+        const timeout = (process.env.RTMP_AUTH_TIMEOUT_SECS || 30) * 1000
 
-        const obj = streamTokens.get(streamKey)
-        const tok = obj['token']
-        const ih = obj['isHost']
-        const ca = obj['ca']
+        const obj = streamTokens.get(streamKey);
+
+        if (!obj.token || !obj.createdAt) {
+            streamTokens.delete(streamKey);
+            return false;
+        }
+
+        const tok = obj.token;
+        const ih = obj.isHost ? true : false;
+        const ca = obj.createdAt;
 
         if (tok === token && ih === isHost && ((Date.now() - ca) < timeout)) {
             result = true
         }
 
-        streamTokens.delete(streamKey)
+        streamTokens.delete(streamKey);
         return result
     }
-    return false
+    return false;
 }
 
 const getStreamInfoList = () => {

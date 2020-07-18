@@ -254,9 +254,7 @@ const initIoServer = server => {
                         sellerInterruptHandler(streamId, lastVideoStatusTime)
                     }, STREAM_INTERRUPT_TIMEOUT_SECS * 1000)
                 }
-
                 triggerTimeout(storeStrm.streamId, lastVideoStatusTime)
-
             }
 
             //check for normal user behavior

@@ -209,21 +209,15 @@ router.post('/getByIds', isAuthenticated, asyncHandler(async (req, res, next) =>
 
 router.post('/rtmp-pub-auth', (req, res) => {
     console.log(`rtmp-pub-auth request from ${req.connection.remoteAddress} / got env ip ${process.env.RTMP_SERVER_IP}`)
-
     if (!process.env.RTMP_SERVER_IP) {
         return res.status(500).json({ message: 'rtmp server ip does not found in env config' })
     }
-
     const reqIp = req.connection.remoteAddress
-
     if (reqIp === '::ffff:' + process.env.RTMP_SERVER_IP) {
         const streamKey = req.query.sk || ''
         const token = req.query.st || ''
-
         console.log(`rtmp auth request with token ${streamKey} for stream ${token}`)
-
-        return res.sendStatus(200)
-
+        //return res.sendStatus(200)
         if (streamKey !== '' && token !== '') {
             if (streamHandler.isValidStreamToken(streamKey, true, token)) {
                 return res.sendStatus(200)
@@ -238,9 +232,7 @@ router.post('/rtmp-check-allow-join', async (req, res) => {
     if (!process.env.RTMP_SERVER_IP) {
         return res.status(500).json({ message: 'rtmp server ip does not found in env config' })
     }
-
     const reqIp = req.connection.remoteAddress
-
     //if (reqIp === process.env.RTMP_SERVER_IP) {
     if (true) {
         const streamKey = req.query.sk || ''
