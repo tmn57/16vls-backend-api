@@ -208,6 +208,7 @@ router.post('/getByIds', isAuthenticated, asyncHandler(async (req, res, next) =>
 }))
 
 router.post('/rtmp-pub-auth', (req, res) => {
+    return res.sendStatus(200)
     console.log(`rtmp-pub-auth request from ${req.connection.remoteAddress} / got env ip ${process.env.RTMP_SERVER_IP}`)
     if (!process.env.RTMP_SERVER_IP) {
         return res.status(500).json({ message: 'rtmp server ip does not found in env config' })
@@ -217,7 +218,6 @@ router.post('/rtmp-pub-auth', (req, res) => {
         const streamKey = req.query.sk || ''
         const token = req.query.st || ''
         console.log(`rtmp auth request with token ${streamKey} for stream ${token}`)
-        return res.sendStatus(200)
         if (streamKey !== '' && token !== '') {
             if (streamHandler.isValidStreamToken(streamKey, true, token)) {
                 return res.sendStatus(200)
@@ -306,11 +306,11 @@ const getStreamList = async (limit, statusCode, storeId) => {
 
     let streamList = [...liveStreams, ...incomingStreams, ...doneStreams].slice(0, limit);
     //streamList = [];
-    
+
     await Promise.all(streamList.map(async (stream, idx) => {
         streamList[idx] = await convertStreamToStreamObjectWithMeta(stream)
     }))
-    
+
     //console.log(streamList);
 
     return streamList;
