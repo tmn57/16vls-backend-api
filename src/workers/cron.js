@@ -92,8 +92,8 @@ const init = () => {
     pushMulticastNotificationJob.start()
 
     orderCompletedMockupJob.start();
-    expiredReliableProductHandlingJob.start();
-    reliableProductWarningJob.start();
+    //expiredReliableProductHandlingJob.start();
+    //eliableProductWarningJob.start();
 }
 
 module.exports = {
