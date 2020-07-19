@@ -252,6 +252,16 @@ router.post('/categories/update', async (req, res, next) => {
           message: 'store not found'
         })
       } else {
+        for (let i = 0; i < categories.length - 1; i++) {
+          for (let j = i + 1; j < categories.length; j++) {
+            if (categories[i] == categories[j]) {
+              return res.status(400).json({
+                success: false,
+                message: 'Cập nhật không thành công do có 2 danh mục trùng tên'
+              })
+            }
+          }
+        }
         storeFound.categories = [...categories]
         await storeFound.save()
         return res.status(201).json({
