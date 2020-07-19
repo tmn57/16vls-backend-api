@@ -7,11 +7,6 @@ const storage = multer.diskStorage({
   destination: './src/public/images/',
   filename: function (req, file, cb) {
     const newName = uuid() + path.extname(file.originalname)
-    try {
-      fs.appendFileSync('./convq.dat', '' + newName + '\n')
-    } catch (error) {
-      console.log(`add to sm img q maker error: `, error)
-    }
     cb(null, newName)
   }
 })
