@@ -5,6 +5,7 @@ const { multicastMessageQueue, updateMulticastMessageQueue } = require('./servic
 const MAX_NOTIFICATIONS_PER_REQUEST = 10;
 const OrderModel = require('../models/order');
 const ReviewModel = require('../models/review');
+const CartModel = require('../models/review');
 
 let isPushing = false
 
@@ -41,6 +42,30 @@ var updateMessageQJob = new CronJob('5 * * * * *', () => {
     updateMulticastMessageQueue()
 })
 
+var expiredReliableProductHandlingJob = new CronJob('59 * * * * *', async () => {
+    const carts = await CartModel.find({});
+    carts.forEach(cart => {
+        cart.products.forEach(product => {
+            if (product.reliablePrice > 0 && Date.now() > product.expiredTime) {
+                //TODO: 'delete' item in cart
+                //TODO: add notification to user
+                //TODO: add report to admin
+            }
+        })
+    })
+})
+
+var reliableProductWarningJob = new CronJob('* * 1 * * *', async () => {
+    const carts = await CartModel.find({});
+    carts.forEach(cart => {
+        cart.products.forEach(product => {
+            if (product.reliablePrice > 0 && ((product.expiredTime - Date.now()) < 10800000)) {
+                //TODO: send warning notification to user
+            }
+        })
+    })
+})
+
 var orderCompletedMockupJob = new CronJob('10 * * * * *', async () => {
     const orders = await OrderModel.find({ status: 'APPROVED', isCompleted: false });
     orders.map(async order => {
@@ -67,6 +92,8 @@ const init = () => {
     pushMulticastNotificationJob.start()
 
     orderCompletedMockupJob.start();
+    expiredReliableProductHandlingJob.start();
+    reliableProductWarningJob.start();
 }
 
 module.exports = {
