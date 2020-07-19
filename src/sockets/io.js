@@ -59,7 +59,6 @@ const initIoServer = server => {
                                     if (dbProd._id.toString() === prod.productId) {
                                         const dbProdObject = dbProd.toObject();
                                         products[i] = { ...dbProdObject, ...products[i] };
-                                        break;
                                     }
                                 })
                             }

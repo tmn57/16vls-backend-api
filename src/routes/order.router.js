@@ -39,6 +39,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     for (let i = 0; i < listProducts.length; i++) {
         let total = 0
         let lstProducts = []
+        
         for (let j = 0; j < listProducts[i].products.length; j++) {
 
             let obj = {
@@ -114,26 +115,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             await order.save()
         }
         else {
-            const newOrder = new Order()
-            newOrder.products = [...lstProducts]
-            newOrder.storeId = listProducts[i].storeId
-            newOrder.shippingAddress = shippingAddress
-            newOrder.userId = userId
-            newOrder.createdBy = userId
-            newOrder.totalMoney = total
-            // newOrder.transportationCost = listProducts[i].transportationCost
-            await newOrder.save()
-
-            const store = await Store.findById(listProducts[i].storeId)
-            if (store) {
-                await NotificationService.sendToSingle(
-                    'Khách đặt đơn hàng',
-                    'Có một khách hàng vừa đặt đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YYYY'),
-                    store.userId,
-                    -1,
-                    { target: 'listOrder', params: { tabIndex: 0 } }
-                )
-            }
+            
         }
     }
     // remove Cart
