@@ -44,23 +44,26 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             let obj = {
                 productId: listProducts[i].products[j].productId,
                 variantIndex: listProducts[i].products[j].variantIndex,
-                quantity: listProducts[i].products[j].quantity
+                quantity: listProducts[i].products[j].quantity,
+                // NEW
+                reliablePrice: listProducts[i].products[j].reliablePrice
+                // END NEW
             }
             lstProducts.push(obj)
 
             const product = await Product.findById(listProducts[i].products[j].productId)
-            // if (product.promotionPrice == 0) {
-            //     total = total + product.price * listProducts[i].products[j].quantity
-            // }
-            // else {
-            //     total = total + product.promotionPrice * listProducts[i].products[j].quantity
-            // }
+            
 
             let checkProductStream = checkProductLiveStream(product)
             total = total + product.price * listProducts[i].products[j].quantity
-            if (checkProductStream != null) {
+            //NEW
+            if (listProducts[i].products[j].reliablePrice != 0) {
+                total = total + listProducts[i].products[j].reliablePrice * listProducts[i].products[j].quantity
+            }
+            else if (checkProductStream != null) {
                 total = total + checkProductStream.streamPrice * listProducts[i].products[j].quantity
             }
+            //END NEW
 
             // let listVariantsProduct = product.variants
             // listVariantsProduct[listProducts[i].products[j].variantIndex].quantity = listVariantsProduct[listProducts[i].products[j].variantIndex].quantity- listProducts[i].products[j].quantity
@@ -92,7 +95,10 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             for (let k = 0; k < lstProducts.length; k++) {
                 let check = false
                 for (let t = 0; t < order.products.length; t++) {
-                    if (order.products[t].productId == lstProducts[k].productId && order.products[t].variantIndex == lstProducts[k].variantIndex) {
+                    // Update
+                    if (order.products[t].productId == lstProducts[k].productId && order.products[t].variantIndex == lstProducts[k].variantIndex
+                        && order.products[t].reliablePrice == lstProducts[k].reliablePrice) {
+                    // end update
                         check = true
                         order.products[t].quantity = order.products[t].quantity + lstProducts[k].quantity
                         break
@@ -106,7 +112,6 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             order.totalMoney = order.totalMoney + total
             await order.save()
         }
-
         else {
             const newOrder = new Order()
             newOrder.products = [...lstProducts]
@@ -122,7 +127,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             if (store) {
                 await NotificationService.sendToSingle(
                     'Khách đặt đơn hàng',
-                    'Có một khách hàng vừa đặt đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY'),
+                    'Có một khách hàng vừa đặt đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YYYY'),
                     store.userId,
                     -1,
                     { target: 'listOrder', params: { tabIndex: 0 } }
@@ -135,9 +140,6 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     cart.products = cart.products.splice(0, cart.products.length)
     cart.products = []
     await cart.save()
-
-
-
 
     return res.status(200).json({
         success: true,
@@ -459,6 +461,13 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
         })
     }
 
+    for (let i = 0; i < order.products.length; i++) {        
+        if(order.products[i].reliablePrice != 0){
+            // todo: push report
+            break;
+        }
+    }
+
     order.status = 'REJECT'
     order.isCompleted = true
     order.updatedBy = userId
@@ -482,7 +491,7 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
             listVariantsProduct.push(objVariantInProduct)
         }
         product.variants = listVariantsProduct
-        await product.save()
+        await product.save()        
     }
 
 
@@ -490,7 +499,7 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
     if (store) {
         await NotificationService.sendToSingle(
             'Khách hủy đơn hàng',
-            'Có một khách hàng vừa hủy đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YY'),
+            'Có một khách hàng vừa hủy đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YYYY'),
             store.userId,
             -1,
             { target: 'listOrder', params: { tabIndex: 2 } }
