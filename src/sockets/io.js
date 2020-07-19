@@ -45,18 +45,27 @@ const initIoServer = server => {
                         console.log(`Socket: user ${userId} is joining stream ${streamId}`)
                         userJoinsStream(socket, streamId)
                         //Get productIds
-                        let prodIds = []
                         stream.products.forEach(prod => {
                             prodIds.push(prod.productId)
                         })
-                        let streamObject = stream.toObject()
                         ProductModel.find({
                             '_id': { $in: prodIds }
-                        }).then(rows => {
-                            rows.forEach((r, idx) => {
-                                const rObj = r.toObject()
-                                streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
-                            })
+                        }).then(dbProds => {
+                            const streamObject = stream.toObject()
+                            let { products } = streamObject
+
+                            for (let i = 0; i < products.length; i++) {
+                                dbProds.forEach(dbProd => {
+                                    if (dbProd._id.toString() === prod.productId) {
+                                        const dbProdObject = dbProd.toObject();
+                                        products[i] = { ...dbProdObject, ...products[i] };
+                                        break;
+                                    }
+                                })
+                            }
+
+                            streamObject.products = products
+
                             cb({ success: true, data: streamObject })
                             const strm = getValidLiveStream(userId, cb)
                             let streamStatusObj = null
