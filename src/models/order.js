@@ -33,7 +33,8 @@ const OrderSchema = new Schema(
     products: [{
       productId: String,
       variantIndex: { type: Number, default: 0 },
-      quantity: { type: Number, default: 1 }
+      quantity: { type: Number, default: 1 },
+      reliablePrice: { type: Number, default: 0 }, // if 0 ? is normal product : is reliable added product 
     }],
     isCompleted: { type: Boolean, default: false },
     storeId: String,

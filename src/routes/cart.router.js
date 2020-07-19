@@ -157,12 +157,11 @@ router.post('/updateQuantityProduct', asyncHandler(async (req, res, next) => {
             if (cart.products[i].reliablePrice != 0) {
                 return res.status(400).json({
                     success: false,
-                    message: "Không được phép cập nhật số lượng của sản phẩm này trong giỏ"
+                    message: "Không được phép cập nhật số lượng của sản phẩm này trong giỏ hàng"
                 })
             }
-            else {
-                cart.products[i].quantity = quantity;
-            }
+
+            cart.products[i].quantity = quantity;
             break;
         }
     }
@@ -190,11 +189,13 @@ router.post('/removeProduct', asyncHandler(async (req, res, next) => {
 
     const cart = await Cart.findOne({ userId })
     let index = -1;
-    let checkPushReport = false;
     for (let i = 0; i < cart.products.length; i++) {
         if (cart.products[i].productId == productId && cart.products[i].variantIndex == variantIndex) {
             if (cart.products[i].reliablePrice != 0) {
-                checkPushReport = true;
+                return res.status(400).json({
+                    success: false,
+                    message: "Không được phép xóa sản phẩm này trong khỏi giỏ hàng"
+                })
             }
             index = i;
             break;
@@ -205,10 +206,6 @@ router.post('/removeProduct', asyncHandler(async (req, res, next) => {
 
     await cart.save()
 
-    if(checkPushReport){
-        //TODO: push report
-    }
-    
     return res.status(200).json({
         success: true,
         result: cart
