@@ -198,8 +198,8 @@ const initIoServer = server => {
         socket.on(eventKeys.SELLER_UPDATE_STREAMPRICE, (payload, cb) => {
             const { productIndex, streamPrice } = payload
             const strm = getValidLiveStream(userId, cb, storeId)
-            if (strm) {
-                strm['streamPrice'] = streamPrice
+            if (strm && strm.products[productIndex]) {
+                strm.products[productIndex].streamPrice = streamPrice
                 streamSessions.set(strm.streamId, strm)
                 cb({ success: true })
                 emitToStream(strm.streamId, eventKeys.STREAM_UPDATE_STREAMPRICE, { productIndex, streamPrice })

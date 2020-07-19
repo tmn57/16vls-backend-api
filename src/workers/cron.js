@@ -5,7 +5,7 @@ const { multicastMessageQueue, updateMulticastMessageQueue } = require('./servic
 const MAX_NOTIFICATIONS_PER_REQUEST = 10;
 const OrderModel = require('../models/order');
 const ReviewModel = require('../models/review');
-const CartModel = require('../models/review');
+const CartModel = require('../models/cart');
 
 let isPushing = false
 
