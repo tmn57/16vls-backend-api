@@ -55,6 +55,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             
 
             let checkProductStream = checkProductLiveStream(product)
+            //total = total + product.price * listProducts[i].products[j].quantity
             //NEW
             if (listProducts[i].products[j].reliablePrice != 0) {
                 total = total + listProducts[i].products[j].reliablePrice * listProducts[i].products[j].quantity
