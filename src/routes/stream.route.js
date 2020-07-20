@@ -323,10 +323,13 @@ const getStreamList = async (limit, statusCode, storeId) => {
 
 const convertStreamToStreamObjectWithMeta = async (stream) => {
     const streamStatusObj = toStreamStatusObject(stream)
+    
     let prodIds = []
+    
     stream.products.forEach(prod => {
         prodIds.push(prod.productId)
     })
+    
     let streamObject = stream.toObject()
     const store = await StoreModel.findById(streamObject.storeId)
     const prods = await ProductModel.find({ '_id': { $in: prodIds } })
@@ -343,7 +346,7 @@ const convertStreamToStreamObjectWithMeta = async (stream) => {
         } else {
             productObj = prods[i].toObject()
         }
-        products.push({ ...streamObject.products[i], ...productObj })
+        products.push({ ...productObj, ...streamObject.products[i] })
     }
 
     let { products: streamProducts } = streamObject;
