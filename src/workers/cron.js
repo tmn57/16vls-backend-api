@@ -6,6 +6,9 @@ const MAX_NOTIFICATIONS_PER_REQUEST = 10;
 const OrderModel = require('../models/order');
 const ReviewModel = require('../models/review');
 const CartModel = require('../models/cart');
+const ReportModel = require('../models/report');
+const dayjs = require('dayjs');
+const product = require('../models/product');
 
 let isPushing = false
 
@@ -44,23 +47,47 @@ var updateMessageQJob = new CronJob('5 * * * * *', () => {
 
 var expiredReliableProductHandlingJob = new CronJob('59 * * * * *', async () => {
     const carts = await CartModel.find({});
-    carts.forEach(cart => {
-        cart.products.forEach(product => {
+    carts.forEach(async cart => {
+        const delProdIds = []
+        cart.products.forEach(async (product, idx) => {
             if (product.reliablePrice > 0 && Date.now() > product.expiredTime) {
-                //TODO: 'delete' item in cart
-                //TODO: add notification to user
+                //add notification to user
+                await NotificationServices.sendToSingle(`Bạn đã hết hạn thanh toán sản phẩm chắc chắn mua`, `Việc không mua sản phẩm chắc chắn mua là vi phạm chính sách của hệ thống vì thế việc này sẽ được gửi đến Admin để giải quyết.`, cart.userId, -1)
                 //TODO: add report to admin
+                const newReport = new ReportModel({
+                    userId: 'SYSTEM',
+                    objectId: cart.userId,
+                    objectType: 'user',
+                    description: `Không thanh toán ${product.quantity} sản phẩm chắc chắn mua với tổng giá trị ${product.quantity * product.reliablePrice}₫`
+                })
+                await newReport.save();
+                delProdIds.push(product.productId);
             }
         })
+        //'delete' need-to-del-items in cart
+        let { products } = cart
+        for (let i = 0; i < delProdIds; i++) {
+            for (let j = 0; j < products.length; j++) {
+                if (products[j].productId === delProdIds[i]) {
+                    products.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        cart.products = products;
+        cart.markModified('products');
+        await cart.save();
     })
 })
 
 var reliableProductWarningJob = new CronJob('* * 1 * * *', async () => {
     const carts = await CartModel.find({});
     carts.forEach(cart => {
-        cart.products.forEach(product => {
+        cart.products.forEach(async product => {
             if (product.reliablePrice > 0 && ((product.expiredTime - Date.now()) < 10800000)) {
-                //TODO: send warning notification to user
+                //send warning notification to user
+                await NotificationServices.sendToSingle(`Bạn có sản phẩm chắc chắn mua chưa thanh toán`,
+                    `Vui lòng kiểm tra giỏ hàng và thanh toán trước ${dayjs(product.expiredTime).format('HH:mm:ss DD/MM/YYYY')}`, cart.userId, -1, { target: 'shoppingCart' })
             }
         })
     })
@@ -92,8 +119,8 @@ const init = () => {
     pushMulticastNotificationJob.start()
 
     orderCompletedMockupJob.start();
-    //expiredReliableProductHandlingJob.start();
-    //eliableProductWarningJob.start();
+    expiredReliableProductHandlingJob.start();
+    reliableProductWarningJob.start();
 }
 
 module.exports = {
