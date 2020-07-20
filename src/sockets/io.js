@@ -45,6 +45,7 @@ const initIoServer = server => {
                         console.log(`Socket: user ${userId} is joining stream ${streamId}`)
                         userJoinsStream(socket, streamId)
                         //Get productIds
+                        let prodIds = []
                         stream.products.forEach(prod => {
                             prodIds.push(prod.productId)
                         })
