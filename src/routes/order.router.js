@@ -214,34 +214,35 @@ router.post('/create', asyncHandler(async (req, res, next) => {
                 await product.save();
             }
 
-            const newOrder = new Order({
-                products: [...lstProducts],
-                storeId: listProducts[i].storeId,
-                userId,
-                createdBy: userId,
-                totalMoney: total
-            })
-
-            // newOrder.products = [...lstProducts]
-            // newOrder.storeId = listProducts[i].storeId
-            // newOrder.shippingAddress = shippingAddress
-            // newOrder.userId = userId
-            // newOrder.createdBy = userId
-            // newOrder.totalMoney = total
-            // newOrder.transportationCost = listProducts[i].transportationCost
-
-            await newOrder.save()
             
-            const store = await Store.findById(listProducts[i].storeId)
-            if (store) {
-                await NotificationService.sendToSingle(
-                    'Khách đặt đơn hàng',
-                    'Có một khách hàng vừa đặt đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YYYY'),
-                    store.userId,
-                    -1,
-                    { target: 'listOrder', params: { tabIndex: 0 } }
-                )
-            }
+        }
+
+        const newOrder = new Order({
+            products: [...lstProducts],
+            storeId: listProducts[i].storeId,
+            userId,
+            createdBy: userId,
+            totalMoney: total
+        })
+
+        // newOrder.products = [...lstProducts]
+        // newOrder.storeId = listProducts[i].storeId
+        // newOrder.shippingAddress = shippingAddress
+        // newOrder.userId = userId
+        // newOrder.createdBy = userId
+        // newOrder.totalMoney = total
+        // newOrder.transportationCost = listProducts[i].transportationCost
+        await newOrder.save()
+        
+        const store = await Store.findById(listProducts[i].storeId)
+        if (store) {
+            await NotificationService.sendToSingle(
+                'Khách đặt đơn hàng',
+                'Có một khách hàng vừa đặt đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YYYY'),
+                store.userId,
+                -1,
+                { target: 'listOrder', params: { tabIndex: 0 } }
+            )
         }
     }
     // remove Cart
