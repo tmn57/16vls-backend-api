@@ -350,8 +350,8 @@ const convertStreamToStreamObjectWithMeta = async (stream) => {
         console.log(`hit`)
         for (let j = 0; j < products.length; j++) {
             console.log(`products [${j}], products[j]`)
-            console.log(`=== ? ${streamProducts[i].productId === products[j]._id}`)
             if (streamProducts[i].productId == products[j]._id) {
+                console.log(`=== ? ${streamProducts[i].productId === products[j]._id}`)
                 streamProducts[i] = products[j]
                 break;
             }
