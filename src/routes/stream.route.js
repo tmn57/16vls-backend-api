@@ -333,13 +333,13 @@ const convertStreamToStreamObjectWithMeta = async (stream) => {
 
     for (let i = 0; i < prods.length; i++) {
         const liveRObj = checkProductLiveStream(prods[i])
-        let rObj = {}
+        let productObj = {}
         if (liveRObj) {
-            rObj = { ...r.toObject(), ...liveRObj }
+            productObj = { ...prods[i].toObject(), ...liveRObj }
         } else {
-            rObj = r.toObject()
+            productObj = prods[i].toObject()
         }
-        products.push({ ...streamObject.products[i], ...rObj })
+        products.push({ ...streamObject.products[i], ...productObj })
     }
 
     let { products: streamProducts } = streamObject;
