@@ -142,11 +142,12 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             message: "Required fields: products, shippingAddress"
         })
     }
+
     // check còn sp k
     for (let i = 0; i < listProducts.length; i++) {
         for (let j = 0; j < listProducts[i].products.length; j++) {
             const product1 = await Product.findById(listProducts[i].products[j].productId)
-            if (product1.variants[listProducts[i].products[j].variantIndex].quantity < listProducts[i].products[j].quantity) {
+            if (listProducts[i].products[j].reliablePrice < 1 && product1.variants[listProducts[i].products[j].variantIndex].quantity < listProducts[i].products[j].quantity) {
                 return res.status(400).json({
                     success: false,
                     message: "Sản phẩm trong kho hàng đã hết"
