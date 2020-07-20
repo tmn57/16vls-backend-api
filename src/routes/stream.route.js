@@ -14,6 +14,7 @@ const { raiseError } = require('../utils/common')
 const { streamSessions, getStreamIdByUserId, getValidLiveStream, toStreamStatusObject, signRealtimeToken } = require('../sockets/services')
 const workerServices = require('../workers/services')
 const fb = require('../utils/firebase')
+const { BrandedCallList } = require('twilio/lib/rest/preview/trusted_comms/brandedCall')
 
 
 const router = express.Router()
@@ -325,20 +326,35 @@ const convertStreamToStreamObjectWithMeta = async (stream) => {
     let streamObject = stream.toObject()
     const store = await StoreModel.findById(streamObject.storeId)
     const prods = await ProductModel.find({ '_id': { $in: prodIds } })
-    streamObject['shopName'] = store ? store.name : 'Không tồn tại'
 
-    prods.forEach((r, idx) => {
-        const liveRObj = checkProductLiveStream(r)
-        let rObj
+    streamObject.shopName = store ? store.name : 'Không tồn tại'
+
+    let products = []
+
+    for (let i = 0; i < prods.length; i++) {
+        const liveRObj = checkProductLiveStream(prods[i])
+        let rObj = {}
         if (liveRObj) {
             rObj = { ...r.toObject(), ...liveRObj }
         } else {
             rObj = r.toObject()
         }
-        streamObject['products'][idx] = { ...streamObject['products'][idx], ...rObj }
-    })
+        products.push({ ...streamObject.products[i], ...rObj })
+    }
 
-    if (typeof streamStatusObj['message'] !== 'undefined') {
+    let { products: streamProducts } = streamObject;
+    for (let i = 0; i < streamProducts; i++) {
+        for (j = 0; j < products; j++) {
+            if (streamProducts[i].productId === products[j]) {
+                streamProducts[i] = products[j]
+                break;
+            }
+        }
+    }
+
+    streamObject.products = streamProducts;
+
+    if (streamStatusObj.message) {
         delete streamStatusObj['message']
     }
 
