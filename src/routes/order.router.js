@@ -11,6 +11,126 @@ const { checkProductLiveStream, onChangeQuantityProductVariant } = require('../s
 const NotificationService = require('../services/notification')
 const dayjs = require('dayjs')
 
+// router.post('/create', asyncHandler(async (req, res, next) => {
+//     const { userId } = req.tokenPayload
+//     const { listProducts, shippingAddress } = req.body
+
+
+//     if (!listProducts || !shippingAddress) {
+//         return res.status(400).json({
+//             success: false,
+//             message: "Required fields: products, shippingAddress"
+//         })
+//     }
+//     // check còn sp k
+//     for (let i = 0; i < listProducts.length; i++) {
+//         for (let j = 0; j < listProducts[i].products.length; j++) {
+//             const product1 = await Product.findById(listProducts[i].products[j].productId)
+//             if (product1.variants[listProducts[i].products[j].variantIndex].quantity < listProducts[i].products[j].quantity) {
+//                 return res.status(400).json({
+//                     success: false,
+//                     message: "Sản phẩm trong kho hàng đã hết"
+//                 })
+//             }
+//         }
+//     }
+
+//     // Nếu còn thì tạo đơn hàng, cập nhật lại số lượng sản phẩm của shop, xóa sp trong giỏ hàng của khách hàng hiện tạo
+//     for (let i = 0; i < listProducts.length; i++) {
+//         let total = 0
+//         let lstProducts = []
+
+//         for (let j = 0; j < listProducts[i].products.length; j++) {
+
+//             let obj = {
+//                 productId: listProducts[i].products[j].productId,
+//                 variantIndex: listProducts[i].products[j].variantIndex,
+//                 quantity: listProducts[i].products[j].quantity,
+//                 // NEW
+//                 reliablePrice: listProducts[i].products[j].reliablePrice
+//                 // END NEW
+//             }
+//             lstProducts.push(obj)
+
+//             const product = await Product.findById(listProducts[i].products[j].productId)
+
+
+//             let checkProductStream = checkProductLiveStream(product)
+//             //total = total + product.price * listProducts[i].products[j].quantity
+//             //NEW
+//             if (listProducts[i].products[j].reliablePrice != 0) {
+//                 total = total + listProducts[i].products[j].reliablePrice * listProducts[i].products[j].quantity
+//             } else if (checkProductStream != null) {
+//                 total = total + checkProductStream.streamPrice * listProducts[i].products[j].quantity
+//             } else {
+//                 total = total + product.price * listProducts[i].products[j].quantity
+//             }
+//             //END NEW
+
+//             // let listVariantsProduct = product.variants
+//             // listVariantsProduct[listProducts[i].products[j].variantIndex].quantity = listVariantsProduct[listProducts[i].products[j].variantIndex].quantity- listProducts[i].products[j].quantity
+//             // console.log(listVariantsProduct, listVariantsProduct[listProducts[i].products[j].variantIndex].quantity)
+//             // product.variants = listVariantsProduct
+//             let listVariantsProduct = []
+//             for (let k = 0; k < product.variants.length; k++) {
+//                 let objVariantInProduct = {}
+//                 objVariantInProduct.color = product.variants[k].color
+//                 objVariantInProduct.size = product.variants[k].size
+//                 if (k == listProducts[i].products[j].variantIndex) {
+//                     objVariantInProduct.quantity = product.variants[k].quantity - listProducts[i].products[j].quantity
+//                 }
+//                 else {
+//                     objVariantInProduct.quantity = product.variants[k].quantity
+//                 }
+//                 listVariantsProduct.push(objVariantInProduct)
+//             }
+//             product.variants = listVariantsProduct
+//             // product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
+
+//             await product.save();
+//         }
+
+//         const order = await Order.findOne({ $and: [{ userId: userId }, { storeId: listProducts[i].storeId }, { isCompleted: false }, { status: 'PENDING' }] })
+
+//         if (order) {
+//             // order.products.concat(lstProducts)
+//             for (let k = 0; k < lstProducts.length; k++) {
+//                 let check = false
+//                 for (let t = 0; t < order.products.length; t++) {
+//                     // Update
+//                     if (order.products[t].productId == lstProducts[k].productId && order.products[t].variantIndex == lstProducts[k].variantIndex
+//                         && order.products[t].reliablePrice == lstProducts[k].reliablePrice) {
+//                     // end update
+//                         check = true
+//                         order.products[t].quantity = order.products[t].quantity + lstProducts[k].quantity
+//                         break
+//                     }
+//                 }
+//                 if (!check) {
+//                     order.products.push(lstProducts[k])
+//                 }
+//             }
+
+//             order.totalMoney = order.totalMoney + total
+//             await order.save()
+//         }
+//         else {
+
+//         }
+//     }
+//     // remove Cart
+//     const cart = await Cart.findOne({ userId })
+//     cart.products = cart.products.splice(0, cart.products.length)
+//     cart.products = []
+//     await cart.save()
+
+//     return res.status(200).json({
+//         success: true,
+//         message: "Tạo đơn hàng thành công"
+//     })
+
+// }))
+
 router.post('/create', asyncHandler(async (req, res, next) => {
     const { userId } = req.tokenPayload
     const { listProducts, shippingAddress } = req.body
@@ -39,7 +159,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
     for (let i = 0; i < listProducts.length; i++) {
         let total = 0
         let lstProducts = []
-        
+
         for (let j = 0; j < listProducts[i].products.length; j++) {
 
             let obj = {
@@ -53,10 +173,11 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             lstProducts.push(obj)
 
             const product = await Product.findById(listProducts[i].products[j].productId)
-            
+
 
             let checkProductStream = checkProductLiveStream(product)
             //total = total + product.price * listProducts[i].products[j].quantity
+
             //NEW
             if (listProducts[i].products[j].reliablePrice != 0) {
                 total = total + listProducts[i].products[j].reliablePrice * listProducts[i].products[j].quantity
@@ -71,51 +192,55 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             // listVariantsProduct[listProducts[i].products[j].variantIndex].quantity = listVariantsProduct[listProducts[i].products[j].variantIndex].quantity- listProducts[i].products[j].quantity
             // console.log(listVariantsProduct, listVariantsProduct[listProducts[i].products[j].variantIndex].quantity)
             // product.variants = listVariantsProduct
-            let listVariantsProduct = []
-            for (let k = 0; k < product.variants.length; k++) {
-                let objVariantInProduct = {}
-                objVariantInProduct.color = product.variants[k].color
-                objVariantInProduct.size = product.variants[k].size
-                if (k == listProducts[i].products[j].variantIndex) {
-                    objVariantInProduct.quantity = product.variants[k].quantity - listProducts[i].products[j].quantity
-                }
-                else {
-                    objVariantInProduct.quantity = product.variants[k].quantity
-                }
-                listVariantsProduct.push(objVariantInProduct)
-            }
-            product.variants = listVariantsProduct
-            // product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
-
-            await product.save();
-        }
-
-        const order = await Order.findOne({ $and: [{ userId: userId }, { storeId: listProducts[i].storeId }, { isCompleted: false }, { status: 'PENDING' }] })
-
-        if (order) {
-            // order.products.concat(lstProducts)
-            for (let k = 0; k < lstProducts.length; k++) {
-                let check = false
-                for (let t = 0; t < order.products.length; t++) {
-                    // Update
-                    if (order.products[t].productId == lstProducts[k].productId && order.products[t].variantIndex == lstProducts[k].variantIndex
-                        && order.products[t].reliablePrice == lstProducts[k].reliablePrice) {
-                    // end update
-                        check = true
-                        order.products[t].quantity = order.products[t].quantity + lstProducts[k].quantity
-                        break
-                    }
-                }
-                if (!check) {
-                    order.products.push(lstProducts[k])
-                }
-            }
-
-            order.totalMoney = order.totalMoney + total
-            await order.save()
-        }
-        else {
             
+            //NEW: if is reliable product, not update the quantity
+            if (obj.reliablePrice < 1) {
+                let listVariantsProduct = []
+                for (let k = 0; k < product.variants.length; k++) {
+                    let objVariantInProduct = {}
+                    objVariantInProduct.color = product.variants[k].color
+                    objVariantInProduct.size = product.variants[k].size
+                    if (k == listProducts[i].products[j].variantIndex) {
+                        objVariantInProduct.quantity = product.variants[k].quantity - listProducts[i].products[j].quantity
+                    }
+                    else {
+                        objVariantInProduct.quantity = product.variants[k].quantity
+                    }
+                    listVariantsProduct.push(objVariantInProduct)
+                }
+                product.variants = listVariantsProduct
+                // product.variants[listProducts[i].products[j].variantIndex].quantity = product.variants[listProducts[i].products[j].variantIndex].quantity - listProducts[i].products[j].quantity
+                await product.save();
+            }
+
+            const newOrder = new Order({
+                products: [...lstProducts],
+                storeId: listProducts[i].storeId,
+                userId,
+                createdBy: userId,
+                totalMoney: total
+            })
+
+            // newOrder.products = [...lstProducts]
+            // newOrder.storeId = listProducts[i].storeId
+            // newOrder.shippingAddress = shippingAddress
+            // newOrder.userId = userId
+            // newOrder.createdBy = userId
+            // newOrder.totalMoney = total
+            // newOrder.transportationCost = listProducts[i].transportationCost
+
+            await newOrder.save()
+            
+            const store = await Store.findById(listProducts[i].storeId)
+            if (store) {
+                await NotificationService.sendToSingle(
+                    'Khách đặt đơn hàng',
+                    'Có một khách hàng vừa đặt đơn tại cửa hàng của bạn lúc ' + dayjs(+new Date()).locale('vi-vn').format('HH:mm DD-MM-YYYY'),
+                    store.userId,
+                    -1,
+                    { target: 'listOrder', params: { tabIndex: 0 } }
+                )
+            }
         }
     }
     // remove Cart
@@ -444,8 +569,8 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
         })
     }
 
-    for (let i = 0; i < order.products.length; i++) {        
-        if(order.products[i].reliablePrice != 0){
+    for (let i = 0; i < order.products.length; i++) {
+        if (order.products[i].reliablePrice != 0) {
             // todo: push report
             break;
         }
@@ -474,7 +599,7 @@ router.post('/cancelOrder', asyncHandler(async (req, res, next) => {
             listVariantsProduct.push(objVariantInProduct)
         }
         product.variants = listVariantsProduct
-        await product.save()        
+        await product.save()
     }
 
 
