@@ -57,7 +57,7 @@ const initIoServer = server => {
 
                             for (let i = 0; i < products.length; i++) {
                                 dbProds.forEach(dbProd => {
-                                    if (dbProd._id.toString() === prod.productId) {
+                                    if (dbProd._id.toString() === products[i].productId) {
                                         const dbProdObject = dbProd.toObject();
                                         products[i] = { ...dbProdObject, ...products[i] };
                                     }
