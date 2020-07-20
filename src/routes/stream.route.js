@@ -346,7 +346,7 @@ const convertStreamToStreamObjectWithMeta = async (stream) => {
         } else {
             productObj = prods[i].toObject()
         }
-        products.push({ ...productObj, ...streamObject.products[i] })
+        products[i] = {...streamObject.products[i], ...productObj}
     }
 
     let { products: streamProducts } = streamObject;
