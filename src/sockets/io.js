@@ -212,7 +212,7 @@ const initIoServer = server => {
                 streamSessions.set(strm.streamId, strm)
                 cb({ success: true })
                 emitToStream(strm.streamId, eventKeys.STREAM_UPDATE_STREAMPRICE, { productIndex, streamPrice })
-                emitToStream(strm.streamId, eventKeys.STREAM_MESSAGE, `Một sản phẩm vừa được giảm giá xuống còn ${streamPrice}!`)
+                emitToStream(strm.streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `Một sản phẩm vừa được giảm giá xuống còn ${streamPrice}!`))
                 console.log(`SELLER_UPDATE_STREAMPRICE: seller ${userId} updated stream price ${streamPrice} for product index ${productIndex} in stream ${strm.streamId}`)
             }
         })
