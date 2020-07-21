@@ -102,7 +102,7 @@ const initIoServer = server => {
                         }
                         stream.endTime = Number.MAX_SAFE_INTEGER
                         stream.markModified('endTime')
-                        stream.save()
+                        await stream.save()
                         //add stream to streamSessions
                         socketServices.newStreamSession(stream)
                         const streamStatusObj = toStreamStatusObject(stream)
@@ -212,6 +212,7 @@ const initIoServer = server => {
                 streamSessions.set(strm.streamId, strm)
                 cb({ success: true })
                 emitToStream(strm.streamId, eventKeys.STREAM_UPDATE_STREAMPRICE, { productIndex, streamPrice })
+                emitToStream(strm.streamId, eventKeys.STREAM_MESSAGE, `Một sản phẩm vừa được giảm giá xuống còn ${streamPrice}!`)
                 console.log(`SELLER_UPDATE_STREAMPRICE: seller ${userId} updated stream price ${streamPrice} for product index ${productIndex} in stream ${strm.streamId}`)
             }
         })
@@ -224,7 +225,10 @@ const initIoServer = server => {
                 if (productId) {
                     const result = await addProductToCart(productId, quantity, variantIndex, userId, isReliable)
                     if (result.cart) {
-                        if (isReliable) emitToStream(strm.streamId, eventKeys.STREAM_PRODUCT_QUANTITY, { productIndex, variantIndex, quantity: result.newProductQuantity })
+                        if (isReliable) {
+                            emitToStream(strm.streamId, eventKeys.STREAM_PRODUCT_QUANTITY, { productIndex, variantIndex, quantity: result.newProductQuantity })
+                            emitToStream(strm.streamId, eventKeys.STREAM_MESSAGE, `${userName} vừa chắc chắn mua ${quantity} sản phẩm!`);
+                        }
                         return cb({ success: true, message: `Đã thêm vào giỏ hàng!` })
                     }
                 }

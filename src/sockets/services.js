@@ -73,7 +73,7 @@ const removeStreamWithUserId = userId => {
     }
 }
 
-const newStreamSession = streamDbObj => {
+const newStreamSession = async streamDbObj => {
     const { _id, storeId, products } = streamDbObj
     let productSS = []
     let productIds = []
