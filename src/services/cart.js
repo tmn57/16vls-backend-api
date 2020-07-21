@@ -46,23 +46,23 @@ const addProductToCart = async (productId, quantity, variantIndex, userId, isRel
         cart.products.push(objProduct);
         await cart.save()
         return { cart, newProductQuantity: newQty }
-    }
-
-    //#ELSE: normal add product to cart
-    let isExisted = false;
-    for (let i = 0; i < cart.products.length; i++) {
-        if (cart.products[i].productId == productId && cart.products[i].variantIndex == variantIndex) {
-            isExisted = true;
-            cart.products[i].quantity = cart.products[i].quantity + quantity;
-            break;
+    } else {
+        //#ELSE: normal add product to cart
+        let isExisted = false;
+        for (let i = 0; i < cart.products.length; i++) {
+            if (cart.products[i].productId == productId && cart.products[i].variantIndex == variantIndex) {
+                isExisted = true;
+                cart.products[i].quantity = cart.products[i].quantity + quantity;
+                break;
+            }
         }
-    }
-    if (!isExisted) {
-        cart.products.push(objProduct);
-    }
+        if (!isExisted) {
+            cart.products.push(objProduct);
+        }
 
-    await cart.save()
-    return { cart }
+        await cart.save()
+        return { cart }
+    }
 }
 
 module.exports = {
