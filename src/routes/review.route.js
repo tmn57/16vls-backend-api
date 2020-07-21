@@ -79,7 +79,7 @@ router.post('/review', asyncHandler(async (req, res, next) => {
             `Điểm: ${point}. Nội dung: ${content}`,
             product.createdBy,
             -1,
-            { target: 'ratingList' });
+            { target: 'ratingList', params: { productId } });
     }
 
     return res.status(200).json({
