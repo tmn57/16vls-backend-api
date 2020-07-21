@@ -51,8 +51,9 @@ const addProductToCart = async (productId, quantity, variantIndex, userId, isRel
     } else {
         //#ELSE: normal add product to cart
         let isExisted = false;
+
         for (let i = 0; i < cart.products.length; i++) {
-            if (cart.products[i].productId == productId && cart.products[i].variantIndex == variantIndex) {
+            if (cart.products[i].reliablePrice < 1 && cart.products[i].productId == productId && cart.products[i].variantIndex == variantIndex) {
                 isExisted = true;
                 cart.products[i].quantity = cart.products[i].quantity + quantity;
                 break;
