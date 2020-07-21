@@ -3,6 +3,8 @@ const Product = require('../models/product')
 const { checkProductLiveStream } = require('./product')
 
 const addProductToCart = async (productId, quantity, variantIndex, userId, isReliable) => {
+    console.log(`event ADD_TO_CART: request obj: `, {productId, quantity, variantIndex, userId, isReliable})
+    
     const product = await Product.findById(productId)
 
     if (typeof (product.variants[variantIndex]) === 'undefined') {
@@ -27,7 +29,7 @@ const addProductToCart = async (productId, quantity, variantIndex, userId, isRel
 
     const cart = await Cart.findOne({ userId })
 
-    //#IF in valid reliable buy 
+    //#IF in valid reliable buy
     if (liveProduct !== null && isReliable) {
         const { streamId, streamPrice } = liveProduct
         reliablePrice = streamPrice

@@ -223,6 +223,7 @@ const initIoServer = server => {
             if (strm) {
                 const productId = typeof (strm.products[productIndex].productId) === 'undefined' ? null : strm.products[productIndex].productId
                 if (productId) {
+                    console.log(`user ${userId} added product to cart with isReliable = ${isReliable}`)
                     const result = await addProductToCart(productId, quantity, variantIndex, userId, isReliable)
                     if (result.cart) {
                         if (isReliable) {
