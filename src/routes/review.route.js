@@ -74,7 +74,7 @@ router.post('/review', asyncHandler(async (req, res, next) => {
     }
 
     if (product && product.createdBy) {
-        NotificationService.sendToSingle(`Một khách hàng đã đánh giá sản phẩm của bạn`, `Điểm: ${point}. Nội dung: ${content}`, product.createdBy, {target: 'ratingList'});
+        await NotificationService.sendToSingle(`Một khách hàng đã đánh giá sản phẩm của bạn`, `Điểm: ${point}. Nội dung: ${content}`, product.createdBy, -1, { target: 'ratingList' });
     }
 
     return res.status(200).json({
