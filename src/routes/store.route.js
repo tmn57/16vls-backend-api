@@ -17,8 +17,8 @@ const dayjs = require('dayjs')
 router.post('/create', asyncHandler(async (req, res, next) => {
   const { userId } = req.tokenPayload
   const { name, phone, email, address, profileLink, ownerName } = req.body
-  if (!phone || !name || !email || !address || !profileLink || !ownerName) {
-    throw createError(400, 'Tên cửa hàng, SĐT, Email, Địa chỉ, Profile Link, Tên chủ cửa hàng là bắt buộc!')
+  if (!phone || !name || !email || !address || !ownerName) {
+    throw createError(400, 'Tên cửa hàng, SĐT, Email, Địa chỉ, Tên chủ cửa hàng là bắt buộc!')
   }
   else {
 
