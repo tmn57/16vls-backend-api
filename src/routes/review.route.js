@@ -64,7 +64,7 @@ router.post('/review', asyncHandler(async (req, res, next) => {
 
     const reviews = await ReviewModel.find({ userId, productId: review.productId, point: { $gte: 0 } });
     const { productId } = review
-    const product = ProductModel.findById(productId);
+    const product = await ProductModel.findById(productId);
 
     if (reviews.length > 4) {
         if (product) {
@@ -74,7 +74,12 @@ router.post('/review', asyncHandler(async (req, res, next) => {
     }
 
     if (product && product.createdBy) {
-        await NotificationService.sendToSingle(`Một khách hàng đã đánh giá sản phẩm của bạn`, `Điểm: ${point}. Nội dung: ${content}`, product.createdBy, -1, { target: 'ratingList' });
+        await NotificationService.sendToSingle(
+            `Một khách hàng đã đánh giá sản phẩm của bạn`,
+            `Điểm: ${point}. Nội dung: ${content}`,
+            product.createdBy,
+            -1,
+            { target: 'ratingList' });
     }
 
     return res.status(200).json({
