@@ -227,7 +227,7 @@ const initIoServer = server => {
                     if (result.cart) {
                         if (isReliable) {
                             emitToStream(strm.streamId, eventKeys.STREAM_PRODUCT_QUANTITY, { productIndex, variantIndex, quantity: result.newProductQuantity })
-                            emitToStream(strm.streamId, eventKeys.STREAM_MESSAGE, `${userName} vừa chắc chắn mua ${quantity} sản phẩm!`);
+                            emitToStream(strm.streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `${userName} vừa chắc chắn mua ${quantity} sản phẩm!`));
                         }
                         return cb({ success: true, message: `Đã thêm vào giỏ hàng!` })
                     }
