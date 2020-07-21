@@ -2,7 +2,7 @@ const express = require('express');
 const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 
-const { NotificationService } = require('../services/notification');
+const NotificationService = require('../services/notification');
 const ProductModel = require('../models/product');
 const UserModel = require('../models/user');
 const ReviewModel = require('../models/review');
