@@ -212,7 +212,12 @@ const initIoServer = server => {
                 streamSessions.set(strm.streamId, strm)
                 cb({ success: true })
                 emitToStream(strm.streamId, eventKeys.STREAM_UPDATE_STREAMPRICE, { productIndex, streamPrice })
-                emitToStream(strm.streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `Một sản phẩm vừa được giảm giá xuống còn ${streamPrice}!`))
+                let formattedStreamPrice = Math.round(streamPrice).toLocaleString('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND'
+                })
+                formattedStreamPrice = formattedStreamPrice.substr(1) + formattedStreamPrice.substr(0, 1);
+                emitToStream(strm.streamId, eventKeys.STREAM_MESSAGE, toMessageObject('message', `Một sản phẩm vừa được giảm giá xuống còn ${formattedStreamPrice}!`))
                 console.log(`SELLER_UPDATE_STREAMPRICE: seller ${userId} updated stream price ${streamPrice} for product index ${productIndex} in stream ${strm.streamId}`)
             }
         })
