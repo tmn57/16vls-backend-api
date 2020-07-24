@@ -49,7 +49,7 @@ var expiredReliableProductHandlingJob = new CronJob('59 * * * * *', async () => 
     const carts = await CartModel.find({});
     carts.forEach(async cart => {
         const delProdIds = []
-        cart.products.forEach(async (product, idx) => {
+        await Promise.all(cart.products.map(async (product) => {
             if (product.reliablePrice > 0 && Date.now() > product.expiredTime) {
                 //add notification to user
                 await NotificationServices.sendToSingle(`Bạn đã hết hạn thanh toán sản phẩm chắc chắn mua`, `Việc không mua sản phẩm chắc chắn mua là vi phạm chính sách của hệ thống vì thế việc này sẽ được gửi đến Admin để giải quyết.`, cart.userId, -1)
@@ -63,7 +63,7 @@ var expiredReliableProductHandlingJob = new CronJob('59 * * * * *', async () => 
                 await newReport.save();
                 delProdIds.push(product.productId);
             }
-        })
+        }))
         //'delete' need-to-del-items in cart
         let { products } = cart
         for (let i = 0; i < delProdIds.length; i++) {
