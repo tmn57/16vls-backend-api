@@ -66,7 +66,7 @@ var expiredReliableProductHandlingJob = new CronJob('59 * * * * *', async () => 
         })
         //'delete' need-to-del-items in cart
         let { products } = cart
-        for (let i = 0; i < delProdIds; i++) {
+        for (let i = 0; i < delProdIds.length; i++) {
             for (let j = 0; j < products.length; j++) {
                 if (products[j].productId === delProdIds[i]) {
                     products.splice(i, 1);
