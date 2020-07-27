@@ -221,6 +221,7 @@ router.post('/create', asyncHandler(async (req, res, next) => {
             products: [...lstProducts],
             storeId: listProducts[i].storeId,
             userId,
+            shippingAddress,
             createdBy: userId,
             totalMoney: total
         })
