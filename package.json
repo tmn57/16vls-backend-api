@@ -14,7 +14,7 @@
     "cron": "^1.8.2",
     "dayjs": "^1.8.28",
     "dotenv": "^8.2.0",
-    "express": "~4.16.1",
+    "express": "~4.17.3",
     "express-async-errors": "^3.1.1",
     "express-async-handler": "^1.1.4",
     "firebase-admin": "^8.12.1",
